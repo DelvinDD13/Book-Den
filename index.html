@@ -1613,7 +1613,7 @@ svg.gi{width:1.05em;height:1.05em;vertical-align:-.15em;fill:currentColor;displa
 <div class="bulkbar" id="bulkbar" hidden></div>
 <div class="toast" id="toast"></div>
 <button class="gs-open" id="gs-open" title="Search every library (press /)" aria-label="Search">⌕</button>
-<script>(function(){try{window.localStorage.getItem('x');}catch(e){var m={},s={getItem:function(k){return Object.prototype.hasOwnProperty.call(m,k)?m[k]:null;},setItem:function(k,v){m[k]=String(v);},removeItem:function(k){delete m[k];},clear:function(){m={};},key:function(i){return Object.keys(m)[i]||null;}};Object.defineProperty(s,'length',{get:function(){return Object.keys(m).length;}});try{Object.defineProperty(window,'localStorage',{value:s,configurable:true});}catch(x){}try{Object.defineProperty(window,'sessionStorage',{value:s,configurable:true});}catch(x){}}})();</script><script>var SLOTS112=['weapon','offhand','head','armor','feet','trinket'];</script><script>window.DEN_STORE={"url": "https://script.google.com/macros/s/AKfycbxhY9gpaLCuiZXMIJufA1-JoYVThIKfglXglisMiPKZMMHXj3RFHnMdxAgfuN1zcMEtuQ/exec", "key": "w0fzVaKZmPNbUBMgLMSn5IDg"};window.DEN_BUILD="202610230027";</script><script>// Book Den — the Library's save lives in Delvin's own Google Sheet (Apps Script web app), not the Claude artifact db.
+<script>(function(){try{window.localStorage.getItem('x');}catch(e){var m={},s={getItem:function(k){return Object.prototype.hasOwnProperty.call(m,k)?m[k]:null;},setItem:function(k,v){m[k]=String(v);},removeItem:function(k){delete m[k];},clear:function(){m={};},key:function(i){return Object.keys(m)[i]||null;}};Object.defineProperty(s,'length',{get:function(){return Object.keys(m).length;}});try{Object.defineProperty(window,'localStorage',{value:s,configurable:true});}catch(x){}try{Object.defineProperty(window,'sessionStorage',{value:s,configurable:true});}catch(x){}}})();</script><script>var SLOTS112=['weapon','offhand','head','armor','feet','trinket'];</script><script>window.DEN_STORE={"url": "https://script.google.com/macros/s/AKfycbxhY9gpaLCuiZXMIJufA1-JoYVThIKfglXglisMiPKZMMHXj3RFHnMdxAgfuN1zcMEtuQ/exec", "key": "w0fzVaKZmPNbUBMgLMSn5IDg"};window.DEN_BUILD="202610230033";</script><script>// Book Den — the Library's save lives in Delvin's own Google Sheet (Apps Script web app), not the Claude artifact db.
 // The page already speaks the artifact db's small interface (collection('sync').get / doc(id).get / doc(id).set),
 // so this provides window.claude.use('db') with that shape, backed by the store. Everything else from claude.use() is null.
 (function () {
@@ -15751,14 +15751,14 @@ window.L9A = {"bg": {"cosmere": [{"src": "data:image/png;base64,iVBORw0KGgoAAAAN
   L10.ART = {
     'Tress of the Emerald Sea: A Cosmere Novel': [{ f: 'tress1.jpg', c: 'Tress on the spore sea · cover art' }],
     'Yumi and the Nightmare Painter: A Cosmere Novel': [
-      { f: 'yumi0.jpg', c: 'Yumi · cover art' },
+      { f: 'fires1.jpg', c: 'Yumi · cover art' },
       { f: 'yumi1.jpg', c: 'The noodle shop · Aliya Chen, Dragonsteel edition' },
       { f: 'yumi2.jpg', c: 'Yumi among the stacks · Aliya Chen, Dragonsteel edition' },
       { f: 'yumi3.jpg', c: 'In the blossoms · Aliya Chen, Dragonsteel edition' },
       { f: 'yumi4.jpg', c: 'Learning to paint · Aliya Chen, Dragonsteel edition' },
       { f: 'yumi5.jpg', c: 'Aliya Chen, Dragonsteel edition' },
       { f: 'yumi6.jpg', c: 'Aliya Chen, Dragonsteel edition' }],
-    'The Fires of December': [{ f: 'fires1.jpg', c: 'Cover art' }]
+    'The Fires of December': [{ f: 'yumi0.jpg', c: 'December · cover art' }]
   };
   L10.src = a => (window.BOOKART_DATA && window.BOOKART_DATA[a.f]) || (P + a.f);
   // The Fires of December: on Audible, not in the import yet → register it as a Cosmere standalone.
@@ -15769,7 +15769,7 @@ window.L9A = {"bg": {"cosmere": [{"src": "data:image/png;base64,iVBORw0KGgoAAAAN
       Object.assign(META[t], { author: 'Brandon Sanderson', year: '2026', series: "Hoid's Travails", num: '3', synopsis: META[t].synopsis || 'A standalone Cosmere novel told by Hoid, set on Miral: a forgotten land kept alive by rivers of demon blood while a plague closes on the kingdom.' });
       const g = 'Cosmere Standalones'; VIEWS.genre[g] = VIEWS.genre[g] || []; if (!VIEWS.genre[g].some(x => x.title === t)) { VIEWS.genre[g].push({ title: t }); VIEWS.genre[g].sort((a, b) => a.title.localeCompare(b.title)); }
       if (typeof GENRE_OF !== 'undefined' && !GENRE_OF[t]) GENRE_OF[t] = g;
-      if (typeof ART !== 'undefined' && !ART[t] && !(typeof COVERS !== 'undefined' && COVERS[t])) ART[t] = L10.src({ f: 'fires1.jpg' });
+      if (typeof ART !== 'undefined' && !ART[t] && !(typeof COVERS !== 'undefined' && COVERS[t])) ART[t] = L10.src({ f: 'yumi0.jpg' });
       if (typeof SERIES_OF !== 'undefined' && !SERIES_OF[t]) SERIES_OF[t] = "Hoid's Travails";
       // he started it Oct 20 (his words); seed once, never overwrite a status he set
       if (typeof CAN_EDIT === 'undefined' || CAN_EDIT) { const o = getOverride(t); if (!o.status && !o.l10seed) setOverride(t, { status: 'currently-reading', started: '2026-10-20', progress: 0, l10seed: 1 }); }
