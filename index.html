@@ -1613,7 +1613,7 @@ svg.gi{width:1.05em;height:1.05em;vertical-align:-.15em;fill:currentColor;displa
 <div class="bulkbar" id="bulkbar" hidden></div>
 <div class="toast" id="toast"></div>
 <button class="gs-open" id="gs-open" title="Search every library (press /)" aria-label="Search">⌕</button>
-<script>(function(){try{window.localStorage.getItem('x');}catch(e){var m={},s={getItem:function(k){return Object.prototype.hasOwnProperty.call(m,k)?m[k]:null;},setItem:function(k,v){m[k]=String(v);},removeItem:function(k){delete m[k];},clear:function(){m={};},key:function(i){return Object.keys(m)[i]||null;}};Object.defineProperty(s,'length',{get:function(){return Object.keys(m).length;}});try{Object.defineProperty(window,'localStorage',{value:s,configurable:true});}catch(x){}try{Object.defineProperty(window,'sessionStorage',{value:s,configurable:true});}catch(x){}}})();</script><script>var SLOTS112=['weapon','offhand','head','armor','feet','trinket'];</script><script>window.DEN_STORE={"url": "https://script.google.com/macros/s/AKfycbxhY9gpaLCuiZXMIJufA1-JoYVThIKfglXglisMiPKZMMHXj3RFHnMdxAgfuN1zcMEtuQ/exec", "key": "w0fzVaKZmPNbUBMgLMSn5IDg"};window.DEN_BUILD="202610222359";</script><script>// Book Den — the Library's save lives in Delvin's own Google Sheet (Apps Script web app), not the Claude artifact db.
+<script>(function(){try{window.localStorage.getItem('x');}catch(e){var m={},s={getItem:function(k){return Object.prototype.hasOwnProperty.call(m,k)?m[k]:null;},setItem:function(k,v){m[k]=String(v);},removeItem:function(k){delete m[k];},clear:function(){m={};},key:function(i){return Object.keys(m)[i]||null;}};Object.defineProperty(s,'length',{get:function(){return Object.keys(m).length;}});try{Object.defineProperty(window,'localStorage',{value:s,configurable:true});}catch(x){}try{Object.defineProperty(window,'sessionStorage',{value:s,configurable:true});}catch(x){}}})();</script><script>var SLOTS112=['weapon','offhand','head','armor','feet','trinket'];</script><script>window.DEN_STORE={"url": "https://script.google.com/macros/s/AKfycbxhY9gpaLCuiZXMIJufA1-JoYVThIKfglXglisMiPKZMMHXj3RFHnMdxAgfuN1zcMEtuQ/exec", "key": "w0fzVaKZmPNbUBMgLMSn5IDg"};window.DEN_BUILD="202610230020";</script><script>// Book Den — the Library's save lives in Delvin's own Google Sheet (Apps Script web app), not the Claude artifact db.
 // The page already speaks the artifact db's small interface (collection('sync').get / doc(id).get / doc(id).set),
 // so this provides window.claude.use('db') with that shape, backed by the store. Everything else from claude.use() is null.
 (function () {
@@ -15811,6 +15811,18 @@ window.L9A = {"bg": {"cosmere": [{"src": "data:image/png;base64,iVBORw0KGgoAAAAN
     if (e.target.closest('.l10-p')) L10.open(t, i - 1); else if (e.target.closest('.l10-q')) L10.open(t, i + 1); else if (e.target.closest('.l10-x') || e.target === LB) L10.close();
   }, true);
   document.addEventListener('keydown', e => { if (!LB) return; const t = LB.dataset.t, i = parseInt(LB.dataset.i, 10); if (e.key === 'Escape') L10.close(); else if (e.key === 'ArrowLeft') L10.open(t, i - 1); else if (e.key === 'ArrowRight') L10.open(t, i + 1); });
+})();
+// ===== the dragon flies again: the manga skin (l7) hid the hero's .sky; bring it back over the art panels =====
+(function () { const c = document.createElement('style'); c.id = 'l10sky'; c.textContent =
+  'html body header.hero .sky{display:block!important;position:absolute;left:0;right:0;top:0;height:142px!important;pointer-events:none;z-index:2;overflow:hidden}html body header.hero .l7-mast{z-index:4}' +
+  'html body header.hero .sky .dragon.pix{--dsc:.62;top:8px!important}'; document.head.appendChild(c); })();
+// ===== app mode: the sheet's ✕ sat under the notch; move it below the safe area, make it bigger, and add a thumb-reach Close bar =====
+(function () { const c = document.createElement('style'); c.id = 'l10sheet'; c.textContent =
+  '#sheet .sheet-panel{padding-top:calc(22px + env(safe-area-inset-top,0px))!important;padding-bottom:calc(26px + env(safe-area-inset-bottom,0px))!important}' +
+  '#sheet .sheet-close{top:calc(10px + env(safe-area-inset-top,0px))!important;width:48px!important;height:48px!important;font-size:22px!important}' +
+  '.l10-close{position:sticky;bottom:calc(-26px - env(safe-area-inset-bottom,0px));display:block;width:100%;margin:18px 0 0;padding:14px 0 calc(14px + env(safe-area-inset-bottom,0px));border:3px solid var(--line7,#f4ead6);background:#ffd23f;color:#0c0b0d;font-family:\'Anton\',Impact,sans-serif;font-size:18px;letter-spacing:.08em;text-transform:uppercase;box-shadow:4px 4px 0 var(--red7,#e3262f);z-index:5}';
+  document.head.appendChild(c);
+  const _rs = renderSheet; renderSheet = function () { const r = _rs.apply(this, arguments); try { const p = sheet.querySelector('.sheet-panel'); if (p && !p.querySelector('.l10-close')) { const b = document.createElement('button'); b.className = 'l10-close'; b.type = 'button'; b.textContent = 'Close'; b.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); closeSheet(); }); p.appendChild(b); } } catch (e) {} return r; };
 })();
 
 
