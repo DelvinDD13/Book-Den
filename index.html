@@ -1613,7 +1613,7 @@ svg.gi{width:1.05em;height:1.05em;vertical-align:-.15em;fill:currentColor;displa
 <div class="bulkbar" id="bulkbar" hidden></div>
 <div class="toast" id="toast"></div>
 <button class="gs-open" id="gs-open" title="Search every library (press /)" aria-label="Search">⌕</button>
-<script>(function(){try{window.localStorage.getItem('x');}catch(e){var m={},s={getItem:function(k){return Object.prototype.hasOwnProperty.call(m,k)?m[k]:null;},setItem:function(k,v){m[k]=String(v);},removeItem:function(k){delete m[k];},clear:function(){m={};},key:function(i){return Object.keys(m)[i]||null;}};Object.defineProperty(s,'length',{get:function(){return Object.keys(m).length;}});try{Object.defineProperty(window,'localStorage',{value:s,configurable:true});}catch(x){}try{Object.defineProperty(window,'sessionStorage',{value:s,configurable:true});}catch(x){}}})();</script><script>var SLOTS112=['weapon','offhand','head','armor','feet','trinket'];</script><script>window.DEN_STORE={"url": "https://script.google.com/macros/s/AKfycbxhY9gpaLCuiZXMIJufA1-JoYVThIKfglXglisMiPKZMMHXj3RFHnMdxAgfuN1zcMEtuQ/exec", "key": "w0fzVaKZmPNbUBMgLMSn5IDg"};window.DEN_BUILD="202610230101";</script><script>// Book Den — the Library's save lives in Delvin's own Google Sheet (Apps Script web app), not the Claude artifact db.
+<script>(function(){try{window.localStorage.getItem('x');}catch(e){var m={},s={getItem:function(k){return Object.prototype.hasOwnProperty.call(m,k)?m[k]:null;},setItem:function(k,v){m[k]=String(v);},removeItem:function(k){delete m[k];},clear:function(){m={};},key:function(i){return Object.keys(m)[i]||null;}};Object.defineProperty(s,'length',{get:function(){return Object.keys(m).length;}});try{Object.defineProperty(window,'localStorage',{value:s,configurable:true});}catch(x){}try{Object.defineProperty(window,'sessionStorage',{value:s,configurable:true});}catch(x){}}})();</script><script>var SLOTS112=['weapon','offhand','head','armor','feet','trinket'];</script><script>window.DEN_STORE={"url": "https://script.google.com/macros/s/AKfycbxhY9gpaLCuiZXMIJufA1-JoYVThIKfglXglisMiPKZMMHXj3RFHnMdxAgfuN1zcMEtuQ/exec", "key": "w0fzVaKZmPNbUBMgLMSn5IDg"};window.DEN_BUILD="202610230118";</script><script>// Book Den — the Library's save lives in Delvin's own Google Sheet (Apps Script web app), not the Claude artifact db.
 // The page already speaks the artifact db's small interface (collection('sync').get / doc(id).get / doc(id).set),
 // so this provides window.claude.use('db') with that shape, backed by the store. Everything else from claude.use() is null.
 (function () {
@@ -15847,14 +15847,20 @@ window.L11I={"house": "<path d=\"M217.9,110.1l-80-80a14,14,0,0,0-19.8,0l-80,80A1
   const CVK = t => 'cv:' + t;
   const cvGet = t => { try { return getOverride(CVK(t)) || {}; } catch (e) { return {}; } };
   const _ci = coverInner;
+  const hue = t => { let h = 0; for (let i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) >>> 0; return h % 360; };
+  const badCover = t => { const c = typeof COVERS !== 'undefined' && COVERS[t]; return !c || !!(c.lowres || c.upscaled); };
+  L11.ph = t => '<div class="d-ph" data-cvt="' + enc(t) + '" style="--h:' + hue(t) + '"><b>' + esc(mainT(t)) + '</b>' + (authorFor(t) ? '<i>' + esc(authorFor(t)) + '</i>' : '') + '</div>';
   coverInner = function (t, big) {
+    if (typeof ART !== 'undefined' && ART[t] && !(typeof COVERS !== 'undefined' && COVERS[t])) return _ci.apply(this, arguments).replace(/^<(img|div) /, '<$1 data-cvt="' + enc(t) + '" ');
     const c = cvGet(t);
     if (c.url && !L11._bad[c.url]) return '<img src="' + esc(c.url) + '" alt="" loading="lazy" decoding="async" data-cvt="' + enc(t) + '" onerror="L11.cvBad(this)">';
+    if (!(typeof ART !== 'undefined' && ART[t] && badCover(t)) && badCover(t)) { L11.ensure(t); return L11.ph(t); }
+    if (big) L11.ensure(t);
     const h = _ci.apply(this, arguments);
     return h.replace(/^<(img|div) /, '<$1 data-cvt="' + enc(t) + '" ');
   };
   L11._bad = {};
-  L11.cvBad = function (el) { try { el.onerror = null; const t = decodeURIComponent(el.dataset.cvt || ''); const c = cvGet(t); if (c.url) L11._bad[c.url] = 1; el.outerHTML = _ci(t); } catch (e) {} };
+  L11.cvBad = function (el) { try { el.onerror = null; const t = decodeURIComponent(el.dataset.cvt || ''); const c = cvGet(t); if (c.url) L11._bad[c.url] = 1; el.outerHTML = badCover(t) ? L11.ph(t) : _ci(t); } catch (e) {} };
   function swapCovers(t, url) { document.querySelectorAll('[data-cvt="' + enc(t) + '"]').forEach(el => { if (el.tagName === 'IMG') { if (el.getAttribute('src') !== url) el.src = url; } else el.outerHTML = '<img src="' + esc(url) + '" alt="" loading="lazy" data-cvt="' + enc(t) + '" onerror="L11.cvBad(this)">'; }); }
   let seq = 0;
   function jsonp(url) { return new Promise((res, rej) => { const cb = '__l11cb' + (++seq); const s = document.createElement('script'); const to = setTimeout(() => { done(); rej(new Error('timeout')); }, 12000);
@@ -15870,8 +15876,9 @@ window.L11I={"house": "<path d=\"M217.9,110.1l-80-80a14,14,0,0,0-19.8,0l-80,80A1
     const s = (typeof SERIES_OF !== 'undefined' && SERIES_OF[t]) || ''; const a = authorFor(t);
     const words = mainT(t).split(/\s+/).length; const term = mainT(t) + ' ' + (a ? a.split(' ').pop() : (words < 3 ? s : ''));
     const base = 'https://itunes.apple.com/search?country=us&limit=10&term=' + encodeURIComponent(term.trim());
-    try { const d = await jsonp(base + '&media=ebook&entity=ebook'); const r = pick(t, d.results, 'trackName'); if (r) return { url: big(r.artworkUrl100, '1000x1500bb'), src: 'apple-books' }; } catch (e) { if (L11._jsonpDead) throw e; }
-    try { const d = await jsonp(base + '&media=audiobook&entity=audiobook'); const r = pick(t, d.results, 'collectionName'); if (r) return { url: big(r.artworkUrl100, '1200x1200bb'), src: 'apple-audiobooks' }; } catch (e) {}
+    let appleOk = Date.now() >= apPauseTil;
+    if (appleOk) { try { await L11.appleGate(); const d = await jsonp(base + '&media=ebook&entity=ebook'); L11.appleResult(true); const r = pick(t, d.results, 'trackName'); if (r) return { url: big(r.artworkUrl100, '1000x1500bb'), src: 'apple-books' }; } catch (e) { L11.appleResult(false); appleOk = false; } }
+    if (appleOk) { try { await L11.appleGate(); const d = await jsonp(base + '&media=audiobook&entity=audiobook'); L11.appleResult(true); const r = pick(t, d.results, 'collectionName'); if (r) return { url: big(r.artworkUrl100, '1200x1200bb'), src: 'apple-audiobooks' }; } catch (e) { L11.appleResult(false); } }
     try { const q = 'https://openlibrary.org/search.json?fields=title,author_name,cover_i,edition_count&limit=8&title=' + encodeURIComponent(mainT(t)) + (a ? '&author=' + encodeURIComponent(a) : '');
       const r = await fetch(q); if (r.ok) { const j = await r.json(); const want = norm(mainT(t)); const docs = (j.docs || []).filter(x => x.cover_i && norm(x.title).startsWith(want)).sort((x, y) => (y.edition_count || 0) - (x.edition_count || 0)); if (docs[0]) return { url: 'https://covers.openlibrary.org/b/id/' + docs[0].cover_i + '-L.jpg', src: 'openlibrary' }; } } catch (e) {}
     return null;
@@ -15885,17 +15892,26 @@ window.L11I={"house": "<path d=\"M217.9,110.1l-80-80a14,14,0,0,0-19.8,0l-80,80A1
     return need.sort((x, y) => rank(x) - rank(y));
   }
   L11.queue = queue;
-  let busy = false, Q = null, qAt = 0;
-  async function step() {
-    if (busy || document.hidden || !canEdit() || L11._jsonpDead) return; if (typeof SYNC82 !== 'undefined' && SYNC82.state === 'wait') return;
-    if (!Q || Date.now() - qAt > 10 * 60000) { Q = queue(); qAt = Date.now(); } const t = Q.shift(); if (!t) return;
-    busy = true; try { const r = await resolve(t); if (r) { setOverride(CVK(t), { url: r.url, src: r.src, at: Date.now(), miss: null }); swapCovers(t, r.url); L11.found = (L11.found || 0) + 1; }
-      else setOverride(CVK(t), { miss: 1, at: Date.now() }); L11._fails = 0; }
-    catch (e) { L11._fails = (L11._fails || 0) + 1; if (L11._fails >= 4) L11._jsonpDead = true; Q.unshift(t); }
-    finally { busy = false; }
-  }
-  L11.coverStep = step;
-  setTimeout(() => { step(); setInterval(step, 3400); }, 6000);
+  // pacing: Apple allows about 20 calls a minute, so one call every 3.3 s; Open Library runs unpaced
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  let apAt = 0, apFails = 0, apPauseTil = 0; const STAT = { ok: 0, miss: 0, err: 0 };
+  L11.appleGate = async () => { if (Date.now() < apPauseTil) throw new Error('paused'); const w = apAt - Date.now(); apAt = Math.max(Date.now(), apAt) + 3300; if (w > 0) await sleep(w); };
+  L11.appleResult = ok => { if (ok) apFails = 0; else if (++apFails >= 4) { apPauseTil = Date.now() + 10 * 60000; apFails = 0; } };
+  let Q = null, qAt = 0; const PRI = []; const taken = new Set();
+  const artOnly = t => typeof ART !== 'undefined' && ART[t] && !(typeof COVERS !== 'undefined' && COVERS[t]);
+  L11.ensure = t => { if (!t || taken.has(t) || cvGet(t).url || artOnly(t)) return; if (!PRI.includes(t)) PRI.push(t); };
+  function next() { while (PRI.length) { const t = PRI.shift(); if (!taken.has(t) && !cvGet(t).url) return t; } if (!Q || Date.now() - qAt > 10 * 60000) { Q = queue(); qAt = Date.now(); } while (Q.length) { const t = Q.shift(); if (!taken.has(t)) return t; } return null; }
+  let statAt = 0; function stat(force) { if (!canEdit()) return; if (!force && Date.now() - statAt < 30000) return; statAt = Date.now(); try { setOverride('cvstat', { ok: STAT.ok, miss: STAT.miss, err: STAT.err, apple: Date.now() < apPauseTil ? 'paused' : 'ok', at: Date.now() }); } catch (e) {} }
+  async function worker() { for (;;) {
+    if (document.hidden || !canEdit() || (typeof SYNC82 !== 'undefined' && SYNC82.state === 'wait')) { await sleep(1500); continue; }
+    const t = next(); if (!t) { await sleep(20000); continue; } taken.add(t);
+    try { const r = await resolve(t); if (r) { setOverride(CVK(t), { url: r.url, src: r.src, at: Date.now(), miss: null }); swapCovers(t, r.url); STAT.ok++; } else { setOverride(CVK(t), { miss: 1, at: Date.now() }); STAT.miss++; } }
+    catch (e) { STAT.err++; taken.delete(t); await sleep(4000); }
+    stat(); } }
+  L11.coverStep = async () => { const t = next(); if (!t) return; taken.add(t); const r = await resolve(t); if (r) { setOverride(CVK(t), { url: r.url, src: r.src, at: Date.now(), miss: null }); swapCovers(t, r.url); } else setOverride(CVK(t), { miss: 1, at: Date.now() }); };
+  L11.startCovers = () => { if (L11._started) return; L11._started = 1; worker(); worker(); };
+  setTimeout(L11.startCovers, 800);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) stat(true); });
 
   // ================= 2) header + tab bar =================
   const TABS = { life: ['house', 'Home'], books: ['book-open', 'Books'], journey: ['map-trifold', 'Journey'], steel: ['barbell', 'Steel'], screen: ['television-simple', 'TV & Games'], inventory: ['package', 'Inventory'] };
@@ -15960,7 +15976,7 @@ window.L11I={"house": "<path d=\"M217.9,110.1l-80-80a14,14,0,0,0-19.8,0l-80,80A1
 
   // ================= 5) tone down every loud rule =================
   const LOUD_BG = /#e3262f|#c1272d|#ffd23f|#ffd54a|#2fd27a|#f4ead6|#fff\b|#ffffff|var\(--(red7|gold7|cream7|paper|red)\)|rgb\(227, 38, 47\)|rgb\(255, 210, 63\)|rgb\(244, 234, 214\)|rgb\(47, 210, 122\)|rgb\(255, 255, 255\)|#27399a|#0d1660/i;
-  const DARK_TX = /^(#0c0b0d|#000|#000000|#111|#0c0b0d!important|rgb\(12, 11, 13\)|rgb\(0, 0, 0\)|#1a1a1a)$/i;
+  const DARK_TX = /^(#0c0b0d|#000|#000000|#111|#0c0b0d!important|rgb\(12, 11, 13\)|rgb\(0, 0, 0\)|#1a1a1a|var\(--ink7\))$/i;
   const SKIP = /\b(l9-ly|l9-trav|l9-gym|l9-fire|l9-ground|dragon|dsprite|fire|l10-lb|d-|l8-lay|l8-dash|l8-trav|l8-fire|ember|gi\b|l5-p|j5-plate|plate)/;
   function tone() { const out = [];
     [...document.styleSheets].forEach(ss => { const id = ss.ownerNode && ss.ownerNode.id; if (id === 'l11css' || id === 'l11tone' || id === 'l11fonts' || id === 'fonts') return; let rules; try { rules = ss.cssRules; } catch (e) { return; }
@@ -15969,7 +15985,12 @@ window.L11I={"house": "<path d=\"M217.9,110.1l-80-80a14,14,0,0,0-19.8,0l-80,80A1
         if (/skew/.test(s.transform)) fix.push('transform:none');
         const bg = s.background || s.backgroundColor || s.backgroundImage; if (bg && LOUD_BG.test(bg) && !/url\(/.test(bg)) fix.push(/gradient/.test(bg) && /exp|bar|fill|prog/.test(sel) ? 'background:var(--d-acc)' : 'background:var(--d-bg2)');
         if (s.color && DARK_TX.test(s.color.trim())) fix.push('color:var(--d-ink)');
-        const bw = parseFloat(s.borderWidth || s.borderTopWidth || 0); if (bw >= 2 && !/l9-|l8-route/.test(sel)) fix.push('border-width:1px', 'border-color:var(--d-line)');
+        const bstr = [s.border, s.borderTop, s.borderBottom, s.borderLeft, s.borderRight, s.borderWidth, s.borderTopWidth, s.borderBottomWidth].join(' ');
+        if (/(^|\s)([2-9]|1[0-9])px/.test(bstr) && !/l9-|l8-route/.test(sel)) fix.push('border-width:1px', 'border-color:var(--d-line)');
+        if (/(^|\s)([2-9]|1[0-9])px/.test(s.outline || '') && !/l9-/.test(sel)) fix.push('outline:none');
+        if (s.color && /#e3262f|#c1272d|var\(--red7\)|rgb\(227, 38, 47\)/i.test(s.color)) fix.push('color:var(--d-ink)');
+        if (s.color && /#ffd23f|#ffd54a|var\(--gold7\)|#e8c36a|rgb\(255, 210, 63\)/i.test(s.color)) fix.push('color:var(--d-acc)');
+        const bg2 = s.background || s.backgroundColor; if (bg2 && /var\(--(ink7|panel7|paper7)\)|#0c0b0d|#1c1a1f|#0e1426|#141216/i.test(bg2) && !/url\(|gradient/.test(bg2)) fix.push('background:var(--d-bg2)');
         if (/Anton/.test(s.fontFamily)) fix.push('letter-spacing:.04em');
         if (/uppercase/.test(s.textTransform) && /Anton/.test(s.fontFamily) && parseFloat(s.fontSize) >= 18) fix.push('text-transform:none', 'font-family:Fraunces,serif', 'font-weight:500', 'letter-spacing:0');
         if (fix.length) out.push('html body.den ' + sel.split(',').map(x => x.trim().replace(/^html body\s*/, '')).join(',html body.den ') + '{' + fix.map(f => f + '!important').join(';') + '}'); });
@@ -15992,7 +16013,7 @@ html body.den header.hero .sky .dragon.pix{width:calc(64px * var(--dsc,1))!impor
 .d-top{display:flex;justify-content:space-between;font:600 12px 'Anton',sans-serif;letter-spacing:.14em!important;text-transform:uppercase;color:var(--d-mute)}
 .d-head h1{font-family:'Fraunces',serif!important;font-weight:400!important;font-size:30px!important;line-height:1.15!important;letter-spacing:-.01em!important;margin:6px 0 0!important;color:var(--d-ink)!important;text-transform:none!important;background:none!important;-webkit-text-stroke:0!important;text-shadow:none!important}
 /* tab bar */
-html body.den nav#libs{position:fixed!important;left:0!important;right:0!important;bottom:0!important;top:auto!important;z-index:150!important;display:flex!important;gap:0!important;margin:0!important;padding:6px 4px calc(6px + env(safe-area-inset-bottom))!important;background:rgba(20,17,15,.94)!important;backdrop-filter:blur(14px)!important;-webkit-backdrop-filter:blur(14px)!important;border:0!important;border-top:1px solid var(--d-line)!important;overflow:visible!important}
+html body.den nav#libs.libs.libs.libs{position:fixed!important;left:0!important;right:0!important;bottom:0!important;top:auto!important;z-index:150!important;display:flex!important;gap:0!important;margin:0!important;padding:6px 4px calc(6px + env(safe-area-inset-bottom))!important;background:rgba(20,17,15,.94)!important;backdrop-filter:blur(14px)!important;-webkit-backdrop-filter:blur(14px)!important;border:0!important;border-top:1px solid var(--d-line)!important;overflow:visible!important}
 html body.den nav#libs button[data-lib]{flex:1 1 0!important;min-width:0!important;display:flex!important;flex-direction:column!important;align-items:center!important;gap:3px!important;padding:6px 0 2px!important;margin:0!important;background:none!important;border:0!important;color:var(--d-mute)!important;transform:none!important;height:auto!important;min-height:0!important}
 html body.den nav#libs button[data-lib] span.d-tl{display:block!important;font:500 10.5px 'Barlow',sans-serif!important;letter-spacing:0!important;text-transform:none!important;white-space:nowrap}
 html body.den nav#libs button[data-lib].active{color:var(--d-ink)!important;background:none!important}
@@ -16122,14 +16143,36 @@ html body.den .l3-yr b{font:500 24px 'Fraunces',serif!important;color:var(--d-in
 html body.den .l3-yr span{font:400 11px 'Barlow',sans-serif!important;text-transform:none!important;letter-spacing:0!important;color:var(--d-mute)!important}
 html body.den nav#libs button[data-lib].active span.d-tl,html body.den nav#libs button[data-lib].active{color:var(--d-ink)!important;opacity:1!important}
 html body.den nav#libs button[data-lib] .d-ti{color:inherit}
+html body.den .d-ph{width:100%;height:100%;display:flex;flex-direction:column;justify-content:flex-end;gap:4px;padding:10% 9%;background:linear-gradient(160deg,hsl(var(--h) 22% 22%),hsl(var(--h) 18% 12%));text-align:left;overflow:hidden}
+html body.den .d-ph b{font:500 13px/1.15 'Fraunces',serif;color:var(--d-ink);display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+html body.den .d-ph i{font:400 10px 'Barlow',sans-serif;font-style:normal;color:rgba(239,230,216,.6)}
+html body.den .d-hc .d-ph b,html body.den .d-nc .d-ph b{font-size:19px}html body.den .d-hc .d-ph i,html body.den .d-nc .d-ph i{font-size:12px}
+html body.den .d-row.sm .d-ph b{font-size:9.5px}html body.den .d-row.sm .d-ph i{display:none}
+html body.den .l8-st-h small{display:none!important}
+html body.den .l8-st-row{gap:18px!important}
+html body.den .l8-seal b{font:500 12px/1.25 'Barlow',sans-serif!important;color:var(--d-ink)!important;margin-top:6px}
+html body.den .l8-seal small{font:400 11px 'Barlow',sans-serif!important;color:var(--d-mute)!important}
+/* other tabs, by hand */
+html body.den .j5-hero .j5-k,html body.den .j5-hero>h2{display:none!important}
+html body.den .j5-hero{background:none!important;border:0!important;padding:0!important;margin:0 0 12px!important}
+html body.den .l9-stage{border:0!important;outline:0!important;border-radius:12px!important;box-shadow:none!important}
+html body.den .l9-ribbon{background:none!important;border:0!important;transform:none!important;box-shadow:none!important;margin:8px 0 0!important;padding:0!important;width:100%!important;color:var(--d-ink)!important}
+html body.den .libhead{outline:0!important;background:var(--d-bg2)!important;background-image:none!important;border:1px solid var(--d-line)!important;border-radius:14px!important;box-shadow:none!important}
+html body.den .libhead *{text-shadow:none!important}
+html body.den .libhead .libbar-top span{font:500 12px 'Barlow',sans-serif!important;letter-spacing:0!important;text-transform:none!important;color:var(--d-mute)!important}
+html body.den .exp-card{background:var(--d-bg2)!important;background-image:none!important;border:1px solid var(--d-line)!important;border-radius:14px!important;box-shadow:none!important}
+html body.den .exp-rank{font:500 22px 'Fraunces',serif!important;text-transform:none!important;letter-spacing:0!important;color:var(--d-ink)!important}
+html body.den .exp-card [class*=fill],html body.den .libhead [class*=fill]{background:var(--d-acc)!important;background-image:none!important}
+html body.den .exp-card [class*=bar]:not([class*=top]){border:0!important;border-radius:3px!important;background-color:rgba(239,230,216,.1)!important;height:6px!important;overflow:hidden}
 /* toasts and bursts quiet */
+html body.den .l9-cred,html body.den .credits,html body.den [class*=cred]{font:400 11px 'Barlow',sans-serif!important;color:rgba(239,230,216,.35)!important}
 html body.den #toast{text-transform:none!important;letter-spacing:0!important;background:var(--d-bg3)!important;color:var(--d-ink)!important;border:1px solid var(--d-line)!important;border-radius:12px!important;font:500 14px 'Barlow',sans-serif!important;bottom:calc(84px + env(safe-area-inset-bottom))!important}
 html body.den #l7-burst{display:none!important}
 /* the walk and the dragon move even with Reduce Motion on */
 @media (prefers-reduced-motion:reduce){html body.den .l9-trav.walk{animation:l9walk .8s steps(7,jump-none) infinite!important}html body.den .l9-fire{animation:l9walk .45s steps(2,jump-none) infinite!important}html body.den .l9-ground{animation:l9g .9s linear infinite!important}html body.den .l9-stage:not(.camp) .l9-ly{animation-play-state:running!important}html body.den header.hero .sky .dragon.pix{animation:fly 26s linear infinite!important}}
 `; document.head.appendChild(css);
 
-  (function () { const _t = toast; toast = function (msg) { try { let m = String(msg || ''); if (/·/.test(m)) { const parts = m.split('·').map(x => x.trim()).filter(x => x && !/\bgil\b|\bxp\b|wind|rain|storm|fog|heat|clear skies/i.test(x)); m = parts.join(' · '); } if (!m || /^lifestyle updated$/i.test(m)) return; return _t.call(this, m); } catch (e) { return _t.apply(this, arguments); } }; })();
+  (function () { const _t = toast; toast = function (msg) { try { let m = String(msg || ''); if (/·/.test(m)) { const parts = m.split('·').map(x => x.trim()).filter(x => x && !/\bgil\b|\bxp\b|wind|rain|storm|fog|heat|clear skies/i.test(x)); m = parts.join(' · '); } if (!m || /^(lifestyle|books|steel|tv & games|journey|inventory|home) updated\b/i.test(m)) return; return _t.call(this, m); } catch (e) { return _t.apply(this, arguments); } }; })();
   // boot
   const boot = () => { try { tone(); } catch (e) { console.warn('l11 tone', e); } try { L11.nav(); L11.head(); } catch (e) {} };
   if (document.readyState === 'complete') boot(); else window.addEventListener('load', boot);
