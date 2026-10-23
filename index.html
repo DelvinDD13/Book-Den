@@ -1613,7 +1613,7 @@ svg.gi{width:1.05em;height:1.05em;vertical-align:-.15em;fill:currentColor;displa
 <div class="bulkbar" id="bulkbar" hidden></div>
 <div class="toast" id="toast"></div>
 <button class="gs-open" id="gs-open" title="Search every library (press /)" aria-label="Search">⌕</button>
-<script>(function(){try{window.localStorage.getItem('x');}catch(e){var m={},s={getItem:function(k){return Object.prototype.hasOwnProperty.call(m,k)?m[k]:null;},setItem:function(k,v){m[k]=String(v);},removeItem:function(k){delete m[k];},clear:function(){m={};},key:function(i){return Object.keys(m)[i]||null;}};Object.defineProperty(s,'length',{get:function(){return Object.keys(m).length;}});try{Object.defineProperty(window,'localStorage',{value:s,configurable:true});}catch(x){}try{Object.defineProperty(window,'sessionStorage',{value:s,configurable:true});}catch(x){}}})();</script><script>var SLOTS112=['weapon','offhand','head','armor','feet','trinket'];</script><script>window.DEN_STORE={"url": "https://script.google.com/macros/s/AKfycbxhY9gpaLCuiZXMIJufA1-JoYVThIKfglXglisMiPKZMMHXj3RFHnMdxAgfuN1zcMEtuQ/exec", "key": "w0fzVaKZmPNbUBMgLMSn5IDg"};window.DEN_BUILD="202610230118";</script><script>// Book Den — the Library's save lives in Delvin's own Google Sheet (Apps Script web app), not the Claude artifact db.
+<script>(function(){try{window.localStorage.getItem('x');}catch(e){var m={},s={getItem:function(k){return Object.prototype.hasOwnProperty.call(m,k)?m[k]:null;},setItem:function(k,v){m[k]=String(v);},removeItem:function(k){delete m[k];},clear:function(){m={};},key:function(i){return Object.keys(m)[i]||null;}};Object.defineProperty(s,'length',{get:function(){return Object.keys(m).length;}});try{Object.defineProperty(window,'localStorage',{value:s,configurable:true});}catch(x){}try{Object.defineProperty(window,'sessionStorage',{value:s,configurable:true});}catch(x){}}})();</script><script>var SLOTS112=['weapon','offhand','head','armor','feet','trinket'];</script><script>window.DEN_STORE={"url": "https://script.google.com/macros/s/AKfycbxhY9gpaLCuiZXMIJufA1-JoYVThIKfglXglisMiPKZMMHXj3RFHnMdxAgfuN1zcMEtuQ/exec", "key": "w0fzVaKZmPNbUBMgLMSn5IDg"};window.DEN_BUILD="202610230950";</script><script>// Book Den — the Library's save lives in Delvin's own Google Sheet (Apps Script web app), not the Claude artifact db.
 // The page already speaks the artifact db's small interface (collection('sync').get / doc(id).get / doc(id).set),
 // so this provides window.claude.use('db') with that shape, backed by the store. Everything else from claude.use() is null.
 (function () {
@@ -15909,7 +15909,26 @@ window.L11I={"house": "<path d=\"M217.9,110.1l-80-80a14,14,0,0,0-19.8,0l-80,80A1
     catch (e) { STAT.err++; taken.delete(t); await sleep(4000); }
     stat(); } }
   L11.coverStep = async () => { const t = next(); if (!t) return; taken.add(t); const r = await resolve(t); if (r) { setOverride(CVK(t), { url: r.url, src: r.src, at: Date.now(), miss: null }); swapCovers(t, r.url); } else setOverride(CVK(t), { miss: 1, at: Date.now() }); };
-  L11.startCovers = () => { if (L11._started) return; L11._started = 1; worker(); worker(); };
+
+  // ---- game covers: Wikipedia (lead image, any licence) then the App Store ----
+  const GK = t => 'cv:game:' + t;
+  const gameList = () => (typeof GAMES !== 'undefined' ? GAMES : []).map(g => g.t);
+  function applyGameArt() { try { if (typeof ART === 'undefined') return 0; let n = 0; gameList().forEach(t => { const o = getOverride(GK(t)) || {}; if (o.url && ART['game:' + t] !== o.url) { ART['game:' + t] = o.url; n++; } }); return n; } catch (e) { return 0; } }
+  L11.applyGameArt = applyGameArt;
+  async function resolveGame(t) {
+    const q = String(t).replace(/\s*\((?:[^()]*)\)\s*$/, '').replace(/[’]/g, "'");
+    try { const u = 'https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrlimit=5&gsrsearch=' + encodeURIComponent(q + ' video game') + '&prop=pageimages&piprop=original|thumbnail&pithumbsize=900&pilicense=any';
+      const r = await fetch(u); if (r.ok) { const j = await r.json(); const pages = Object.values((j.query || {}).pages || {}).sort((a, b) => (a.index || 0) - (b.index || 0)); const want = norm(q).split(' ').slice(0, 2).join(' ');
+        const hit = pages.find(pg => norm(pg.title).startsWith(want) && (pg.original || pg.thumbnail)); if (hit) { const src = (hit.thumbnail || hit.original).source; if (!/\.svg/i.test(src)) return { url: src, src: 'wikipedia' }; } } } catch (e) {}
+    try { await L11.appleGate(); const d = await jsonp('https://itunes.apple.com/search?country=us&limit=5&media=software&term=' + encodeURIComponent(q)); L11.appleResult(true); const want = norm(q).split(' ').slice(0, 2).join(' '); const r = (d.results || []).find(x => norm(x.trackName).startsWith(want)); if (r && (r.artworkUrl512 || r.artworkUrl100)) return { url: big(r.artworkUrl512 || r.artworkUrl100, '1024x1024bb'), src: 'app-store' }; } catch (e) { L11.appleResult(false); }
+    return null; }
+  async function gameWorker() { await sleep(1500); for (const t of gameList()) { const o = getOverride(GK(t)) || {}; if (o.url || (o.miss && Date.now() - (o.at || 0) < 7 * 864e5)) continue; while (document.hidden || !canEdit() || (typeof SYNC82 !== 'undefined' && SYNC82.state === 'wait')) await sleep(1500);
+      const r = await resolveGame(t); if (r) setOverride(GK(t), { url: r.url, src: r.src, at: Date.now(), miss: null }); else setOverride(GK(t), { miss: 1, at: Date.now() });
+      if (applyGameArt() && typeof currentLib !== 'undefined' && currentLib === 'screen' && typeof renderGamesLib === 'function') { try { renderGamesLib(); } catch (e) {} } } }
+  // whatever scrolls into view gets looked up next
+  const seenIO = 'IntersectionObserver' in window ? new IntersectionObserver(es => es.forEach(en => { if (!en.isIntersecting) return; const t = decodeURIComponent(en.target.dataset.cvt || ''); if (t && !cvGet(t).url) L11.ensure(t); seenIO.unobserve(en.target); }), { rootMargin: '200px' }) : null;
+  if (seenIO) new MutationObserver(() => { document.querySelectorAll('[data-cvt]:not([data-io])').forEach(el => { el.dataset.io = 1; seenIO.observe(el); }); }).observe(document.body, { childList: true, subtree: true });
+  L11.startCovers = () => { if (L11._started) return; L11._started = 1; worker(); worker(); gameWorker(); };
   setTimeout(L11.startCovers, 800);
   document.addEventListener('visibilitychange', () => { if (document.hidden) stat(true); });
 
@@ -16174,10 +16193,11 @@ html body.den #l7-burst{display:none!important}
 
   (function () { const _t = toast; toast = function (msg) { try { let m = String(msg || ''); if (/·/.test(m)) { const parts = m.split('·').map(x => x.trim()).filter(x => x && !/\bgil\b|\bxp\b|wind|rain|storm|fog|heat|clear skies/i.test(x)); m = parts.join(' · '); } if (!m || /^(lifestyle|books|steel|tv & games|journey|inventory|home) updated\b/i.test(m)) return; return _t.call(this, m); } catch (e) { return _t.apply(this, arguments); } }; })();
   // boot
-  const boot = () => { try { tone(); } catch (e) { console.warn('l11 tone', e); } try { L11.nav(); L11.head(); } catch (e) {} };
+  const boot = () => { try { if (applyGameArt() && typeof currentLib !== 'undefined' && currentLib === 'screen') renderGamesLib(); } catch (e) {} try { tone(); } catch (e) { console.warn('l11 tone', e); } try { L11.nav(); L11.head(); } catch (e) {} };
   if (document.readyState === 'complete') boot(); else window.addEventListener('load', boot);
   setTimeout(boot, 1200);
   setInterval(() => { try { L11.head(); } catch (e) {} }, 60000);
+  setInterval(() => { try { if (applyGameArt() && currentLib === 'screen') renderGamesLib(); } catch (e) {} }, 15000);
 })();
 
 
