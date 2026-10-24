@@ -1613,7 +1613,7 @@ svg.gi{width:1.05em;height:1.05em;vertical-align:-.15em;fill:currentColor;displa
 <div class="bulkbar" id="bulkbar" hidden></div>
 <div class="toast" id="toast"></div>
 <button class="gs-open" id="gs-open" title="Search every library (press /)" aria-label="Search">⌕</button>
-<script>(function(){try{window.localStorage.getItem('x');}catch(e){var m={},s={getItem:function(k){return Object.prototype.hasOwnProperty.call(m,k)?m[k]:null;},setItem:function(k,v){m[k]=String(v);},removeItem:function(k){delete m[k];},clear:function(){m={};},key:function(i){return Object.keys(m)[i]||null;}};Object.defineProperty(s,'length',{get:function(){return Object.keys(m).length;}});try{Object.defineProperty(window,'localStorage',{value:s,configurable:true});}catch(x){}try{Object.defineProperty(window,'sessionStorage',{value:s,configurable:true});}catch(x){}}})();</script><script>var SLOTS112=['weapon','offhand','head','armor','feet','trinket'];</script><script>window.DEN_STORE={"url": "https://script.google.com/macros/s/AKfycbxhY9gpaLCuiZXMIJufA1-JoYVThIKfglXglisMiPKZMMHXj3RFHnMdxAgfuN1zcMEtuQ/exec", "key": "w0fzVaKZmPNbUBMgLMSn5IDg"};window.DEN_BUILD="202610232134";</script><script>// Book Den — the Library's save lives in Delvin's own Google Sheet (Apps Script web app), not the Claude artifact db.
+<script>(function(){try{window.localStorage.getItem('x');}catch(e){var m={},s={getItem:function(k){return Object.prototype.hasOwnProperty.call(m,k)?m[k]:null;},setItem:function(k,v){m[k]=String(v);},removeItem:function(k){delete m[k];},clear:function(){m={};},key:function(i){return Object.keys(m)[i]||null;}};Object.defineProperty(s,'length',{get:function(){return Object.keys(m).length;}});try{Object.defineProperty(window,'localStorage',{value:s,configurable:true});}catch(x){}try{Object.defineProperty(window,'sessionStorage',{value:s,configurable:true});}catch(x){}}})();</script><script>var SLOTS112=['weapon','offhand','head','armor','feet','trinket'];</script><script>window.DEN_STORE={"url": "https://script.google.com/macros/s/AKfycbxhY9gpaLCuiZXMIJufA1-JoYVThIKfglXglisMiPKZMMHXj3RFHnMdxAgfuN1zcMEtuQ/exec", "key": "w0fzVaKZmPNbUBMgLMSn5IDg"};window.DEN_BUILD="202610232141";</script><script>// Book Den — the Library's save lives in Delvin's own Google Sheet (Apps Script web app), not the Claude artifact db.
 // The page already speaks the artifact db's small interface (collection('sync').get / doc(id).get / doc(id).set),
 // so this provides window.claude.use('db') with that shape, backed by the store. Everything else from claude.use() is null.
 (function () {
@@ -16233,15 +16233,22 @@ html body.den #l7-burst{display:none!important}
     setOverride('absnap', { at: meta.at, pct, fin }); return n; }
 
   // ---- Goodreads ----
-  function goodreads() { const meta = O('gr:meta'); if (!meta.at) return 0; const seen = O('grsnap'); if (seen.at === meta.at) return 0; const first = !seen.at; const prev = seen.ids || {}; const ids = {}; let n = 0;
+  function goodreads() { const meta = O('gr:meta'); if (!meta.at) return 0; const seen = O('grsnap'); if (seen.at === meta.at) return 0; const first = !seen.at; const prev = seen.ids || {}; const ids = {}; let n = 0; const since = seen.since || (() => { const d = new Date(); d.setDate(d.getDate() - 3); return d.toISOString().slice(0, 10); })();
     ['read', 'currently-reading', 'to-read'].forEach(shelf => { items('gr:' + shelf + ':').forEach(([id, title, author, readAt, rating]) => { ids[id] = shelf; const t = find(title, id); if (!t) return;
-      if (shelf === 'read') { if (readAt) { if (finish(t, readAt, 'goodreads')) n++; } else if (!first && prev[id] && prev[id] !== 'read') { if (finish(t, today0(), 'goodreads')) n++; } if (rating > 0 && !O(t).myRating) { setOverride(t, { myRating: rating }); n++; } }
+      if (shelf === 'read') { const moved = !first && prev[id] !== 'read'; if (readAt && (readAt >= since || moved)) { if (finish(t, readAt, 'goodreads')) n++; } else if (moved && !readAt) { if (finish(t, today0(), 'goodreads')) n++; } if (rating > 0 && !O(t).myRating) { setOverride(t, { myRating: rating }); n++; } }
       else if (shelf === 'currently-reading' && !first && prev[id] !== 'currently-reading') { if (listening(t, 0, 'goodreads')) n++; } }); });
-    setOverride('grsnap', { at: meta.at, ids }); return n; }
+    setOverride('grsnap', { at: meta.at, ids, since }); return n; }
 
   // ---- Apple Health ----
+  const toNum = v => { if (typeof v === 'number') return v; const n = parseFloat(String(v == null ? '' : v).replace(/,/g, '').replace(/[^0-9.\-]/g, ' ').trim().split(/\s+/)[0]); return isFinite(n) ? n : 0; };
+  const toMin = v => { if (typeof v === 'number') return v > 1440 ? v / 60 : (v > 0 && v < 24 ? v * 60 : v); const s = String(v || '').toLowerCase();
+    if (/\d+:\d+/.test(s)) { const p = s.match(/(\d+):(\d+)(?::(\d+))?/); return (+p[1]) * 60 + (+p[2]) + (+(p[3] || 0)) / 60; }
+    const h = s.match(/([\d.]+)\s*(h|hr|hour)/), m = s.match(/([\d.]+)\s*(m|min)/); if (h || m) return (h ? +h[1] * 60 : 0) + (m ? +m[1] : 0); return toMin(toNum(s)); };
+  const prevDay = d => { const x = new Date(d + 'T12:00:00'); x.setDate(x.getDate() - 1); return x.toISOString().slice(0, 10); };
   function health() { const R = rows('hk:'); if (!R.length) return 0; const st = Object.assign({}, (O('steps').days) || {}); const sl = Object.assign({}, (O('sleepd').nights) || {}); let ds = 0, dn = 0;
-    R.forEach(k => { const d = k.slice(3); const x = O(k); if (x.steps > (+st[d] || 0)) { st[d] = Math.round(x.steps); ds++; } if (x.sleep_min > 0 && !(sl[d] && sl[d].h)) { sl[d] = { h: Math.round(x.sleep_min / 6) / 10, s: null, src: 'health' }; dn++; } });
+    const put = (d, n) => { n = Math.round(toNum(n)); if (n > 0 && n < 200000 && n > (+st[d] || 0)) { st[d] = n; ds++; } };
+    R.forEach(k => { const d = k.slice(3); if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return; const x = O(k); put(d, x.steps); if (x.ysteps != null) put(prevDay(d), x.ysteps);
+      const m = toMin(x.sleep_min != null ? x.sleep_min : x.sleep); if (m > 60 && m < 1200 && !(sl[d] && sl[d].h)) { sl[d] = { h: Math.round(m / 6) / 10, s: null, src: 'health' }; dn++; } });
     if (ds) setOverride('steps', { days: st, synced: today0() }); if (dn) setOverride('sleepd', { nights: sl, synced: today0() }); return ds + dn; }
 
   // a title that isn't in the library yet (bought after the import)

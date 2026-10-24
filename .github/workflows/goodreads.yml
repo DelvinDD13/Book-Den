@@ -1,0 +1,30 @@
+name: Goodreads sync
+on:
+  workflow_dispatch:
+  push:
+    paths: [".github/workflows/goodreads.yml", "sync/goodreads.py"]
+  schedule:
+    - cron: "41 */6 * * *"
+permissions:
+  contents: write
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read shelves and save to Book Den
+        env:
+          GR_RSS: ${{ vars.GR_RSS }}
+          DEN_STORE_URL: https://script.google.com/macros/s/AKfycbxhY9gpaLCuiZXMIJufA1-JoYVThIKfglXglisMiPKZMMHXj3RFHnMdxAgfuN1zcMEtuQ/exec
+          DEN_KEY: w0fzVaKZmPNbUBMgLMSn5IDg
+        run: |
+          if [ -z "$GR_RSS" ]; then echo "no Goodreads link yet"; exit 0; fi
+          python sync/goodreads.py
+      - name: Keep the schedule alive
+        if: ${{ github.event_name == 'schedule' }}
+        run: |
+          if [ "$(date +%d%H)" = "0100" ] || [ "$(date +%d%H)" = "0101" ]; then
+            date -u +%FT%TZ > .heartbeat
+            git config user.name "Book Den"; git config user.email "delvindavis13@yahoo.com"
+            git add .heartbeat && git commit -m "heartbeat" && git push || true
+          fi
