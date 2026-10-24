@@ -1613,7 +1613,7 @@ svg.gi{width:1.05em;height:1.05em;vertical-align:-.15em;fill:currentColor;displa
 <div class="bulkbar" id="bulkbar" hidden></div>
 <div class="toast" id="toast"></div>
 <button class="gs-open" id="gs-open" title="Search every library (press /)" aria-label="Search">⌕</button>
-<script>(function(){try{window.localStorage.getItem('x');}catch(e){var m={},s={getItem:function(k){return Object.prototype.hasOwnProperty.call(m,k)?m[k]:null;},setItem:function(k,v){m[k]=String(v);},removeItem:function(k){delete m[k];},clear:function(){m={};},key:function(i){return Object.keys(m)[i]||null;}};Object.defineProperty(s,'length',{get:function(){return Object.keys(m).length;}});try{Object.defineProperty(window,'localStorage',{value:s,configurable:true});}catch(x){}try{Object.defineProperty(window,'sessionStorage',{value:s,configurable:true});}catch(x){}}})();</script><script>var SLOTS112=['weapon','offhand','head','armor','feet','trinket'];</script><script>window.DEN_STORE={"url": "https://script.google.com/macros/s/AKfycbxhY9gpaLCuiZXMIJufA1-JoYVThIKfglXglisMiPKZMMHXj3RFHnMdxAgfuN1zcMEtuQ/exec", "key": "w0fzVaKZmPNbUBMgLMSn5IDg"};window.DEN_BUILD="202610230950";</script><script>// Book Den — the Library's save lives in Delvin's own Google Sheet (Apps Script web app), not the Claude artifact db.
+<script>(function(){try{window.localStorage.getItem('x');}catch(e){var m={},s={getItem:function(k){return Object.prototype.hasOwnProperty.call(m,k)?m[k]:null;},setItem:function(k,v){m[k]=String(v);},removeItem:function(k){delete m[k];},clear:function(){m={};},key:function(i){return Object.keys(m)[i]||null;}};Object.defineProperty(s,'length',{get:function(){return Object.keys(m).length;}});try{Object.defineProperty(window,'localStorage',{value:s,configurable:true});}catch(x){}try{Object.defineProperty(window,'sessionStorage',{value:s,configurable:true});}catch(x){}}})();</script><script>var SLOTS112=['weapon','offhand','head','armor','feet','trinket'];</script><script>window.DEN_STORE={"url": "https://script.google.com/macros/s/AKfycbxhY9gpaLCuiZXMIJufA1-JoYVThIKfglXglisMiPKZMMHXj3RFHnMdxAgfuN1zcMEtuQ/exec", "key": "w0fzVaKZmPNbUBMgLMSn5IDg"};window.DEN_BUILD="202610232134";</script><script>// Book Den — the Library's save lives in Delvin's own Google Sheet (Apps Script web app), not the Claude artifact db.
 // The page already speaks the artifact db's small interface (collection('sync').get / doc(id).get / doc(id).set),
 // so this provides window.claude.use('db') with that shape, backed by the store. Everything else from claude.use() is null.
 (function () {
@@ -16198,6 +16198,67 @@ html body.den #l7-burst{display:none!important}
   setTimeout(boot, 1200);
   setInterval(() => { try { L11.head(); } catch (e) {} }, 60000);
   setInterval(() => { try { if (applyGameArt() && currentLib === 'screen') renderGamesLib(); } catch (e) {} }, 15000);
+})();
+
+// ===== L12: outside sources land in the library — Audible (daily job), Goodreads (shelf feeds), Apple Health (Shortcut).
+// The store holds raw rows (ab:*, gr:*, hk:*). This applies them on open. Rules: never downgrade a finished book, never touch DNF,
+// never stamp a finish date that isn't real — a book only becomes Finished with its real date, or with today's date when the flip
+// happened since the last check (first run only records a baseline).
+(function () {
+  const L12 = window.L12 = {};
+  const today0 = () => today();
+  const can = () => typeof CAN_EDIT === 'undefined' || CAN_EDIT;
+  const O = k => { try { return getOverride(k) || {}; } catch (e) { return {}; } };
+  const nT = s => { try { return normT(s); } catch (e) { return String(s || '').toLowerCase(); } };
+  let byNorm = null, byGr = null;
+  function maps() { byNorm = {}; byGr = {}; (typeof ALL_TITLES !== 'undefined' ? ALL_TITLES : []).forEach(t => { if (/^(show|game|cv|hk|ab|gr):/.test(t)) return; const n = nT(t); if (!byNorm[n] || (O(t).status && !O(byNorm[n]).status)) byNorm[n] = t; const g = O(t).grId; if (g) byGr[String(g)] = t; }); }
+  const find = (title, grId) => { if (!byNorm) maps(); if (grId && byGr[String(grId)]) return byGr[String(grId)]; if (typeof ALL_TITLES !== 'undefined' && ALL_TITLES.includes(title)) return title; return byNorm[nT(title)] || null; };
+  L12.find = (t, g) => find(t, g);
+  const rows = prefix => Object.keys(typeof OVERRIDES !== 'undefined' ? OVERRIDES : {}).filter(k => k.startsWith(prefix)).sort();
+  const items = prefix => rows(prefix).reduce((a, k) => a.concat(O(k).items || []), []);
+  const log = [];
+  function finish(t, date, src) { const o = O(t); if (o.status === 'read' || o.status === 'dnf') return false; setOverride(t, { status: 'read', finished: date, progress: 100, src }); log.push('finished ' + t.split(':')[0] + ' (' + src + ')'); return true; }
+  function listening(t, pct, src) { const o = O(t); if (o.status === 'read' || o.status === 'dnf') return false; const p = Math.max(0, Math.min(99, Math.round(pct || 0)));
+    if (o.status === 'currently-reading') { if (p && p !== o.progress) { setOverride(t, { progress: p, src }); return true; } return false; }
+    setOverride(t, { status: 'currently-reading', started: o.started || today0(), progress: p, src }); log.push('listening ' + t.split(':')[0] + ' (' + src + ')'); return true; }
+
+  // ---- Audible ----
+  function audible() { const meta = O('ab:meta'); if (!meta.at) return 0; const seen = O('absnap'); if (seen.at === meta.at) return 0;
+    const L = items('ab:lib:'); if (!L.length) return 0; const first = !seen.at; const prevPct = seen.pct || {}, prevFin = seen.fin || {}; const pct = {}, fin = {}; let n = 0;
+    L.forEach(([asin, title, author, isFin, p, status, fdate]) => { pct[asin] = p; if (isFin) fin[asin] = 1; let t = find(title);
+      if (!t && (isFin || p > 0)) { t = L12.addTitle(title, author, 'New on Audible'); }
+      if (!t) return;
+      if (isFin) { if (fdate) { if (finish(t, fdate, 'audible')) n++; } else if (!first && !prevFin[asin]) { if (finish(t, today0(), 'audible')) n++; } return; }
+      if (p > 0 && (first ? O(t).status === 'currently-reading' : p > (prevPct[asin] || 0))) { if (listening(t, p, 'audible')) n++; } });
+    setOverride('absnap', { at: meta.at, pct, fin }); return n; }
+
+  // ---- Goodreads ----
+  function goodreads() { const meta = O('gr:meta'); if (!meta.at) return 0; const seen = O('grsnap'); if (seen.at === meta.at) return 0; const first = !seen.at; const prev = seen.ids || {}; const ids = {}; let n = 0;
+    ['read', 'currently-reading', 'to-read'].forEach(shelf => { items('gr:' + shelf + ':').forEach(([id, title, author, readAt, rating]) => { ids[id] = shelf; const t = find(title, id); if (!t) return;
+      if (shelf === 'read') { if (readAt) { if (finish(t, readAt, 'goodreads')) n++; } else if (!first && prev[id] && prev[id] !== 'read') { if (finish(t, today0(), 'goodreads')) n++; } if (rating > 0 && !O(t).myRating) { setOverride(t, { myRating: rating }); n++; } }
+      else if (shelf === 'currently-reading' && !first && prev[id] !== 'currently-reading') { if (listening(t, 0, 'goodreads')) n++; } }); });
+    setOverride('grsnap', { at: meta.at, ids }); return n; }
+
+  // ---- Apple Health ----
+  function health() { const R = rows('hk:'); if (!R.length) return 0; const st = Object.assign({}, (O('steps').days) || {}); const sl = Object.assign({}, (O('sleepd').nights) || {}); let ds = 0, dn = 0;
+    R.forEach(k => { const d = k.slice(3); const x = O(k); if (x.steps > (+st[d] || 0)) { st[d] = Math.round(x.steps); ds++; } if (x.sleep_min > 0 && !(sl[d] && sl[d].h)) { sl[d] = { h: Math.round(x.sleep_min / 6) / 10, s: null, src: 'health' }; dn++; } });
+    if (ds) setOverride('steps', { days: st, synced: today0() }); if (dn) setOverride('sleepd', { nights: sl, synced: today0() }); return ds + dn; }
+
+  // a title that isn't in the library yet (bought after the import)
+  L12.addTitle = function (title, author, group) { try { if (!title) return null; if (!META[title]) META[title] = {}; if (author && !META[title].author) META[title].author = author;
+      VIEWS.genre[group] = VIEWS.genre[group] || []; if (!VIEWS.genre[group].some(x => x.title === title)) VIEWS.genre[group].push({ title }); if (!ORDERS.genre.includes(group)) ORDERS.genre.push(group);
+      if (!ALL_TITLES.includes(title)) ALL_TITLES.push(title); if (typeof GENRE_OF !== 'undefined' && !GENRE_OF[title]) GENRE_OF[title] = group; byNorm = null; return title; } catch (e) { return null; } };
+  // titles added on earlier runs are registered again on every open
+  function restoreAdded() { try { const L = items('ab:lib:'); L.forEach(([asin, title, author, isFin, p]) => { if (!find(title) && (isFin || p > 0)) L12.addTitle(title, author, 'New on Audible'); }); } catch (e) {} }
+
+  L12.run = function () { if (!can()) return 0; if (typeof SYNC82 !== 'undefined' && SYNC82.state === 'wait') return 0; maps(); restoreAdded(); log.length = 0; let n = 0;
+    try { n += audible(); } catch (e) { console.warn('l12 audible', e); } try { n += goodreads(); } catch (e) { console.warn('l12 goodreads', e); } try { n += health(); } catch (e) { console.warn('l12 health', e); }
+    if (n) { try { memoClear(); } catch (e) {} try { L4.clear(); } catch (e) {} try { if (currentLib === 'life' && typeof renderLife === 'function') renderLife(); else if (currentLib === 'books' && typeof renderTabContent === 'function') renderTabContent(); } catch (e) {}
+      const fins = log.filter(x => x.startsWith('finished')).length, lis = log.filter(x => x.startsWith('listening')).length; const parts = []; if (fins) parts.push(fins + ' finished'); if (lis) parts.push(lis + ' now listening'); if (parts.length) try { toast('From Audible and Goodreads: ' + parts.join(', ')); } catch (e) {} }
+    L12.last = log.slice(); return n; };
+  let tries = 0; const tick = () => { if (typeof SYNC82 !== 'undefined' && SYNC82.state === 'wait' && tries++ < 60) return setTimeout(tick, 1000); L12.run(); };
+  setTimeout(tick, 1500); setInterval(() => { if (!document.hidden) L12.run(); }, 5 * 60000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) setTimeout(L12.run, 2500); });
 })();
 
 
