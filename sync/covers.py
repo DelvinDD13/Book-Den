@@ -14,6 +14,9 @@ MIN_W = 320
 UA = {'User-Agent': 'BookDen/1.0 (+https://delvindd13.github.io/Book-Den/)'}
 RANK = {'apple-books': 5, 'itunes-movies': 5, 'jikan': 4, 'tvmaze': 4, 'apple-audiobooks': 4, 'google-books': 3, 'wikipedia': 2, 'app-store': 2, 'openlibrary': 1}
 log = lambda *a: print(*a, flush=True)
+ERR = {}
+def err(src, e):
+    ERR.setdefault(src, []).append(str(e)[:120]); log('  %s err %s' % (src, str(e)[:120]))
 
 def get(url, timeout=25, binary=False):
     r = urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=timeout)
@@ -51,7 +54,7 @@ def ok_image(url):
 def apple(term, media, entity, name_key, title, author):
     pace('apple', 3.1)
     try: d = get('https://itunes.apple.com/search?country=us&limit=10&media=%s&entity=%s&term=%s' % (media, entity, urllib.parse.quote(term)))
-    except Exception as e: log('  apple err', e); return None
+    except Exception as e: err('apple', e); return None
     want = norm(main_title(title)); a = norm(author); last_n = a.split()[-1] if a else ''
     ok = []
     for r in d.get('results', []):
@@ -68,7 +71,7 @@ def google_books(title, author):
     pace('google', 1.0)
     q = 'intitle:' + main_title(title) + ((' inauthor:' + author.split(',')[0]) if author else '')
     try: d = get('https://www.googleapis.com/books/v1/volumes?maxResults=5&printType=books&q=' + urllib.parse.quote(q))
-    except Exception as e: log('  google err', e); return None
+    except Exception as e: err('google', e); return None
     for it in d.get('items', []):
         vi = it.get('volumeInfo', {}); links = vi.get('imageLinks') or {}
         if not starts(vi.get('title'), main_title(title)): continue
@@ -81,7 +84,7 @@ def google_books(title, author):
 def open_library(title, author):
     pace('ol', 0.6)
     try: d = get('https://openlibrary.org/search.json?fields=title,author_name,cover_i,edition_count&limit=8&title=%s%s' % (urllib.parse.quote(main_title(title)), ('&author=' + urllib.parse.quote(author.split(',')[0])) if author else ''))
-    except Exception as e: log('  ol err', e); return None
+    except Exception as e: err('ol', e); return None
     want = norm(main_title(title))
     docs = sorted([x for x in d.get('docs', []) if x.get('cover_i') and norm(x.get('title')).startswith(want)], key=lambda x: -(x.get('edition_count') or 0))
     return ('https://covers.openlibrary.org/b/id/%s-L.jpg' % docs[0]['cover_i']) if docs else None
@@ -107,7 +110,7 @@ def clean_show(t):
 def wiki(q, hint):
     pace('wiki', 0.5)
     try: d = get('https://en.wikipedia.org/w/api.php?action=query&format=json&generator=search&gsrlimit=5&gsrsearch=%s&prop=pageimages&piprop=original|thumbnail&pithumbsize=900&pilicense=any' % urllib.parse.quote(q + ' ' + hint))
-    except Exception as e: log('  wiki err', e); return None
+    except Exception as e: err('wiki', e); return None
     pages = sorted((d.get('query') or {}).get('pages', {}).values(), key=lambda p: p.get('index', 0))
     for p in pages:
         if not starts(p.get('title'), q): continue
@@ -128,22 +131,25 @@ def show(t, kind):
                 if any(starts(n, q) for n in names if n):
                     im = (a.get('images') or {}).get('jpg', {}); u = im.get('large_image_url') or im.get('image_url')
                     if u: cands.append(('jikan', u)); break
-        except Exception as e: log('  jikan err', e)
+        except Exception as e: err('jikan', e)
     if kind == 'movie':
         pace('apple', 3.1)
         try:
             d = get('https://itunes.apple.com/search?country=us&limit=8&media=movie&entity=movie&term=' + urllib.parse.quote(q))
             rs = sorted([m for m in d.get('results', []) if m.get('artworkUrl100') and starts(m.get('trackName'), q)], key=lambda m: len(norm(m.get('trackName'))))
             if rs: cands.append(('itunes-movies', re.sub(r'/[0-9]+x[0-9]+[a-z]*(-[0-9]+)?\.(jpg|png|webp)$', '/600x900bb.jpg', rs[0]['artworkUrl100'])))
-        except Exception as e: log('  itunes err', e)
+        except Exception as e: err('itunes-movies', e)
     if kind in ('tv', 'cartoon', 'anime'):
         pace('tvmaze', 0.6)
         try:
             d = get('https://api.tvmaze.com/singlesearch/shows?q=' + urllib.parse.quote(q))
             if d and d.get('image') and starts(d.get('name'), q): cands.append(('tvmaze', d['image'].get('original') or d['image'].get('medium')))
-        except Exception as e: pass
+        except Exception as e: err('tvmaze', e)
     u = wiki(q, 'film' if kind == 'movie' else 'anime' if kind == 'anime' else 'TV series')
     if u: cands.append(('wikipedia', u))
+    if not u: u = wiki(q, '');
+    if u and ('wikipedia', u) not in cands: cands.append(('wikipedia', u))
+    if kind == 'movie': cands.sort(key=lambda c: 0 if c[0] == 'wikipedia' else 1)
     for src, u in cands:
         wh = ok_image(u)
         if wh: return {'url': u, 'src': src, 'w': wh[0], 'h': wh[1]}
@@ -207,13 +213,14 @@ def main():
             n_fix += 1 if old.get('url') else 0; n_new += 0 if old.get('url') else 1
             log('%4d %-60s %s %dx%d' % (i, k[:60], r['src'], r['w'], r['h']))
         elif not r and not old.get('url'):
-            out[k] = {'u': int(time.time() * 1000), 'j': json.dumps({'miss': 1, 'at': int(time.time() * 1000)})}; n_miss += 1
+            out[k] = {'u': int(time.time() * 1000), 'j': json.dumps({'miss': 1, 'at': int(time.time() * 1000), 'job': 1})}; n_miss += 1
             log('%4d %-60s miss' % (i, k[:60]))
         else: n_keep += 1
         if len(out) >= 60: flush()
         if time.time() - t0 > 5.3 * 3600: log('time cap'); break
     flush()
-    store_post({'cvjob': {'u': int(time.time() * 1000), 'j': json.dumps({'at': int(time.time() * 1000), 'new': n_new, 'fixed': n_fix, 'kept': n_keep, 'miss': n_miss, 'jobs': len(jobs)})}})
+    diag = {k: {'n': len(v), 'first': v[:3]} for k, v in ERR.items()}
+    store_post({'cvjob': {'u': int(time.time() * 1000), 'j': json.dumps({'at': int(time.time() * 1000), 'new': n_new, 'fixed': n_fix, 'kept': n_keep, 'miss': n_miss, 'jobs': len(jobs), 'only': only, 'errs': diag})[:45000]}})
     log('done: new', n_new, 'fixed', n_fix, 'kept', n_keep, 'miss', n_miss)
 
 if __name__ == '__main__': main()

@@ -1,6 +1,10 @@
 name: covers
 on:
   workflow_dispatch:
+    inputs:
+      only:
+        description: all | books | shows | games
+        default: all
   push:
     paths: [sync/covers.py, sync/titles.json, .github/workflows/covers.yml]
   schedule:
@@ -20,7 +24,7 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install pillow
-      - run: python sync/covers.py all
+      - run: python sync/covers.py ${{ github.event.inputs.only || 'all' }}
         env:
           DEN_STORE_URL: https://script.google.com/macros/s/AKfycbxhY9gpaLCuiZXMIJufA1-JoYVThIKfglXglisMiPKZMMHXj3RFHnMdxAgfuN1zcMEtuQ/exec
           DEN_KEY: w0fzVaKZmPNbUBMgLMSn5IDg
