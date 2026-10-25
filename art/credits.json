@@ -1,0 +1,236 @@
+[
+ {
+  "id": "hokusai-dragon",
+  "title": "Matsuri Yatai ceiling dragon (1844)",
+  "artist": "Katsushika Hokusai",
+  "license": "Public domain",
+  "page": "https://commons.wikimedia.org/wiki/File:Hokusai_Dragon.jpg",
+  "w": 1600,
+  "h": 1600
+ },
+ {
+  "id": "hokusai-fuji-dragon",
+  "title": "Dragon ascending Mount Fuji (1835)",
+  "artist": "Katsushika Hokusai",
+  "license": "Public domain",
+  "page": "https://commons.wikimedia.org/wiki/File:Dragon_ascending_Mount_Fuji,_Katsushika_Hokusai.jpg",
+  "w": 1100,
+  "h": 773
+ },
+ {
+  "id": "rackham-fafnir",
+  "title": "Siegfried kills Fafnir (1911)",
+  "artist": "Arthur Rackham",
+  "license": "Public domain",
+  "page": "https://commons.wikimedia.org/wiki/File:Siegfried_kills_Fafnir.jpg",
+  "w": 1280,
+  "h": 920
+ },
+ {
+  "id": "rackham-fafner-hoard",
+  "title": "In dragon's form Fafner now watches the hoard (1911)",
+  "artist": "Arthur Rackham",
+  "license": "Public domain",
+  "page": "https://commons.wikimedia.org/wiki/File:Siegfried_and_the_Twilight_of_the_Gods_p_022.jpg",
+  "w": 1123,
+  "h": 1600
+ },
+ {
+  "id": "rackham-sigurd",
+  "title": "Sigurd pierced him with his sword (1901)",
+  "artist": "Arthur Rackham",
+  "license": "Public domain",
+  "page": "https://commons.wikimedia.org/wiki/File:Sigurd_pierced_him_with_his_sword_(1901)_by_Arthur_Rackham.jpg",
+  "w": 1162,
+  "h": 1600
+ },
+ {
+  "id": "dore-leviathan",
+  "title": "Destruction of Leviathan (1865)",
+  "artist": "Gustave Dor\u00e9",
+  "license": "Public domain",
+  "page": "https://commons.wikimedia.org/wiki/File:Destruction_of_Leviathan.png",
+  "w": 1267,
+  "h": 1600
+ },
+ {
+  "id": "dore-lucifer",
+  "title": "Lucifer, King of Hell (Inferno XXXIV)",
+  "artist": "Gustave Dor\u00e9",
+  "license": "Public domain",
+  "page": "https://commons.wikimedia.org/wiki/File:DVinfernoLuciferKingOfHell_m.jpg",
+  "w": 1600,
+  "h": 1258
+ },
+ {
+  "id": "dore-dragon-divider",
+  "title": "Dragon page column separator (1883)",
+  "artist": "Gustave Dor\u00e9",
+  "license": "Public domain",
+  "page": "https://commons.wikimedia.org/wiki/File:Gustave_Dor%C3%A9_-_dragon_page_column_separator.jpg",
+  "w": 654,
+  "h": 1362
+ },
+ {
+  "id": "nielsen-lindworm",
+  "title": "She saw the Lindworm for the first time (1914)",
+  "artist": "Kay Nielsen",
+  "license": "Public domain (US)",
+  "page": "https://commons.wikimedia.org/wiki/File:Kay_Nielsen_-_East_of_the_sun_and_west_of_the_moon_-_She_saw_the_Lindworm_for_the_first_time.jpg",
+  "w": 585,
+  "h": 800
+ },
+ {
+  "id": "nielsen-wood",
+  "title": "Green patch in the gloomy wood (1914)",
+  "artist": "Kay Nielsen",
+  "license": "Public domain (US)",
+  "page": "https://commons.wikimedia.org/wiki/File:Illustration_by_Kay_Nielsen_2.jpg",
+  "w": 762,
+  "h": 1024
+ },
+ {
+  "id": "nielsen-battle",
+  "title": "The Lad in the Battle (1914)",
+  "artist": "Kay Nielsen",
+  "license": "Public domain (US)",
+  "page": "https://commons.wikimedia.org/wiki/File:Kay_Nielsen_-_East_of_the_sun_and_west_of_the_moon_-_the_widow%27s_son-_the_Lad_in_the_Battle.jpg",
+  "w": 588,
+  "h": 800
+ },
+ {
+  "id": "chenrong-dragon",
+  "title": "The Dragon (Song dynasty)",
+  "artist": "Chen Rong, The Met",
+  "license": "CC0",
+  "page": "https://commons.wikimedia.org/wiki/File:Chen_Rong_-_The_Dragon_-_23.142.1_-_Metropolitan_Museum_of_Art.jpg",
+  "w": 1118,
+  "h": 1600
+ },
+ {
+  "id": "waterhouse-circe",
+  "title": "Circe Offering the Cup to Ulysses (1891)",
+  "artist": "John William Waterhouse",
+  "license": "Public domain",
+  "page": "https://commons.wikimedia.org/wiki/File:Circe_Offering_the_Cup_to_Odysseus_(2457_x_4023px_ed.).jpg",
+  "w": 977,
+  "h": 1600
+ },
+ {
+  "id": "sosias-achilles",
+  "title": "Achilles tending Patroclus, Sosias kylix (c. 500 BC)",
+  "artist": "photo: Bibi Saint-Pol",
+  "license": "Public domain",
+  "page": "https://commons.wikimedia.org/wiki/File:Akhilleus_Patroklos_Antikensammlung_Berlin_F2278.jpg",
+  "w": 1600,
+  "h": 1580
+ },
+ {
+  "id": "met-sword-ralgri",
+  "title": "Sword (Ral gri)",
+  "artist": "The Met",
+  "license": "CC0",
+  "page": "https://commons.wikimedia.org/wiki/File:Sword_(Ral_gri)_MET_DP113247.jpg",
+  "w": 1600,
+  "h": 1600
+ },
+ {
+  "id": "met-sword-estoc",
+  "title": "Sword (Estoc)",
+  "artist": "The Met",
+  "license": "CC0",
+  "page": "https://commons.wikimedia.org/wiki/File:Sword_(Estoc)_MET_4952.jpg",
+  "w": 848,
+  "h": 1600
+ },
+ {
+  "id": "trinity-long-room",
+  "title": "Trinity College Library, Long Room",
+  "artist": "Zairon",
+  "license": "CC BY 4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Dublin_Trinity_College_Library_Long_Room_01.jpg",
+  "w": 1600,
+  "h": 1212
+ },
+ {
+  "id": "long-room-1885",
+  "title": "The Long Room, c. 1885",
+  "artist": "National Library of Ireland",
+  "license": "No known copyright restrictions",
+  "page": "https://commons.wikimedia.org/wiki/File:The_Long_Room_(6713554905).jpg",
+  "w": 1600,
+  "h": 1118
+ },
+ {
+  "id": "admont-library",
+  "title": "Admont Abbey Library",
+  "artist": "LitterART",
+  "license": "CC BY-SA 4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Stiftsbibliothek_Admont.jpg",
+  "w": 1600,
+  "h": 1083
+ },
+ {
+  "id": "icon-dragon-head",
+  "title": "dragon-head icon",
+  "artist": "lorc (game-icons.net)",
+  "license": "CC BY 3.0",
+  "page": "https://game-icons.net/1x1/lorc/dragon-head.html"
+ },
+ {
+  "id": "icon-biceps",
+  "title": "biceps icon",
+  "artist": "delapouite (game-icons.net)",
+  "license": "CC BY 3.0",
+  "page": "https://game-icons.net/1x1/delapouite/biceps.html"
+ },
+ {
+  "id": "icon-book-cover",
+  "title": "book-cover icon",
+  "artist": "delapouite (game-icons.net)",
+  "license": "CC BY 3.0",
+  "page": "https://game-icons.net/1x1/delapouite/book-cover.html"
+ },
+ {
+  "id": "icon-tv",
+  "title": "tv icon",
+  "artist": "delapouite (game-icons.net)",
+  "license": "CC BY 3.0",
+  "page": "https://game-icons.net/1x1/delapouite/tv.html"
+ },
+ {
+  "id": "icon-crossed-swords",
+  "title": "crossed-swords icon",
+  "artist": "lorc (game-icons.net)",
+  "license": "CC BY 3.0",
+  "page": "https://game-icons.net/1x1/lorc/crossed-swords.html"
+ },
+ {
+  "id": "icon-weight-lifting-up",
+  "title": "weight-lifting-up icon",
+  "artist": "delapouite (game-icons.net)",
+  "license": "CC BY 3.0",
+  "page": "https://game-icons.net/1x1/delapouite/weight-lifting-up.html"
+ },
+ {
+  "id": "icon-bookshelf",
+  "title": "bookshelf icon",
+  "artist": "delapouite (game-icons.net)",
+  "license": "CC BY 3.0",
+  "page": "https://game-icons.net/1x1/delapouite/bookshelf.html"
+ },
+ {
+  "id": "icon-dragon-spiral",
+  "title": "dragon-spiral icon",
+  "artist": "lorc (game-icons.net)",
+  "license": "CC BY 3.0",
+  "page": "https://game-icons.net/1x1/lorc/dragon-spiral.html"
+ },
+ {
+  "id": "icon-joystick",
+  "title": "joystick icon",
+  "artist": "delapouite (game-icons.net)",
+  "license": "CC BY 3.0",
+  "page": "https://game-icons.net/1x1/delapouite/joystick.html"
+ }
+]
