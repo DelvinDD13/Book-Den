@@ -1,0 +1,26 @@
+name: covers
+on:
+  workflow_dispatch:
+  push:
+    paths: [sync/covers.py, sync/titles.json, .github/workflows/covers.yml]
+  schedule:
+    - cron: "17 9 * * 1"
+permissions:
+  contents: read
+concurrency:
+  group: covers
+  cancel-in-progress: false
+jobs:
+  covers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pillow
+      - run: python sync/covers.py all
+        env:
+          DEN_STORE_URL: https://script.google.com/macros/s/AKfycbxhY9gpaLCuiZXMIJufA1-JoYVThIKfglXglisMiPKZMMHXj3RFHnMdxAgfuN1zcMEtuQ/exec
+          DEN_KEY: w0fzVaKZmPNbUBMgLMSn5IDg
