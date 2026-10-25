@@ -1,2 +1,2 @@
-library.json
-finished.json
+__pycache__/
+*.pyc
