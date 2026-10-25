@@ -1,5 +1,5 @@
 // Book Den service worker — offline shell. The save goes to the store live and is never cached here.
-const C = 'den-202610251836';
+const C = 'den-202610251858';
 const COVERS = 'den-covers', MAXC = 1500;
 self.addEventListener('install', e => { e.waitUntil(caches.open(C).then(c => c.addAll(['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'])).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== C && k !== COVERS).map(k => caches.delete(k))))
