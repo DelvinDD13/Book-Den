@@ -114,7 +114,7 @@ def wiki(q, hint):
     pages = sorted((d.get('query') or {}).get('pages', {}).values(), key=lambda p: p.get('index', 0))
     for p in pages:
         if not starts(p.get('title'), q): continue
-        src = ((p.get('original') or p.get('thumbnail') or {}).get('source'))
+        src = ((p.get('thumbnail') or p.get('original') or {}).get('source'))
         if src and not src.lower().endswith('.svg'): return src
     return None
 
