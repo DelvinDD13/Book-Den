@@ -115,6 +115,7 @@ def wiki(q, hint):
     for p in pages:
         if not starts(p.get('title'), q): continue
         src = ((p.get('thumbnail') or p.get('original') or {}).get('source'))
+        if src: src = src.split('?')[0]  # the API appends a tracking query that breaks thumb paths
         if src and not src.lower().endswith('.svg'): return src
     return None
 
