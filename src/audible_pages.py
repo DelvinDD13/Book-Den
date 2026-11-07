@@ -6,7 +6,7 @@ def parse(path):
         m = re.match(r'^\s{2,}By: (.+?)\s*$', L)
         if not m: continue
         j = i - 1; tl = []
-        while j >= 0 and lines[j].strip() and not re.search(r'Add to favorites|Download|Write a review|By: |Narrated by|Series:|credits|Select|Date added|Ask Maven', lines[j]) and len(tl) < 4:
+        while j >= 0 and lines[j].strip() and not re.search(r'Add to favorites|Download|Write a review|By: |^\s*Narrated by|Series:|credits|Select|Date added|Ask Maven|BETA', lines[j]) and len(tl) < 4:
             if lines[j].strip() not in (':', 'Listen now'): tl.insert(0, lines[j])
             j -= 1
         # a title that is cut off by the page break shows up as text with no duration: fall back to the nearest line with one
@@ -24,7 +24,8 @@ def parse(path):
         ser = re.search(r'Series: (.+)', block)
         books = re.findall(r'([^,]+?) , Book ([\d.\-]+)', ser.group(1)) if ser else []
         state = 'finished' if dur == 'Finished' or 'Mark as Unfinished' in block else ('listening' if 'left' in dur else 'unstarted')
-        if not title or re.search(r'CREDIT|…', author): continue
+        title = re.sub(r'\(10th Anniversary Recording\):.*$', '(10th Anniversary Recording)', title)
+        if not title or re.search(r'CREDIT|…', author) or re.match(r'^(Book \d+|\)|[a-z])', title) or title.endswith(')') and title.count('(') < title.count(')'): continue
         items.append({'title': title, 'author': author, 'dur': dur, 'series': books[0][0].strip() if books else (ser.group(1).split(',')[0].strip() if ser else ''), 'num': books[0][1] if books else '', 'state': state})
     return items
 if __name__ == '__main__':
@@ -40,6 +41,9 @@ if __name__ == '__main__':
     new, upd, same = [], [], []
     for x in items:
         L = byn.get(norm(x['title']), [])
+        # same normalised title, different author (Heroes: The Greek Myths vs The Heroes) is not a match
+        last = lambda a: re.sub(r'[^a-z]', '', (a or '').split(',')[0].strip().split(' ')[-1].lower())
+        L = [b for b in L if not b.get('author') or not last(x['author']) or last(b['author']) == last(x['author']) or last(x['author']) in (b['author'] or '').lower()]
         want = {'finished': 'read', 'listening': 'currently-reading', 'unstarted': None}[x['state']]
         if not L: new.append(x); continue
         b = sorted(L, key=lambda b: (b['isGR'], b['st'] != 'read'))[0]
