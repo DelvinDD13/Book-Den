@@ -30,7 +30,7 @@
     arcanum: ['Arcanum Unbounded', ['Arcanum Unbounded: The Cosmere Collection', 'Arcanum Unbounded'], 'Threnody', 'Read each story after its home series'],
     secret: ['Mistborn: Secret History', ['Secret History', 'Mistborn: Secret History'], 'Scadrial', 'After The Bands of Mourning: its last scene is that book\u2019s reveal'],
     whitesand: ['White Sand', ['White Sand: Volume One [Dramatized Adaptation]', 'White Sand'], 'Taldain', ''],
-    fires: ['The Fires of December', ['The Fires of December'], 'Unnamed world', ''],
+    fires: ['The Fires of December', ['The Fires of December'], 'Miral', 'Hoid\u2019s Travails 3, with Tress and Yumi'],
     isles: ['Isles of the Emberdark', ['Isles of the Emberdark: A Cosmere Novel Secret Projects, Book 5', 'Isles of the Emberdark'], 'First of the Sun', 'After Sixth of the Dusk'],
     // the Arcanum Unbounded stories and the Lost Tales, for the orders that list them one by one
     hope: ['The Hope of Elantris', ['The Hope of Elantris'], 'Sel', 'In Arcanum Unbounded; during Elantris'],
@@ -61,8 +61,8 @@
     acofm: ['A Court of Forgotten Melody', ['A Court of Forgotten Melody'], 'ACOTAR', 'Out Jan 12, 2027']
   };
   const LADDERS = {
-    cosmere: { name: 'Cosmere ladder', core: ['tfe', 'woa', 'hoa', 'warbreaker', 'tress', 'wok', 'alloy', 'sos', 'bands', 'lost', 'elantris', 'yumi', 'wor', 'edgedancer', 'oathbringer', 'dawnshard', 'row', 'sunlit', 'wat'], side: ['emperor', 'arcanum', 'secret', 'whitesand', 'fires', 'isles'],
-      ranks: [[0, 'At the foot'], [1, 'Mistling'], [3, 'Survivor'], [4, 'Awakener'], [6, 'Bridgeman'], [10, 'Lawkeeper'], [11, 'Elantrian'], [13, 'Radiant'], [17, 'Herald'], [19, 'Shardbearer']], unit: 'rungs',
+    cosmere: { name: 'Cosmere ladder', core: ['tfe', 'woa', 'hoa', 'warbreaker', 'tress', 'wok', 'alloy', 'sos', 'bands', 'lost', 'elantris', 'yumi', 'fires', 'wor', 'edgedancer', 'oathbringer', 'dawnshard', 'row', 'sunlit', 'wat'], side: ['emperor', 'arcanum', 'secret', 'whitesand', 'isles'],
+      ranks: [[0, 'At the foot'], [1, 'Mistling'], [3, 'Survivor'], [4, 'Awakener'], [6, 'Bridgeman'], [10, 'Lawkeeper'], [11, 'Elantrian'], [13, 'Radiant'], [17, 'Herald'], [20, 'Shardbearer']], unit: 'rungs',
       orders: {
         brandon: { name: "Brandon's", note: 'Sanderson’s own suggested order: the ladder, with the side quests read around it.', seq: null },
         pub: { name: 'Published', note: 'Every Cosmere work in the order it came out, the Arcanum Unbounded stories by their own dates.', seq: ['elantris', 'hope', 'tfe', 'woa', 'hoa', 'warbreaker', 'wok', 'alloy', 'eleventh', 'emperor', 'silence', 'wor', 'jak', 'sixth', 'sos', 'bands', 'edgedancer', 'secret', 'whitesand', 'oathbringer', 'dawnshard', 'row', 'lost', 'tress', 'yumi', 'sunlit', 'wat', 'elsecaller', 'lopen', 'isles', 'fires'] },
@@ -125,7 +125,7 @@
     A('cl_halfway', 'Halfway Up', 'Cosmere ladder', 'Climb 10 rungs', 10, CORE),
     A('cl_worldhopper', 'Worldhopper', 'Cosmere ladder', 'Finish books from 6 different worlds', 6, null, { items: worldsItems, cand: c => { const S = L20.state('cosmere', c); const have = new Set(S.worlds); const seen = {}; S.rungs.concat(S.side).filter(r => !r.read && !have.has(r.world)).forEach(r => { if (!seen[r.world]) seen[r.world] = r.b ? bk(r.b) : { t: r.t, k: 'book', d: null }; }); return Object.values(seen); } }),
     A('cl_sidequester', 'Side Quester', 'Cosmere ladder', 'Finish every side quest', SIDEK.length, SIDEK),
-    A('cl_top', 'Top of the Ladder', 'Cosmere ladder', 'Climb all 19 rungs', CORE.length, CORE, { single: 'plat' })
+    A('cl_top', 'Top of the Ladder', 'Cosmere ladder', 'Climb all 20 rungs', CORE.length, CORE, { single: 'plat' })
   ];
   const IDS = DEFS.map(d => d.id);
   // emblems, in the badge set's own style: one mark in a 100×100 box, currentColor ink
