@@ -28,7 +28,7 @@
     wat: ['Wind and Truth', ['Wind and Truth'], 'Roshar', ''],
     emperor: ["The Emperor's Soul", ["The Emperor's Soul"], 'Sel', ''],
     arcanum: ['Arcanum Unbounded', ['Arcanum Unbounded: The Cosmere Collection', 'Arcanum Unbounded'], 'Threnody', 'Read each story after its home series'],
-    secret: ['Mistborn: Secret History', ['Secret History', 'Mistborn: Secret History'], 'Scadrial', 'Only after The Hero of Ages'],
+    secret: ['Mistborn: Secret History', ['Secret History', 'Mistborn: Secret History'], 'Scadrial', 'After The Bands of Mourning: its last scene is that book\u2019s reveal'],
     whitesand: ['White Sand', ['White Sand: Volume One [Dramatized Adaptation]', 'White Sand'], 'Taldain', ''],
     fires: ['The Fires of December', ['The Fires of December'], 'Unnamed world', ''],
     isles: ['Isles of the Emberdark', ['Isles of the Emberdark: A Cosmere Novel Secret Projects, Book 5', 'Isles of the Emberdark'], 'First of the Sun', 'After Sixth of the Dusk'],
