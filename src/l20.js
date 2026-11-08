@@ -72,14 +72,15 @@
     maas: { name: 'Maasverse ladder', core: ['acotar', 'acomaf', 'acowar', 'acofas', 'acosf', 'tog', 'com', 'ab', 'hof', 'qos', 'eos', 'tod', 'koa', 'hoeb', 'hosab', 'hofas', 'acosh', 'acofm'], side: [],
       ranks: [[0, 'Mortal'], [2, 'Courtier'], [5, 'Blade of the Court'], [8, 'Illyrian'], [11, 'High Fae'], [14, 'High Lord'], [18, 'Made']], unit: 'books',
       orders: {
+        cross: { name: 'Crossover', note: 'Your push order: ACOTAR, straight into Crescent City, then Splintered Harmony. Throne of Glass is done, so it sits at the end.', seq: ['acotar', 'acomaf', 'acowar', 'acofas', 'acosf', 'hoeb', 'hosab', 'hofas', 'acosh', 'acofm', 'tog', 'com', 'ab', 'hof', 'qos', 'eos', 'tod', 'koa'] },
         series: { name: 'Series', note: 'ACOTAR through Silver Flames, then Throne of Glass, then Crescent City, then the new ACOTAR books. The usual recommendation.', seq: ['acotar', 'acomaf', 'acowar', 'acofas', 'acosf', 'tog', 'com', 'ab', 'hof', 'qos', 'eos', 'tod', 'koa', 'hoeb', 'hosab', 'hofas', 'acosh', 'acofm'] },
         pub: { name: 'Published', note: 'As the books came out, the three series weaving together.', seq: ['tog', 'com', 'ab', 'hof', 'acotar', 'qos', 'acomaf', 'eos', 'acowar', 'tod', 'acofas', 'koa', 'hoeb', 'acosf', 'hosab', 'hofas', 'acosh', 'acofm'] },
-        cross: { name: 'Crossover', note: 'The shortest road to the crossover: ACOTAR, straight into Crescent City, then Splintered Harmony. Throne of Glass whenever you like.', seq: ['acotar', 'acomaf', 'acowar', 'acofas', 'acosf', 'hoeb', 'hosab', 'hofas', 'acosh', 'acofm', 'tog', 'com', 'ab', 'hof', 'qos', 'eos', 'tod', 'koa'] },
         chrono: { name: 'Timeline', note: 'Throne of Glass by its own timeline: the Assassin’s Blade novellas first, Empire of Storms and Tower of Dawn side by side. Then ACOTAR and Crescent City.', seq: ['ab', 'tog', 'com', 'hof', 'qos', 'eos', 'tod', 'koa', 'acotar', 'acomaf', 'acowar', 'acofas', 'acosf', 'hoeb', 'hosab', 'hofas', 'acosh', 'acofm'] }
       } }
   };
   const UNRELEASED = { acofm: '2027-01-12' };
   const OK = 'den:order:'; L20.order = id => { try { const v = localStorage.getItem(OK + id); if (v && LADDERS[id].orders[v]) return v; } catch (e) {} return Object.keys(LADDERS[id].orders)[0]; };
+  try { if (!localStorage.getItem(OK + 'maas:push')) { localStorage.setItem(OK + 'maas', 'cross'); localStorage.setItem(OK + 'maas:push', '1'); } } catch (e) {}
   L20.setOrder = (id, o) => { if (!LADDERS[id] || !LADDERS[id].orders[o]) return; try { localStorage.setItem(OK + id, o); } catch (e) {} try { if (String(sheetTitle).startsWith('ladder:') || sheetTitle === 'cosmere') renderSheet(); } catch (e) {} try { if (window.L15 && L15.placeBooks) L15.placeBooks(); } catch (e) {} };
   const ERA1 = ['tfe', 'woa', 'hoa'], ERA2 = ['alloy', 'sos', 'bands', 'lost'], STORM = ['wok', 'wor', 'edgedancer', 'oathbringer', 'dawnshard', 'row', 'wat'], HOID = ['tress', 'yumi', 'fires'];
   // ---- the library ----
