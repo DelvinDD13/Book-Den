@@ -8,7 +8,7 @@
     const b = L[0]; el.dataset.cat = b.cat; el.dataset.id = b.id;
     let med = ''; try { med = L4.medal(b, 52); } catch (e) {}
     el.innerHTML = '<span class="l25-m">' + med + '</span><span class="l25-t"><i>' + (L.length > 1 ? L.length + ' badges earned' : 'Badge earned') + '</i><b>' + esc(label(b)) + '</b>' + (L.length > 1 ? '<em>' + esc(L.slice(1).map(label).join(' · ')) + '</em>' : (b.desc ? '<em>' + esc(b.desc) + '</em>' : '')) + '</span>';
-    el.classList.remove('out'); void el.offsetWidth; el.classList.add('in');
+    el.classList.remove('out'); void el.offsetWidth; el.classList.add('in'); try { document.dispatchEvent(new CustomEvent('l25show', { detail: L })); } catch (e) {}
     clearTimeout(L25.t); L25.t = setTimeout(() => { el.classList.remove('in'); el.classList.add('out'); setTimeout(() => { busy = false; show(); }, 420); }, 6500); }
   L25.announce = function (news) { if (!news || !news.length) return; news.forEach(b => Q.push(b)); show(); L25.notify(news); };
   // an iPhone notification (home-screen app, permission given): shown by the service worker so it can appear as a banner
