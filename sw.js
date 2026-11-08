@@ -1,6 +1,6 @@
 // Book Den service worker — the app opens from cache at once; a fresh copy is fetched behind it and used on the next open.
 // The save goes to the store live and is never cached here. Covers are cached by URL (capped).
-const C = 'den-202611081449';
+const C = 'den-202611081453';
 const COVERS = 'den-covers', MAXC = 1500;
 self.addEventListener('install', e => { e.waitUntil(caches.open(C).then(c => c.addAll(['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'])).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== C && k !== COVERS).map(k => caches.delete(k))))
@@ -20,3 +20,6 @@ self.addEventListener('fetch', e => {
   }
   e.respondWith(caches.match(e.request).then(hit => hit || fetch(e.request).then(r => { if (r.ok) { const cp = r.clone(); caches.open(C).then(c => c.put(e.request, cp)); } return r; })));
 });
+
+// a tap on a badge alert opens the app on that badge
+self.addEventListener('notificationclick', e => { e.notification.close(); const url = (e.notification.data && e.notification.data.url) || './'; e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(cs => { for (const c of cs) { if ('focus' in c) { try { c.navigate(url); } catch (x) {} return c.focus(); } } return self.clients.openWindow(url); })); });
