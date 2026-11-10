@@ -34,6 +34,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .tabs a{font-family:var(--display);font-size:1.1rem;text-decoration:none;color:var(--muted);padding:6px 14px;border:1px solid var(--line);border-radius:3px}
 .tabs a[aria-current="true"]{color:var(--bg);background:var(--fg);border-color:var(--fg)}
 section[data-series="tog"]{--accent:var(--green)}
+section[data-series="stormlight"]{--accent:var(--sky)}
 .note{font-size:.9rem;color:var(--muted);margin-top:8px;max-width:65ch}
 .label{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 
@@ -107,6 +108,7 @@ section[data-series="tog"]{--accent:var(--green)}
   <nav class="tabs" aria-label="Series">
     <a href="#mistborn" data-tab="mistborn">Mistborn</a>
     <a href="#throne-of-glass" data-tab="throne-of-glass">Throne of Glass</a>
+    <a href="#stormlight" data-tab="stormlight">Stormlight</a>
   </nav>
 
   <!-- MISTBORN -->
@@ -372,12 +374,50 @@ section[data-series="tog"]{--accent:var(--green)}
     </div>
   </section>
 
+
+  <!-- STORMLIGHT -->
+  <section id="stormlight-view" data-series="stormlight" hidden>
+    <div class="spbar"><span class="label">Spoilers hidden · tap any blur to peek</span><button class="spall" type="button" aria-pressed="false" data-key="stormlight">Show all spoilers</button></div>
+    <h2>The Ten Surges</h2>
+    <p class="note">Surgebinding draws on Stormlight. There are ten Surges, the fundamental forces of Roshar. Each order of Knights Radiant held two, and each Surge is shared by two neighbouring orders, so the orders form a ring.</p>
+    <div class="quads"><div class="quad" style="--q:var(--steel)"><header><h3>Surges</h3><span class="label">The forces</span></header><div class="metal" style="--q:var(--steel)"><div class="sym">Ad</div><div><b>Adhesion</b><div class="fx">Pressure and vacuum; binding things together</div></div></div><div class="metal" style="--q:var(--steel)"><div class="sym">Gr</div><div><b>Gravitation</b><div class="fx">Gravity; the Lashings that change which way is down</div></div></div><div class="metal" style="--q:var(--steel)"><div class="sym">Di</div><div><b>Division</b><div class="fx">Destruction and decay</div></div></div><div class="metal" style="--q:var(--steel)"><div class="sym">Ab</div><div><b>Abrasion</b><div class="fx">Friction; slickness or grip</div></div></div><div class="metal" style="--q:var(--steel)"><div class="sym">Pr</div><div><b>Progression</b><div class="fx">Growth and healing</div></div></div><div class="metal" style="--q:var(--steel)"><div class="sym">Il</div><div><b>Illumination</b><div class="fx">Light, sound and illusion</div></div></div><div class="metal" style="--q:var(--steel)"><div class="sym">Tr</div><div><b>Transformation</b><div class="fx">Soulcasting; turning one thing into another</div></div></div><div class="metal" style="--q:var(--steel)"><div class="sym">Tr</div><div><b>Transportation</b><div class="fx">Motion and moving between Realms</div></div></div><div class="metal" style="--q:var(--steel)"><div class="sym">Co</div><div><b>Cohesion</b><div class="fx">Strong axial bonds; reshaping stone</div></div></div><div class="metal" style="--q:var(--steel)"><div class="sym">Te</div><div><b>Tension</b><div class="fx">Soft axial bonds; making cloth or rope rigid</div></div></div></div>
+    <div class="quad" style="--q:var(--sky)"><header><h3>Orders of Knights Radiant</h3><span class="label">Two Surges each</span></header><div class="metal" style="--q:var(--sky)"><div class="sym">Wi</div><div><b>Windrunners</b><div class="who">Adhesion · Gravitation</div><div class="fx">Herald: Jezrien · Spren: <span class="sp" tabindex="0" role="button" aria-label="Spoiler. Tap to reveal">Honorspren</span></div></div></div><div class="metal" style="--q:var(--sky)"><div class="sym">Sk</div><div><b>Skybreakers</b><div class="who">Gravitation · Division</div><div class="fx">Herald: Nale · Spren: <span class="sp" tabindex="0" role="button" aria-label="Spoiler. Tap to reveal">Highspren</span></div></div></div><div class="metal" style="--q:var(--sky)"><div class="sym">Du</div><div><b>Dustbringers</b><div class="who">Division · Abrasion</div><div class="fx">Herald: Chanarach · Spren: <span class="sp" tabindex="0" role="button" aria-label="Spoiler. Tap to reveal">Ashspren</span></div></div></div><div class="metal" style="--q:var(--sky)"><div class="sym">Ed</div><div><b>Edgedancers</b><div class="who">Abrasion · Progression</div><div class="fx">Herald: Vedel · Spren: <span class="sp" tabindex="0" role="button" aria-label="Spoiler. Tap to reveal">Cultivationspren</span></div></div></div><div class="metal" style="--q:var(--sky)"><div class="sym">Tr</div><div><b>Truthwatchers</b><div class="who">Progression · Illumination</div><div class="fx">Herald: Pailiah · Spren: <span class="sp" tabindex="0" role="button" aria-label="Spoiler. Tap to reveal">Not yet revealed</span></div></div></div><div class="metal" style="--q:var(--sky)"><div class="sym">Li</div><div><b>Lightweavers</b><div class="who">Illumination · Transformation</div><div class="fx">Herald: Shalash · Spren: <span class="sp" tabindex="0" role="button" aria-label="Spoiler. Tap to reveal">Cryptics</span></div></div></div><div class="metal" style="--q:var(--sky)"><div class="sym">El</div><div><b>Elsecallers</b><div class="who">Transformation · Transportation</div><div class="fx">Herald: Battar · Spren: <span class="sp" tabindex="0" role="button" aria-label="Spoiler. Tap to reveal">Inkspren</span></div></div></div><div class="metal" style="--q:var(--sky)"><div class="sym">Wi</div><div><b>Willshapers</b><div class="who">Transportation · Cohesion</div><div class="fx">Herald: Kalak · Spren: <span class="sp" tabindex="0" role="button" aria-label="Spoiler. Tap to reveal">Lightspren</span></div></div></div><div class="metal" style="--q:var(--sky)"><div class="sym">St</div><div><b>Stonewards</b><div class="who">Cohesion · Tension</div><div class="fx">Herald: Talenel · Spren: <span class="sp" tabindex="0" role="button" aria-label="Spoiler. Tap to reveal">Not yet revealed</span></div></div></div><div class="metal" style="--q:var(--sky)"><div class="sym">Bo</div><div><b>Bondsmiths</b><div class="who">Tension · Adhesion</div><div class="fx">Herald: Ishar · Spren: <span class="sp" tabindex="0" role="button" aria-label="Spoiler. Tap to reveal">Unique spren</span></div></div></div></div></div>
+    <p class="note">The Knights Radiant are a fallen order in the opening chapters; the Heralds named here appear in the Prelude.</p>
+
+    <h2>Alethkar's Highprinces</h2>
+    <p class="note">The ten princedoms of Alethkar, all camped on the Shattered Plains to fight the Parshendi who killed King Gavilar.</p>
+    <div class="courts"><div class="court"><h3>The ten princedoms</h3><ul><li>Kholin</li><li>Sadeas</li><li>Aladar</li><li>Roion</li><li>Thanadal</li><li>Vamah</li><li>Ruthar</li><li>Bethab</li><li>Hatham</li><li>Sebarial</li></ul></div>
+    <div class="court"><h3>Names to know early</h3><ul>
+      <li>Elhokar Kholin <small>King, Gavilar's son</small></li>
+      <li>Dalinar Kholin <small>Gavilar's brother; the Blackthorn</small></li>
+      <li>Adolin Kholin <small>Dalinar's son; Shardbearer and duelist</small></li>
+      <li>Torol Sadeas <small>highprince; runs the bridge crews</small></li>
+      <li>Meridas Amaram <small>Brightlord; Kaladin's old army</small></li>
+      <li>Jasnah Kholin <small>scholar; Gavilar's daughter</small></li>
+    </ul></div></div>
+    <div class="spblock"><button class="gate" type="button">Spoilers through The Way of Kings · Tap to show</button><div class="inner">
+    <div class="courts"><div class="court"><h3>How the camps split</h3><ul>
+      <li>Kholin <small>Dalinar argues for unity and the old Codes</small></li>
+      <li>Sadeas <small>betrays Dalinar at the Tower and leaves him to die</small></li>
+      <li>Bridge Four <small>Kaladin's crew goes back for Dalinar's army</small></li>
+    </ul></div></div>
+    </div></div>
+
+    <h2>Maps</h2>
+    <p class="note">Isaac Stewart's interior maps. These open the real versions.</p>
+    <div class="maps">
+      <a href="https://coppermind.net/wiki/Roshar" target="_blank" rel="noopener">Roshar<span>The whole continent · Coppermind</span></a>
+      <a href="https://coppermind.net/wiki/Shattered_Plains" target="_blank" rel="noopener">The Shattered Plains<span>Chasms, plateaus and the warcamps · Coppermind</span></a>
+      <a href="https://coppermind.net/wiki/Alethkar" target="_blank" rel="noopener">Alethkar<span>Kholinar and the princedoms · Coppermind</span></a>
+      <a href="https://coppermind.net/wiki/Kharbranth" target="_blank" rel="noopener">Kharbranth<span>Shallan's city · Coppermind</span></a>
+    </div>
+  </section>
   <p class="foot">Maps and canon descriptions belong to Brandon Sanderson, Isaac Stewart and Sarah J. Maas. Derived crests are original designs.</p>
 </div>
 
 <script>
 (function(){
-  var views={"mistborn":"mistborn-view","throne-of-glass":"throne-of-glass-view"};
+  var views={"mistborn":"mistborn-view","throne-of-glass":"throne-of-glass-view","stormlight":"stormlight-view"};
   function show(){
     var k=(location.hash||"").slice(1); if(!views[k]) k="mistborn";
     Object.keys(views).forEach(function(v){document.getElementById(views[v]).hidden=(v!==k)});
