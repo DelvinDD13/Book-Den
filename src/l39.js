@@ -1,0 +1,17 @@
+// ===== L39: audit fixes — a sequel's own synopsis stays folded until the books before it are finished (a synopsis shared by the whole series is left alone).
+(function () {
+  const L39 = window.L39 = {}; const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const cnt = {}; try { Object.keys(META).forEach(t => { const m = META[t]; if (m && m.synopsis) cnt[m.synopsis] = (cnt[m.synopsis] || 0) + 1; }); } catch (e) {}
+  const SHOWN = {};
+  // earlier books in the same series that are not finished (ones he does not own count as not finished; unreleased ones are skipped)
+  L39.before = function (t) { try { const ser = (typeof SERIES_OF !== 'undefined' && SERIES_OF[t]) || (META[t] || {}).series; if (!ser) return []; const plan = typeof SERIES_PLAN !== 'undefined' && SERIES_PLAN[ser]; const out = [];
+      if (plan && plan.indexOf(t) >= 0) { plan.slice(0, plan.indexOf(t)).forEach(x => { if (x.charAt(0) === '~') return; if (x.charAt(0) === '+') { const p = x.split('|'); if (parseFloat(p[0].slice(1)) % 1 === 0) out.push(p[1]); return; } if (getStatus(x) !== 'read') out.push(x); }); return out; }
+      const num = parseFloat((META[t] || {}).num); if (!(num > 1)) return []; ALL_TITLES.forEach(x => { const m = META[x] || {}; if (x !== t && m.series === (META[t] || {}).series && parseFloat(m.num) < num && parseFloat(m.num) % 1 === 0 && getStatus(x) !== 'read') out.push(x); }); return out; } catch (e) { return []; } };
+  L39.folds = function (t) { try { const m = META[t] || {}; if (!m.synopsis || cnt[m.synopsis] !== 1 || SHOWN[t]) return null; const st = getStatus(t); if (st === 'read' || st === 'currently-reading') return null; const B = L39.before(t); return B.length ? B : null; } catch (e) { return null; } };
+  const short = t => { try { return String(mainT(t)).replace(/\s*\([^)]*\)\s*$/, ''); } catch (e) { return String(t).split(':')[0]; } };
+  function fold() { try { const t = typeof sheetTitle === 'string' ? sheetTitle : ''; if (!t || !META[t]) return; const p = sheet.querySelector('.sheet-body p.syn'); if (!p || p.dataset.l39) return; const B = L39.folds(t); if (!B) return; p.dataset.l39 = '1'; p.dataset.syn = p.textContent; p.classList.add('l39-fold');
+      p.innerHTML = '<button type="button" data-l39="show">Synopsis folded. It may give away <b>' + esc(short(B[B.length - 1])) + '</b>, which you have not finished. Tap to read it anyway.</button>'; } catch (e) {} }
+  (function () { if (typeof renderSheet !== 'function') return; const _rs = renderSheet; renderSheet = function () { const r = _rs.apply(this, arguments); fold(); return r; }; })();
+  document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('[data-l39]'); if (!b) return; e.preventDefault(); e.stopPropagation(); const p = b.closest('p.syn'); if (!p) return; try { SHOWN[sheetTitle] = 1; } catch (x) {} p.textContent = p.dataset.syn || ''; p.classList.remove('l39-fold'); }, true);
+  try { const st = document.createElement('style'); st.id = 'l39css'; st.textContent = 'html body.den p.syn.l39-fold{margin:10px 0}html body.den p.syn.l39-fold button{display:block;width:100%;min-height:44px;padding:11px 12px;border:1px dashed var(--d-line,rgba(243,239,230,.3))!important;background:none!important;border-radius:0!important;color:var(--d-mute,#8e8e95);font:400 13.5px/1.4 Barlow,sans-serif;text-align:left}html body.den p.syn.l39-fold button b{color:var(--d-ink,#f3efe6);font-weight:600}'; document.head.appendChild(st); } catch (e) {}
+})();

@@ -70,13 +70,14 @@
       { id: 'board', n: 'Bests board', g: ANY, type: 'cards', note: 'Your heaviest set on each lift, by day.', items: DAYS.map(d => ({ n: d.title, sub: d.day, g: d.id, lines: [gated(d.id, () => { const X = ORDER.filter(x => x.on.some(o => o.d === d)).map(x => ({ x, N: numbers(x.n) })).filter(o => o.N && o.N.bw); return X.length ? X.map(o => short(o.x.n) + ' ' + o.N.bw.w + ' lb × ' + o.N.bw.r + (o.N.be ? ' (est. ' + Math.round(o.N.be.e) + ')' : '')).join(' · ') + '.' : 'Nothing with weight logged yet.'; })] })) }
     ].concat(Array.isArray(P.calf) && P.calf.length ? [{ id: 'calf', n: 'Calf stages', g: '', type: 'table', note: 'The staged calf work from your plan. Move on only when the last column is true.', cols: ['Stage', 'When', 'What', 'Move on when'], rows: P.calf.map(c => ({ c: [c.stage + ' · ' + c.name, c.weeks || '', c.rx || '', c.go || ''] })) }] : []) };
   L38.refresh = function () { DYN.forEach(f => f()); try { L29.flush(); } catch (e) {} };
-  L38.refresh(); L29.add(series); L38.series = series;
+  L29.add(series); L38.series = series; // the dynamic lines are filled the first time the manual or its card is shown, not at start-up
   // keep the dynamic lines current: before the manual opens, and when a session is logged
   (function () { const _open = L29.open; L29.open = function (k, id, lib) { try { if (k === 'steel' || lib === 'steel') L38.refresh(); } catch (e) {} return _open.apply(this, arguments); }; })();
-  document.addEventListener('l36log', () => { L38.refresh(); setTimeout(place, 300); try { setTimeout(() => L29.check(), 600); } catch (e) {} });
+  document.addEventListener('l36log', () => { L38.refresh(); fresh = true; setTimeout(place, 300); try { setTimeout(() => L29.check(), 600); } catch (e) {} });
 
   // ---------- the manual on Steel, the codex on TV & Games ----------
-  function place() { try { const o = document.getElementById('lib-other'); if (!o || typeof currentLib === 'undefined') return; const lib = currentLib === 'steel' ? 'steel' : currentLib === 'screen' ? 'screen' : null; if (!lib) return; if (lib === 'steel') L38.refresh(); const h = L29.card(lib); const old = o.querySelector('.l29-sec[data-lib="' + lib + '"]'); if (!h) { if (old) old.remove(); return; } if (old) { if (old.dataset.h === String(h.length)) return; old.remove(); }
+  let fresh = false;
+  function place() { try { const o = document.getElementById('lib-other'); if (!o || typeof currentLib === 'undefined') return; const lib = currentLib === 'steel' ? 'steel' : currentLib === 'screen' ? 'screen' : null; if (!lib) return; if (lib === 'steel' && !fresh) { L38.refresh(); fresh = true; } const h = L29.card(lib); const old = o.querySelector('.l29-sec[data-lib="' + lib + '"]'); if (!h) { if (old) old.remove(); return; } if (old) { if (old.dataset.h === String(h.length)) return; old.remove(); }
       const anchor = lib === 'steel' ? (o.querySelector('.l36c') || o.querySelector('.l2-next') || o.querySelector('.l2-hero')) : (o.querySelector('.glib .l4-strip') || null); if (anchor) anchor.insertAdjacentHTML('afterend', h); else { const g = o.querySelector('.glib') || o; g.insertAdjacentHTML('afterbegin', h); } const el = o.querySelector('.l29-sec[data-lib="' + lib + '"]'); if (el) el.dataset.h = String(h.length); } catch (e) { console.warn('l38 place', e); } }
   L38.place = place;
   try { const o = document.getElementById('lib-other'); if (o) new MutationObserver(() => { setTimeout(place, 0); }).observe(o, { childList: true, subtree: true }); } catch (e) {}

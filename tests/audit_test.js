@@ -1,0 +1,81 @@
+// Audit sweep: spoilers, tap targets, field sizes, contrast, overflow. Reports what it finds; fails on anything sealed that reaches the screen.
+const { chromium } = require('playwright'); const http = require('http'), fs = require('fs'), path = require('path');
+const ROOT = process.env.ROOT || '/home/claude/book-den'; const MIME = { '.html': 'text/html', '.js': 'application/javascript', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.woff2': 'font/woff2', '.gif': 'image/gif' };
+const srv = http.createServer((req, res) => { let p = decodeURIComponent(req.url.split('?')[0]); if (p === '/') p = '/index.html'; fs.readFile(path.join(ROOT, p), (e, d) => { if (e) { res.writeHead(404); return res.end(); } res.writeHead(200, { 'Content-Type': MIME[path.extname(p)] || 'application/octet-stream' }); res.end(d); }); });
+const store = fs.readFileSync(path.join(__dirname, 'store.json')); let pass = 0, fail = 0; const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } };
+(async () => { await new Promise(r => srv.listen(8803, r)); const br = await chromium.launch(); const ctx = await br.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  await ctx.route(u => !/^http:\/\/localhost/.test(u.href), r => r.abort()); await ctx.route(/script\.google\.com/, r => r.fulfill({ status: 200, contentType: 'application/json', body: store }));
+  const page = await ctx.newPage(); const errs = []; page.on('pageerror', e => errs.push(String(e)));
+  await page.goto('http://localhost:8803/'); await page.waitForTimeout(7000);
+  await page.evaluate(() => { switchLib('books'); }); await page.waitForTimeout(1500);
+  // his real place: The Way of Kings under way with Part One finished, A Court of Mist and Fury just started
+  await page.evaluate(() => { const w = ALL_TITLES.find(t => /^The Way of Kings/.test(t)); setOverride(w, { status: 'currently-reading' }); L29.setPart('wok', 1); L29.flush(); }); await page.waitForTimeout(600);
+
+  // ---------- 1. spoiler sweep ----------
+  const sweep = await page.evaluate(async () => { const wait = ms => new Promise(r => setTimeout(r, ms)); L29.flush(); const ok = L29.ok; const norm = s => String(s || '').replace(/\s+/g, ' ').trim();
+    const sealed = [], openCorpus = []; const texts = (v, gate0) => { if (v == null) return; if (typeof v === 'string') { (gate0 ? sealed : openCorpus).push(norm(v)); return; } v.forEach(x => { if (!Array.isArray(x)) return; ((gate0 || !ok(x[0])) ? sealed : openCorpus).push(norm(x[1])); }); };
+    L29.S.forEach(s => { (s.e || []).forEach(e => { const shut = !ok(e.g || ''); if (shut) sealed.push('NAME:' + norm(e.n)); else openCorpus.push(norm(e.n)); texts(e.t, shut); (e.s || []).forEach(x => ((shut || !ok(x[0])) ? sealed : openCorpus).push(norm(x[1]))); });
+      (s.trees || []).forEach(t => { const tshut = !ok(t.g || ''); t.p.forEach(p => { const o = p[4] || {}; const shut = tshut || !ok(o.g || ''); const nm = p[1]; if (typeof nm === 'string') (shut ? sealed : openCorpus).push((shut ? 'NAME:' : '') + norm(nm)); else nm.forEach(x => ((shut || !ok(x[0])) ? sealed : openCorpus).push(((shut || !ok(x[0])) ? 'NAME:' : '') + norm(x[1]))); texts(o.t, shut); }); (t.l || []).forEach(l => ((tshut || !ok(l[3] || '')) ? sealed : openCorpus).push(norm(l[2]))); (t.u || []).forEach(u => { if (u[4]) ((tshut || !ok(u[2] || '')) ? sealed : openCorpus).push(norm(u[4])); }); texts(t.note, tshut); });
+      (s.charts || []).forEach(c => { const cshut = !ok(c.g || ''); texts(c.note, cshut); const items = c.type === 'quads' ? [].concat.apply([], c.groups.map(g => g.items)) : c.type === 'table' ? [] : (c.items || []).concat(c.edges || []); items.forEach(it => { const shut = cshut || !ok(it.g || ''); (shut ? sealed : openCorpus).push((shut ? 'NAME:' : '') + norm(tx1(it.n))); texts(it.sub, shut); texts(it.tags, shut); (it.lines || []).forEach(x => ((shut || !ok(x[0])) ? sealed : openCorpus).push(norm(x[1]))); });
+        if (c.type === 'table') c.rows.forEach(r => { const shut = cshut || !ok(r.g || ''); r.c.forEach(cell => texts(cell, shut)); }); }); });
+    function tx1(v) { return typeof v === 'string' ? v : Array.isArray(v) ? v.map(x => x[1]).join(' ') : ''; }
+    L29.S.forEach(s => s.books.forEach(b => { openCorpus.push(norm(b.t)); (b.parts || []).forEach(p => openCorpus.push(norm(p))); })); const open = openCorpus.join(' \n ');
+    // a sealed sentence counts when it is long enough to be specific; a sealed name counts when nothing open already says it
+    const needles = []; const seen = new Set(); sealed.forEach(s => { if (!s) return; if (s.indexOf('NAME:') === 0) { const n = s.slice(5); if (n.length >= 6 && open.indexOf(n) < 0 && !seen.has(n)) { seen.add(n); needles.push(n); } } else if (s.length >= 28 && open.indexOf(s) < 0 && !seen.has(s)) { seen.add(s); needles.push(s); } });
+    // every screen
+    const pages = []; const grab = (label, txt) => pages.push([label, norm(txt)]); const sh = id => { const h = document.getElementById(id); return h && h.shadowRoot ? h.shadowRoot.textContent : ''; };
+    for (const lib of ['life', 'books', 'steel', 'screen']) { switchLib(lib); await wait(700); grab('tab ' + lib, document.body.innerText); }
+    for (const lib of ['books', 'steel', 'screen']) { L29.open(null, null, lib); grab('codex home ' + lib, sh('l29')); }
+    for (const s of L29.S) { L29.open(s.k); const r = document.getElementById('l29').shadowRoot; grab(s.k + ' series', r.textContent); for (const b of [...r.querySelectorAll('.tabs button')].map(b => b.dataset.k || b.textContent)) { const btn = [...r.querySelectorAll('.tabs button')].find(x => (x.dataset.k || x.textContent) === b); if (btn && !/Journal/.test(btn.textContent)) { btn.click(); grab(s.k + ' tab ' + btn.textContent.trim(), r.textContent); } }
+      for (const e of s.e) { if (!ok(e.g || '')) { L29.open(s.k, e.id); grab(s.k + ' sealed entry ' + e.id, sh('l29')); continue; } L29.open(s.k, e.id); grab(s.k + ' entry ' + e.id, sh('l29')); } }
+    L29.close(); L37.open('log'); grab('quest log', sh('l37')); L37.open('marks'); grab('bookmarks', sh('l37')); L37.close();
+    try { L34.open(); grab('look', sh('l34')); L34.close(); } catch (e) {}
+    for (const s of L29.S) for (const b of s.books) { if (!b.m) continue; const t = ALL_TITLES.find(t => new RegExp(b.m, 'i').test(t)); if (!t) continue; openSheet(t); await wait(60); grab('book page ' + b.k, document.getElementById('sheet').innerText); }
+    try { closeSheet(); } catch (e) {} try { openSheet('cosmere'); await wait(200); grab('cosmere ladder', document.getElementById('sheet').innerText); closeSheet(); } catch (e) {}
+    try { const b = document.getElementById('l29b'); if (b) grab('lore banner', b.textContent); } catch (e) {}
+    const hits = []; pages.forEach(([label, txt]) => { needles.forEach(n => { if (txt.indexOf(n) >= 0) hits.push(label + ' :: ' + n.slice(0, 70)); }); });
+    return { needles: needles.length, sealedTotal: sealed.length, pages: pages.length, hits: hits.slice(0, 12), nhits: hits.length }; });
+  console.log('spoiler sweep:', sweep.needles, 'sealed strings checked on', sweep.pages, 'screens;', sweep.nhits, 'hits'); sweep.hits.forEach(h => console.log('   HIT', h));
+  ok(sweep.needles > 400 && sweep.pages > 200, 'sweep covered the sealed text and the screens (' + sweep.needles + ' strings, ' + sweep.pages + ' screens)');
+  ok(sweep.nhits === 0, 'nothing sealed is on any screen');
+
+  // ---------- 2. blade names ----------
+  const bl = await page.evaluate(() => { const h = L20.picker(); const names = [...h.matchAll(/<i>([^<]*)<\/i>/g)].map(m => m[1]); return names; });
+  ok(bl.length === 12 && bl[0] === 'oathbringer' && bl.slice(1).every(n => /^blade \d+$/.test(n)), 'ladder blade picker names only the blade he has met: ' + bl.join(', '));
+  ok(await page.evaluate(() => { const w = ALL_TITLES.find(t => /^Words of Radiance/.test(t)); const k = ALL_TITLES.find(t => /^The Way of Kings/.test(t)); const o1 = getOverride(w), o2 = getOverride(k); setOverride(k, { status: 'read' }); setOverride(w, { status: 'read' }); L29.flush(); const h = [...L20.picker().matchAll(/<i>([^<]*)<\/i>/g)].map(m => m[1]).join(' '); const r = /sylblade/.test(h) && /sunraiser/.test(h) && !/mayalaran/.test(h) && !/wyndle/.test(h); setOverride(w, { status: o1.status || null }); setOverride(k, { status: 'currently-reading' }); L29.flush(); return r; }), 'names open with the books that give them');
+
+  // ---------- 3. sequel synopsis ----------
+  await page.evaluate(() => { window.HG = ALL_TITLES.find(t => /^The Hunger of the Gods/.test(t)); window.SG = ALL_TITLES.find(t => /^The Shadow of the Gods/.test(t)); setOverride(SG, { status: 'currently-reading' }); openSheet(HG); }); await page.waitForTimeout(500);
+  ok(await page.evaluate(() => { const p = document.querySelector('#sheet .sheet-body p.syn'); return !!p && p.classList.contains('l39-fold') && !/dragon god/.test(p.textContent) && /Shadow of the Gods/.test(p.textContent) && p.querySelector('button').getBoundingClientRect().height >= 44; }), 'a sequel synopsis is folded while the book before it is unfinished');
+  await page.evaluate(() => document.querySelector('#sheet p.syn button').click()); await page.waitForTimeout(200);
+  ok(await page.evaluate(() => /dragon god/.test(document.querySelector('#sheet .sheet-body p.syn').textContent)), 'one tap shows it');
+  await page.evaluate(() => { closeSheet(); const t = ALL_TITLES.find(t => /^Words of Radiance/.test(t)); openSheet(t); }); await page.waitForTimeout(400);
+  ok(await page.evaluate(() => { const p = document.querySelector('#sheet .sheet-body p.syn'); return !!p && !p.classList.contains('l39-fold') && /Roshar/.test(p.textContent); }), 'a synopsis shared by the whole series is left open');
+  await page.evaluate(() => { closeSheet(); setOverride(SG, { status: 'read' }); const J = ALL_TITLES.find(t => /^Jade War/.test(t)); const J1 = ALL_TITLES.find(t => /^Jade City/.test(t)); setOverride(J1, { status: 'read' }); openSheet(J); }); await page.waitForTimeout(400);
+  ok(await page.evaluate(() => { const p = document.querySelector('#sheet .sheet-body p.syn'); return !!p && !p.classList.contains('l39-fold'); }), 'no fold once the earlier book is finished');
+  await page.evaluate(() => closeSheet());
+
+  // ---------- 4. tap targets and field sizes in the sheets ----------
+  const scan = await page.evaluate(async () => { const wait = ms => new Promise(r => setTimeout(r, ms)); const out = []; const fields = [];
+    const check = (label, root) => { root.querySelectorAll('button, a[href], input, select, textarea').forEach(el => { const r = el.getBoundingClientRect(); if (r.width < 1 || r.height < 1) return; const cs = getComputedStyle(el); if (cs.visibility === 'hidden' || cs.display === 'none') return; if (/^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName) && el.type !== 'file' && el.type !== 'checkbox' && el.type !== 'range') { const fs = parseFloat(cs.fontSize); if (fs < 16) fields.push(label + ' ' + el.tagName + '.' + el.className + ' ' + fs + 'px'); } if (el.type === 'file') return; if (r.height < 40 || r.width < 40) out.push(label + ' ' + el.tagName + '.' + String(el.className).slice(0, 24) + ' "' + (el.textContent || el.getAttribute('aria-label') || '').trim().slice(0, 18) + '" ' + Math.round(r.width) + 'x' + Math.round(r.height)); }); };
+    const sr = id => document.getElementById(id).shadowRoot;
+    L29.open(null, null, 'books'); await wait(80); check('enc home', sr('l29')); L29.open('stormlight'); await wait(80); check('enc series', sr('l29')); for (const t of ['trees', 'charts', 'sealed']) { const b = [...sr('l29').querySelectorAll('.tabs button')].find(x => new RegExp(t === 'trees' ? 'Family' : t, 'i').test(x.textContent)); if (b) { b.click(); await wait(60); check('enc ' + t, sr('l29')); } } L29.open('stormlight', 'kaladin'); await wait(60); check('enc entry', sr('l29')); L29.open('steel'); await wait(60); check('manual', sr('l29')); L29.close();
+    L37.open('log'); await wait(60); check('quest log', sr('l37')); L37.open('marks'); await wait(60); check('bookmarks', sr('l37')); L37.close();
+    L34.open(); await wait(120); check('look', sr('l34')); L34.close();
+    const w = ALL_TITLES.find(t => /^The Way of Kings/.test(t)); L35.addTime(w); await wait(120); check('add time', sr('l35')); L35.journal(w); await wait(120); check('journal', sr('l35')); L35.close();
+    L36.open('sat'); await wait(250); check('steel logger', sr('l36')); try { const c = sr('l36').querySelector('.xc, .ex, [data-a=ex]'); if (c) { c.click(); await wait(150); check('steel logger open lift', sr('l36')); } } catch (e) {} L36.close(); L36.uploads(); await wait(150); check('uploads', sr('l36u')); try { document.getElementById('l36u').classList.remove('on'); } catch (e) {}
+    switchLib('life'); await wait(600); check('home quests', document.querySelector('.l37-sec:not(.l37-bs)')); switchLib('books'); await wait(600); document.querySelectorAll('.l29-sec, .l37-bs').forEach(el => check('books cards', el)); switchLib('steel'); await wait(700); document.querySelectorAll('.l36c, .l29-sec').forEach(el => check('steel cards', el));
+    return { small: out, fields }; });
+  console.log('small targets:', scan.small.length); [...new Set(scan.small.map(x => x.replace(/"[^"]*"/, m => m.slice(0, 14) + '"')))].slice(0, 90).forEach(x => console.log('   ', x)); console.log('small fields:', scan.fields.length); scan.fields.forEach(x => console.log('   ', x));
+  ok(scan.fields.length === 0, 'every text field is 16 px or larger (no zoom on focus)');
+  ok(scan.small.length === 0, 'every control in the new sheets is at least 40 px in both directions');
+
+  // ---------- 5. contrast per theme ----------
+  const con = await page.evaluate(() => { const lum = c => { const m = /rgba?\((\d+)[, ]+(\d+)[, ]+(\d+)/.exec(c); const f = v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }; return .2126 * f(+m[1]) + .7152 * f(+m[2]) + .0722 * f(+m[3]); }; const ratio = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); }; const probe = document.createElement('div'); document.body.appendChild(probe); const col = v => { probe.style.color = ''; probe.style.color = v; return getComputedStyle(probe).color; };
+    const out = {}; const root = document.documentElement; const keep = root.className; ['den', 'storm', 'ash', 'night', 'glass'].forEach(th => { root.className = keep.replace(/\bth-\w+/g, '') + ' l34 th-' + th; const cs = getComputedStyle(root); const g = k => col(cs.getPropertyValue(k).trim()); const bg = g('--d-bg'), bg2 = g('--d-bg2'); out[th] = { ink: +ratio(g('--d-ink'), bg).toFixed(1), mute: +ratio(g('--d-mute'), bg).toFixed(1), mute2: +ratio(g('--d-mute'), bg2).toFixed(1), acc: +ratio(g('--d-acc'), bg).toFixed(1), onAcc: +ratio(col('#0f0f11'), g('--d-acc')).toFixed(1) }; }); root.className = keep; probe.remove(); return out; });
+  console.log('contrast', JSON.stringify(con));
+  ok(Object.values(con).every(c => c.ink >= 7 && c.mute >= 4.5 && c.mute2 >= 4.5 && c.acc >= 3 && c.onAcc >= 4.5), 'every theme: text 7:1, quiet text 4.5:1, accent 3:1, dark text on accent 4.5:1');
+
+  // ---------- 6. overflow ----------
+  ok(await page.evaluate(async () => { const wait = ms => new Promise(r => setTimeout(r, ms)); for (const lib of ['life', 'books', 'steel', 'screen']) { switchLib(lib); await wait(500); if (document.documentElement.scrollWidth > window.innerWidth + 1) return false; } return true; }), 'no tab scrolls sideways');
+  console.log(pass + ' passed, ' + fail + ' failed', JSON.stringify(errs.slice(0, 5))); await br.close(); srv.close(); process.exit(fail ? 1 : 0); })();
