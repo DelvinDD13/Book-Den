@@ -783,8 +783,111 @@ def hunt2():
         except Exception as e: out[nm] = [u, 'ERR ' + str(e)[:60]]
     save('hunt2.json', out); sheet(items, 'hunt2.jpg', cols=6, w=180, h=270, fit=True)
 
+
+OWN_ART = {'Tress of the Emerald Sea: A Cosmere Novel', 'Yumi and the Nightmare Painter: A Cosmere Novel', 'The Fires of December'}
+STOPW = set('a an the of and to in on for with at by from or is it as be my your our their his her its into book books series part volume vol edition novel complete collection unabridged dramatized adaptation recording anniversary original audible'.split())
+GUIDEW = ['summary of', 'study guide', 'workbook', 'analysis of', 'conversation starters', 'trivia', 'quicklet', 'cliffsnotes', 'sparknotes', 'a guide to']
+FOREIGNW = set('roman novela edizione edicion ausgabe tome und der die das les une des los las del della il di el et le la'.split())
+def big(u):
+    """the same picture at a size OCR can read"""
+    u = str(u)
+    if 'mzstatic.com' in u: return re.sub(r'/[0-9]+x[0-9]+[a-z]*(-[0-9]+)?\.(jpg|png|webp)$', '/600x900bb.jpg', u)
+    if 'covers.openlibrary.org' in u: return re.sub(r'-[SML]\.jpg$', '-L.jpg', u)
+    if 'books.google.com' in u: return re.sub(r'fife=w\d+', 'fife=w800', u)
+    return u.split('?')[0] if 'wikimedia' in u else u
+def twords(t):
+    main = re.sub(r'\([^)]*\)|\[[^\]]*\]', ' ', t).split(':')[0]
+    w = [x for x in norm(main).replace("'", '').split() if len(x) >= 3 and x not in STOPW]
+    return w or [x for x in norm(main).split() if x][:2]
+def near(w, words):
+    if w in words: return True
+    if len(w) < 5: return False
+    for x in words:
+        if abs(len(x) - len(w)) <= 1 and sum(1 for a, b in zip(x, w) if a != b) + abs(len(x) - len(w)) <= 1: return True
+        if len(x) >= len(w) and w in x: return True
+    return False
+def coveraudit():
+    """Every book cover the app can show, checked three ways: the picture is fetched and measured, the words printed on it
+    are read with OCR and matched against the title and author, and every cover goes on a numbered contact sheet for
+    checking by eye. Reads only: nothing is written to the store."""
+    import base64
+    from concurrent.futures import ThreadPoolExecutor
+    try: import pytesseract
+    except Exception: pytesseract = None
+    cur = store_get(); html = open(os.path.join(HERE, '..', 'index.html'), encoding='utf-8').read()
+    a = html.find('let ART = /*ART_START*/'); b = html.find('/*ART_END*/', a)
+    ART = json.loads(html[a + len('let ART = /*ART_START*/'):b]) if a >= 0 and b > a else {}
+    i = html.find('const COVERS = '); j = html.find('\n', i)
+    try: COV = json.loads(html[i + len('const COVERS = '):j].strip().rstrip(';'))
+    except Exception: COV = {}
+    books = [(t, au) for t, au in T['books']]; have = set(t for t, _ in books)
+    for k in sorted(cur):
+        if k.startswith('cv:') and not k.startswith(('cv:show:', 'cv:game:')) and k[3:] not in have and k[3:] not in OWN_ART: books.append((k[3:], ''))
+    books = [x for x in books if x[0] not in OWN_ART]
+    def one(item):
+        t, au = item; j = parsed(cur, 'cv:' + t); j = j if isinstance(j, dict) else {}
+        url = j.get('url') if str(j.get('url') or '').startswith('https://') else None
+        r = {'kind': 'none', 'src': j.get('src') or '', 'host': '', 'w': 0, 'h': 0, 'flags': [], 'ocr': '', 'title_hit': None, 'author_hit': None}
+        img = None
+        try:
+            if url:
+                r['kind'] = 'store'; r['host'] = urllib.parse.urlparse(url).netloc
+                img = Image.open(io.BytesIO(raw(big(url), 40))).convert('RGB')
+            elif ART.get(t) or (COV.get(t) or {}).get('cover_data'):
+                r['kind'] = 'embedded'; d = ART.get(t) or COV[t]['cover_data']
+                img = Image.open(io.BytesIO(base64.b64decode(d.split(',', 1)[1]))).convert('RGB')
+        except Exception as e: r['kind'] = 'broken'; r['err'] = str(e)[:80]
+        if img is not None:
+            r['w'], r['h'] = img.size
+            if img.width < 300: r['flags'].append('small')
+            if abs(img.width - img.height) <= img.width * 0.06: r['flags'].append('square')
+            if pytesseract:
+                try:
+                    g = img.convert('L'); k = max(1.0, 900.0 / g.height); g = g.resize((int(g.width * k), int(g.height * k)))
+                    txt = pytesseract.image_to_string(g, config='--psm 11') + ' ' + pytesseract.image_to_string(g, config='--psm 3')
+                except Exception as e: txt = ''; r['flags'].append('ocr-error')
+                n = norm(txt); words = set(n.replace("'", '').split()); r['ocr'] = ' '.join(n.split())[:160]
+                tw = twords(t); r['title_hit'] = round(sum(1 for w in tw if near(w, words)) / max(1, len(tw)), 2)
+                last = norm(au).split()[-1] if norm(au) else ''
+                r['author_hit'] = (near(last, words) if last else None)
+                if any(g2 in n for g2 in GUIDEW): r['flags'].append('guide-words')
+                if len([w for w in words if w in FOREIGNW]) >= 2: r['flags'].append('foreign-words')
+        else: r['flags'].append('no-picture')
+        return t, au, r, img
+    res = []
+    with ThreadPoolExecutor(6) as ex:
+        for x in ex.map(one, books): res.append(x)
+    res.sort(key=lambda x: norm(x[0]))
+    out = {}; items = []
+    for n, (t, au, r, img) in enumerate(res, 1):
+        r['n'] = n; r['author'] = au; out[t] = r
+        bad = r['kind'] in ('none', 'broken') or 'guide-words' in r['flags'] or 'foreign-words' in r['flags'] or (r['title_hit'] == 0 and r['author_hit'] is not True)
+        mid = (not bad) and ((r['title_hit'] or 0) < 0.5 and not r['author_hit'])
+        items.append((n, t, au, img, (230, 70, 70) if bad else (230, 170, 40) if mid else (70, 190, 110), r))
+    save('cover_audit.json', out)
+    def page(chunk, name, cols=6, w=150, h=225):
+        lab = 46; rws = (len(chunk) + cols - 1) // cols; im = Image.new('RGB', (cols * (w + 10) + 10, rws * (h + lab + 10) + 10), (18, 18, 20)); d = ImageDraw.Draw(im); f = font(11); fb = font(13)
+        for i, (n, t, au, img, col, r) in enumerate(chunk):
+            x = 10 + (i % cols) * (w + 10); y = 10 + (i // cols) * (h + lab + 10)
+            d.rectangle([x - 3, y - 3, x + w + 2, y + h + 2], outline=col, width=3)
+            if img is not None:
+                th = img.copy(); th.thumbnail((w, h)); im.paste(th, (x + (w - th.width) // 2, y + (h - th.height) // 2))
+            else: d.text((x + 6, y + 26), r['kind'].upper(), fill=(255, 90, 90), font=fb)
+            d.rectangle([x, y, x + 30, y + 16], fill=(0, 0, 0)); d.text((x + 3, y + 2), str(n), fill=(255, 255, 255), font=f)
+            d.text((x, y + h + 4), t[:25], fill=(240, 240, 240), font=f); d.text((x, y + h + 17), t[25:50], fill=(240, 240, 240), font=f); d.text((x, y + h + 30), (au or '')[:25], fill=(150, 150, 150), font=f)
+        im.save(os.path.join(OUT, name), quality=82); log('sheet', name, len(chunk))
+    for k in range(0, len(items), 42): page(items[k:k + 42], 'cov_%02d.jpg' % (k // 42 + 1))
+    flagged = [x for x in items if x[4] != (70, 190, 110)]
+    for k in range(0, len(flagged), 20): page(flagged[k:k + 20], 'covflag_%02d.jpg' % (k // 20 + 1), cols=5, w=200, h=300)
+    cnt = {}
+    for t, r in out.items():
+        cnt[r['kind']] = cnt.get(r['kind'], 0) + 1
+        for fl in r['flags']: cnt['flag ' + fl] = cnt.get('flag ' + fl, 0) + 1
+    cnt['flagged red or amber'] = len(flagged); cnt['ocr'] = bool(pytesseract); save('cover_audit_counts.json', cnt); log('coveraudit', cnt)
+
 if __name__ == '__main__':
     todo = sys.argv[1:] or ['unstray', 'apply', 'live']   # unstray first, every run: no poster record may sit in a show: or game: row
+    if todo[0] != 'unstray': todo = ['unstray'] + [x for x in todo if x != 'unstray']
     for name in todo:
-        try: {'imdb': imdb, 'tvmaze': tvmaze, 'posters': posters, 'superman': superman, 'fix': fix, 'wikibox': wikibox, 'anime': anime, 'steam': steam, 'pkmn': pkmn, 'wikiraw': wikiraw, 'imdb2': imdb2, 'books': books, 'links': links, 'apply': apply, 'hunt': hunt, 'audible': audible, 'bookfix': bookfix, 'hunt2': hunt2, 'unstray': unstray, 'audible2': audible2, 'bookfix2': bookfix2, 'summaries': summaries, 'live': live}[name]()
+        try: {'imdb': imdb, 'tvmaze': tvmaze, 'posters': posters, 'superman': superman, 'fix': fix, 'wikibox': wikibox, 'anime': anime, 'steam': steam, 'pkmn': pkmn, 'wikiraw': wikiraw, 'imdb2': imdb2, 'books': books, 'links': links, 'apply': apply, 'hunt': hunt, 'audible': audible, 'bookfix': bookfix, 'hunt2': hunt2, 'unstray': unstray, 'audible2': audible2, 'bookfix2': bookfix2, 'summaries': summaries, 'live': live, 'coveraudit': coveraudit}[name]()
         except Exception: log('FAILED', name); traceback.print_exc()

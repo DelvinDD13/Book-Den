@@ -80,4 +80,35 @@ posts.clear(); A.apply(); ok('a second apply run writes nothing', posts == [], s
 # --- the cover job protects the same rows ---
 src = open(os.path.join(ROOT, 'sync', 'covers.py')).read()
 ok('covers.py keeps checked rows by their cv: name', "CHECKED = set(cvkey(k)" in src, '')
+
+# coveraudit reads only: it fetches every book cover, reads its words, and lays them out for checking by eye
+from PIL import ImageDraw, ImageFont
+def face(lines):
+    im = Image.new('RGB', (600, 900), (40, 60, 90)); dr = ImageDraw.Draw(im)
+    try: f = ImageFont.truetype('/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf', 64)
+    except Exception: f = ImageFont.load_default(size=64)
+    for i, ln in enumerate(lines): dr.text((40, 120 + 110 * i), ln, fill=(250, 240, 220), font=f)
+    bb = io.BytesIO(); im.save(bb, 'JPEG'); return bb.getvalue()
+PICS = {'https://img.test/right.jpg': face(['THE MIDNIGHT', 'LIBRARY', '', 'MATT HAIG']), 'https://img.test/wrong.jpg': face(['GONE GIRL', '', 'GILLIAN', 'FLYNN']), 'https://img.test/guide.jpg': face(['SUMMARY OF', 'ATOMIC', 'HABITS'])}
+def fake_raw(url, timeout=60):
+    if url in PICS: return PICS[url]
+    raise OSError('404')
+A.raw = fake_raw
+cvr = lambda u: {'u': 1, 'j': json.dumps({'url': u, 'src': 'apple-books', 'w': 600, 'h': 900})}
+STORE.clear(); STORE.update({'cv:The Midnight Library': cvr('https://img.test/right.jpg'), 'cv:Atomic Habits': cvr('https://img.test/guide.jpg'), 'cv:The Hobbit': cvr('https://img.test/wrong.jpg'), 'cv:Broken Link': cvr('https://img.test/gone.jpg'), 'The Hobbit': {'u': 1, 'j': json.dumps({'status': 'read', 'myRating': 5})}})
+A.T = {'books': [['The Midnight Library', 'Matt Haig'], ['Atomic Habits', 'James Clear'], ['The Hobbit', 'J. R. R. Tolkien'], ['Broken Link', 'Someone'], ['Circe', 'Madeline Miller'], ['The Fires of December', 'Brandon Sanderson']], 'shows': [], 'games': []}
+import tempfile; A.OUT = tempfile.mkdtemp(); posts.clear(); A.coveraudit()
+R = REP['cover_audit.json']
+ok('coveraudit writes nothing to the store', posts == [], str(posts)[:200])
+ok('coveraudit leaves out his own art', 'The Fires of December' not in R)
+ok('a missing or broken cover is reported', R['Circe']['kind'] == 'none' and R['Broken Link']['kind'] == 'broken')
+try:
+    import pytesseract; have_ocr = True
+except Exception: have_ocr = False
+if have_ocr:
+    ok('the right cover reads as its title and author', R['The Midnight Library']['title_hit'] == 1.0 and R['The Midnight Library']['author_hit'] is True, json.dumps(R['The Midnight Library']))
+    ok('a cover for another book reads as a miss', R['The Hobbit']['title_hit'] == 0.0, json.dumps(R['The Hobbit']))
+    ok('a summary or study guide cover is flagged', 'guide-words' in R['Atomic Habits']['flags'], json.dumps(R['Atomic Habits']))
+ok('the report holds no rows of his', not any(x in json.dumps(R) for x in ['myRating', '"read"']))
+ok('contact sheets are made', any(f.startswith('cov_') for f in os.listdir(A.OUT)))
 print('job_test: %d checks, %d failed' % (n[0], len(fails))); sys.exit(1 if fails else 0)

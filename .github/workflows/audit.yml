@@ -1,6 +1,11 @@
 name: audit
 on:
   workflow_dispatch:
+    inputs:
+      todo:
+        description: steps to run, space separated (empty runs the default)
+        required: false
+        default: ''
   push:
     paths: [sync/audit.py, .github/workflows/audit.yml]
 permissions:
@@ -21,11 +26,15 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install pillow
+      - if: contains(github.event.inputs.todo, 'coveraudit')
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq tesseract-ocr && pip install pytesseract
       - name: passes
+        env:
+          TODO: ${{ github.event.inputs.todo }}
         run: |
           git config user.name "book-den-bot"
           git config user.email "book-den-bot@users.noreply.github.com"
-          python sync/audit.py
+          python sync/audit.py $TODO
           # results go to their own branch so the site itself stays small
           git checkout -B audit-data
           git add -f audit
