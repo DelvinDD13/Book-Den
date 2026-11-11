@@ -18,7 +18,10 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install pillow imageio-ffmpeg
-      - run: |
+      - env:
+          DEN_STORE_URL: https://script.google.com/macros/s/AKfycbxhY9gpaLCuiZXMIJufA1-JoYVThIKfglXglisMiPKZMMHXj3RFHnMdxAgfuN1zcMEtuQ/exec
+          DEN_KEY: w0fzVaKZmPNbUBMgLMSn5IDg
+        run: |
           if [ -s sync/art_frames.txt ]; then export FRAMES="$(grep -v '^#' sync/art_frames.txt | tr '\n' ';')"; fi
           python sync/art_audit.py
       # candidates go to their own branch so the site itself stays small
@@ -26,6 +29,6 @@ jobs:
           git config user.name "book-den-bot"
           git config user.email "book-den-bot@users.noreply.github.com"
           git checkout -B audit-art
-          git add -f audit/steel
+          git add -f audit/steel audit/mock
           git diff --cached --quiet || git commit -m "Steel header art candidates (public-domain Fleischer Superman frames)"
           git push -f origin audit-art

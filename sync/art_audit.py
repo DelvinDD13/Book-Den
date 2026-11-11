@@ -115,7 +115,7 @@ def frames():
             if times == 'sheet': out.append({'key': key, 'sheet_frames': contact(p, key), 'archive': 'https://archive.org/details/' + ident}); continue
             for ts in times.split(','):
                 m, sec = ts.strip().split(':'); name = 'pick_%s_%s-%s.jpg' % (key, m, sec.replace('.', '_'))
-                subprocess.run([ffmpeg(), '-loglevel', 'error', '-y', '-ss', '%.2f' % (int(m) * 60 + float(sec)), '-i', p, '-frames:v', '1', '-vf', 'scale=min(1280\\,iw):-2', '-q:v', '2', os.path.join(OUT, name)], check=True)
+                subprocess.run([ffmpeg(), '-loglevel', 'error', '-y', '-ss', '%.2f' % (int(m) * 60 + float(sec)), '-i', p, '-frames:v', '1', '-vf', 'scale=min(1920\\,iw):-2', '-q:v', '2', os.path.join(OUT, name)], check=True)
                 im = Image.open(os.path.join(OUT, name)); out.append({'key': key, 'at': ts.strip(), 'file': name, 'w': im.width, 'h': im.height, 'archive': 'https://archive.org/details/' + ident, 'source_file': fname})
         except Exception as e: log('frame spec failed', spec, e); traceback.print_exc()
     save('picks.json', out)
@@ -155,8 +155,53 @@ def stills():
         dr.text((x, y + h + 2), ('%02d ' % i) + m['title'][5:45], fill=(235, 235, 235), font=ft); dr.text((x, y + h + 15), '%sx%s  %s' % (m['w'], m['h'], m.get('license')), fill=(170, 170, 170), font=ft)
     img.save(os.path.join(OUT, 'stills.jpg'), quality=82); save('stills.json', meta); log('stills', len([m for m in meta if m.get('file')]), 'of', len(meta))
 
+
+# ---- covers for mock screens (so a mock can show his own books, shows and games) ----
+BOOKPAT = [r'^The Way of Kings', r'^Words of Radiance', r'^A Court of ', r'^Iron Flame', r'^Fourth Wing', r'^Onyx Storm', r'^Shield of Sparrows', r'^The Poet Empress', r'^Graceling', r'^All-Star Superman', r'^Golden Son', r'^Red Rising', r'^Skyward', r"^The Emperor's Soul", r'^Galatea', r'^Vicious', r'^Vengeful', r'^House of (Earth|Sky|Flame)', r'^Mistborn', r'Well of Ascension', r'Hero of Ages', r'^Dungeon Crawler Carl', r"^Carl's Doomsday", r'^The Blade Itself', r'^Before They Are Hanged', r'^Last Argument', r'^Circe', r'^Throne of Glass', r'^Crown of Midnight', r'^Kingdom of Ash', r'^Legends & Lattes', r'^Piranesi', r'^The Will of the Many', r'^Project Hail Mary', r'^Warbreaker', r'^Elantris', r'^The Cruel Prince', r'^The Wicked King', r'^The Queen of Nothing', r"^Howl's Moving", r'^The Fires of December', r'^Tress of', r'^Yumi and', r'^The Song of Achilles', r'^Babel', r'^The Name of the Wind', r'^The Lies of Locke', r'^Jade City', r'^The Poppy War', r'^Six of Crows', r'^The Shadow of the Gods', r'^Leviathan Wakes', r'^The Rage of Dragons', r'^Eragon', r'^Let Us Descend', r'^The Serviceberry', r'^When the Tides']
+SHOWPICK = ['The Bear', 'Severance', 'Ted Lasso', 'Breaking Bad', 'Game of Thrones', 'Attack on Titan', 'Demon Slayer', 'Jujutsu Kaisen', 'Frieren', 'Hunter x Hunter', 'Naruto', 'Naruto Shippuden', 'Death Note', 'Code Geass', 'Bleach', 'Black Clover', 'Chainsaw Man', 'Mob Psycho 100', 'Young Justice', 'X-Men ’97', 'My Adventures with Superman', 'Superman: The Animated Series', 'Justice League Unlimited', 'Batman: The Animated Series', 'Abbott Elementary', 'Brooklyn Nine-Nine', 'The Wire', 'Barry', 'Psych', 'The Office', 'Haikyu!!', 'Kaiju No. 8', 'Gachiakuta', 'Sakamoto Days', 'Fairy Tail', 'Mushoku Tensei', 'Re:Zero', 'Lanterns', 'Pachinko', 'Arrow', 'The Flash']
+GAMEURL = {'Final Fantasy Tactics: The Ivalice Chronicles': 'https://shared.steamstatic.com/store_item_assets/steam/apps/1004640/988d2f00c81b45d6aab89e5a1737d0737165f905/library_600x900_2x.jpg', 'Dragon Quest III HD-2D Remake': 'https://shared.steamstatic.com/store_item_assets/steam/apps/2701660/library_600x900_2x.jpg', 'Tactics Ogre: Reborn': 'https://shared.steamstatic.com/store_item_assets/steam/apps/1451090/library_600x900_2x.jpg', 'Octopath Traveler II': 'https://shared.steamstatic.com/store_item_assets/steam/apps/1971650/library_600x900_2x.jpg', 'Digimon Survive': 'https://cdn.cloudflare.steamstatic.com/steam/apps/871980/library_600x900_2x.jpg', 'Elden Ring': 'https://shared.steamstatic.com/store_item_assets/steam/apps/1245620/library_600x900_2x.jpg'}
+def slug(t): return re.sub(r'[^a-z0-9]+', '-', t.lower().replace('’', '')).strip('-')[:64]
+def mockart():
+    STORE = os.environ.get('DEN_STORE_URL', ''); KEY = os.environ.get('DEN_KEY', '')
+    T = json.load(open(os.path.join(HERE, 'titles.json'))); cur = (get(STORE + '?key=' + urllib.parse.quote(KEY), 120).get('v') or {})
+    d = os.path.join(HERE, '..', 'audit', 'mock'); os.makedirs(d, exist_ok=True); out = {'books': {}, 'shows': {}, 'games': {}, 'upcoming': {}}
+    def url(k):
+        try: return json.loads(cur[k]['j']).get('url') or ''
+        except Exception: return ''
+    def grab(u, name, w=400, h=600):
+        if not u: return None
+        if 'mzstatic.com' in u: u = re.sub(r'/[0-9]+x[0-9]+[a-z]*(-[0-9]+)?\.(jpg|png|webp)$', '/400x600bb.jpg', u)
+        if 'covers.openlibrary.org' in u: u = re.sub(r'-[SML]\.jpg$', '-L.jpg', u)
+        for a in range(3):
+            try:
+                if 'wikimedia' in u: time.sleep(2.5)
+                im = Image.open(io.BytesIO(raw(u.split('?')[0] if 'wikimedia' in u else u, 40))).convert('RGB'); im.thumbnail((w, h)); im.save(os.path.join(d, name), quality=86); return [name, im.width, im.height]
+            except Exception as e:
+                if '429' in str(e): time.sleep(20 * (a + 1)); continue
+                log('mock art failed', name, str(e)[:80]); return None
+    for t, a in T['books']:
+        if any(re.search(p, t) for p in BOOKPAT):
+            r = grab(url('cv:' + t), 'b_' + slug(t) + '.jpg')
+            if r: out['books'][t] = r + [a]
+    kinds = dict((x[0], x[1]) for x in T['shows'])
+    for t in SHOWPICK:
+        if t in kinds:
+            r = grab(url('cv:show:' + t), 's_' + slug(t) + '.jpg')
+            if r: out['shows'][t] = r
+    for t in T['games']:
+        r = grab(GAMEURL.get(t) or url('cv:game:' + t), 'g_' + slug(t) + '.jpg')
+        if r: out['games'][t] = r
+    try:
+        U = json.load(open(os.path.join(HERE, '..', 'upcoming.json')))
+        for x in (U.get('books') or []) + (U.get('games') or []):
+            if x.get('cover'):
+                r = grab(x['cover'], 'u_' + slug(x['title']) + '.jpg')
+                if r: out['upcoming'][x['title']] = r
+    except Exception as e: log('upcoming failed', e)
+    json.dump(out, open(os.path.join(d, 'index.json'), 'w'), ensure_ascii=False, indent=1); log('mock art', {k: len(v) for k, v in out.items()})
+
 if __name__ == '__main__':
-    todo = sys.argv[1:] or (['frames'] if os.environ.get('FRAMES') else ['sheets', 'stills'])
+    todo = sys.argv[1:] or (['mockart', 'frames'] if os.environ.get('FRAMES') else ['sheets', 'stills'])
     for name in todo:
-        try: {'sheets': sheets, 'frames': frames, 'stills': stills}[name]()
+        try: {'sheets': sheets, 'frames': frames, 'stills': stills, 'mockart': mockart}[name]()
         except Exception: log('FAILED', name); traceback.print_exc()
