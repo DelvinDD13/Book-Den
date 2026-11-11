@@ -44,4 +44,8 @@ const store = fs.readFileSync('/home/claude/den/pt/store.json'); let pass = 0, f
   ok(emp.read && emp.started && /twenty-first birthday/.test(emp.html) && /lightning/.test(emp.html), 'Empyrean: Fourth Wing is open and the opening of Iron Flame shows once it is started');
   ok(!/inntinnsic|dreamwalking|became venin|irid|First Six|gave her life|Wyverns are real|graduated as a lieutenant/.test(emp.html), 'Empyrean: nothing past the opening of Iron Flame is on the page');
   ok(emp.st.lock && emp.st.lock.if > 0 && emp.st.lock.os > 0, 'Empyrean: the sealed count waits on Iron Flame and Onyx Storm: ' + JSON.stringify(emp.st.lock));
+  // Iron Flame opens chapter by chapter: through chapter 8 shows Aaric and the new vice commandant, not chapter 9 onward
+  const emp2 = await page.evaluate(async () => { L29.setPart('if', 2); L29.close(); const root = () => document.getElementById('l29').shadowRoot; const all = []; const S = L29.by.empyrean;
+    for (const e of S.e) { L29.open('empyrean', e.id); await new Promise(r => setTimeout(r, 30)); all.push(root().innerHTML); } L29.close(); L29.setPart('if', 0); return all.join(' '); });
+  ok(/Camlaen Aaric Tauri/.test(emp2) && /vice commandant/.test(emp2) && !/Nadine|Samara|First Six|talladium/.test(emp2), 'Empyrean: through chapter 8 of Iron Flame opens chapters 1 to 8 and nothing after');
   console.log(pass + ' passed, ' + fail + ' failed', JSON.stringify(errs.slice(0, 5))); await br.close(); srv.close(); process.exit(fail ? 1 : 0); })();

@@ -1,6 +1,6 @@
 // ===== L45: Encyclopedia data — The Empyrean. fw = Fourth Wing, if = Iron Flame, os = Onyx Storm; book:0 = started, a bare key = finished.
-// Facts are checked against the pages in src. Iron Flame and Onyx Storm pieces stay sealed until those books are finished,
-// except the opening of Iron Flame, which opens when it is started.
+// Facts are checked against the pages in src. Iron Flame opens chapter by chapter through Part One (if:1 = through ch 4 … if:9 = through ch 36);
+// the rest of Iron Flame and all of Onyx Storm stay sealed until those books are finished.
 (function () { if (!window.L29) return;
   L29.add({ k: 'empyrean', n: 'The Empyrean', short: 'Empyrean', world: 'Navarre', by: 'Rebecca Yarros', skin: 'ink', spines: ['#1d1b20', '#8f1f2b', '#c9a227', '#2f5d8f', '#3d6b3a'], acc: '#ff4d6d', hue: ['#3a1018', '#0d0b0c'], badge: 'Crossed the Parapet',
     about: [['', "Navarre has kept its borders behind magical wards for centuries and is at war with Poromiel. At Basgiath War College, cadets who want to ride must survive the Riders Quadrant and be chosen by a dragon."]],
@@ -9,7 +9,7 @@
       ['Empyrean Riders, characters, dragons and signets', 'https://www.empyreanriders.com/articles/guide-to-fourth-wing-characters-dragons-signets/'], ['Empyrean Riders, Iron Flame', 'https://www.empyreanriders.com/?p=1849']],
     books: [
       { k: 'fw', t: 'Fourth Wing', sp: 'Fourth Wing', m: '^Fourth Wing' },
-      { k: 'if', t: 'Iron Flame', sp: 'Iron Flame', m: '^Iron Flame', chs: 66 },
+      { k: 'if', t: 'Iron Flame', sp: 'Iron Flame', m: '^Iron Flame', raw: 1, chs: 66, ch: [4, 8, 12, 17, 20, 23, 27, 31, 36], parts: ['Ch 1–4', 'Ch 5–8', 'Ch 9–12', 'Ch 13–17', 'Ch 18–20', 'Ch 21–23', 'Ch 24–27', 'Ch 28–31', 'Ch 32–36 · end of Part One'] },
       { k: 'os', t: 'Onyx Storm', sp: 'Onyx Storm', m: '^Onyx Storm' }],
     cats: { people: 'People', dragons: 'Dragons', powers: 'Magic & Signets', school: 'Basgiath & the Codex', places: 'Places', lore: 'History & Lore' },
     e: [
@@ -19,34 +19,54 @@
         ['fw', "At Threshing she defended a small dragon from three cadets. Tairn, a black morningstartail, chose her, and the small one, Andarna, a golden feathertail, chose her too, which made her the first rider bonded to two dragons. Her signet is lightning. Through Andarna she could stop time for a moment, at a cost to them both."],
         ['fw', "She learned that venin are real when they attacked a town near the border. Fighting beside the rebels to defend it, she was stabbed with a poisoned blade and woke days later to find Brennan alive."],
         ['if:0', "In the kitchen of the fortress in Aretia she eats for the first time in three days, since the poisoned blade. Brennan mended her wound, and she slept through her twenty-first birthday. Bodhi arrives with a message from Basgiath."],
+        ['if:1', "Back at Basgiath she and Xaden told a cover story: they had been sent to Athebyne, where gryphons killed Liam and Soleil's dragons. She is a second-year now."],
+        ['if:2', "Because their dragons are mated, she and Xaden have leave to see each other every seven days. She will not take him back until he tells her his secrets. In the Archives she looks for how the wards were made, hoping to fix Aretia's."],
+        ['if:3', "A first-year sent to kill her killed her squadmate Nadine, and Violet killed him."],
+        ['if:4', "Vice Commandant Varrish made her wield lightning over and over until she nearly burned out. Jesinia agreed to search the Archives for her."],
+        ['if:5', "She flew to Samara to see Xaden. They agreed to tell each other anything that could change the other's choices."],
+        ['if:6', "She found that the First Six carved the first wardstone themselves, and probably Aretia's too. Varrish took her and her friends to interrogation training."],
+        ['if:7', "Varrish wrenched her injured arm out of its socket. She felt power in her dagger and used it to open the lock while Sawyer melted the hinges, and the four escaped. When Samara was attacked she flew there without leave."],
+        ['if:8', "She told Rhiannon, Ridoc and Sawyer the truth about the venin. Assassins caught her on watch on the parapet; Eya was killed, and Jack Barlowe saved Violet."],
+        ['if:9', "Nolon drugged her, and Varrish held her in the brig as bait for Xaden. Dain read her memories, saw what she had seen, and freed her, and she and Xaden killed Varrish. She told Xaden she loves him. About a hundred riders and two hundred dragons followed them to Aretia."],
         ['if', "She studied the wards, looking for a way to strengthen them and stretch them to protect Poromiel."],
         ['os', "Her second signet is dreamwalking, Andarna's gift."]] },
       { id: 'xaden', n: 'Xaden Riorson', c: 'people', o: 1, g: 'fw:0', t: [['fw:0', 'Wingleader, Fourth Wing'], ['if', 'Lieutenant']], rel: ['fen', 'sgaeyl', 'violet', 'liam', 'bodhi', 'marked', 'relics'], s: [
         ['fw:0', "Two years ahead of Violet at Basgiath and wingleader of Fourth Wing. He is the son of Fen Riorson, who led the rebellion and was executed for it, and he carries a rebellion relic that runs from his left wrist up his neck. He has said he will kill Violet. His dragon is Sgaeyl, a blue daggertail, and his signet is shadows."],
-        ['fw', "He is the eldest of the hundred and eight children orphaned by the rebellion and answers for the rest. His back carries a scar for each of the other hundred and seven."],
+        ['fw', "He is the eldest of the hundred and eight children orphaned by the rebellion and answers for the rest."],
         ['fw', "Sgaeyl is mated to Tairn, which ties him to Violet: each can speak to the other's dragon. He became her wingleader, advised her and built her a saddle, and their bond turned into love. At the end he sat at her bedside in Aretia, where she learned Brennan was alive."],
-        ['if', "He graduated as a lieutenant. He has a second signet he kept secret, because inntinnsics are killed on sight: he can read minds. To save Violet he drew power from the earth and became venin."]] },
+        ['if:1', "He and the other third-years graduated as lieutenants and were ordered out the next day."],
+        ['if:2', "He told Violet not to join the revolution: without a rebellion relic she has no protection from General Melgren's signet."],
+        ['if:3', "At Athebyne his team hands out alloy daggers to gryphon fliers. He warded Violet's door so that only she, and anyone she allows, can open it."],
+        ['if:4', "He is posted at Samara."],
+        ['if:6', "Dain told Violet that her mother is the reason for the hundred and seven scars on Xaden's back, and that she carved them herself."],
+        ['if:7', "He saved the outpost at Samara and nearly lost an arm doing it."],
+        ['if:8', "He supplies gryphon fliers with stolen daggers. Catriona, one of their fliers, is his former partner."],
+        ['if:9', "He told Violet he loves her. Her mother had made a deal with him: the marked ones could survive at Basgiath if he kept Violet alive in her first year."],
+        ['if', "He has a second signet he kept secret, because inntinnsics are killed on sight: he can read minds. To save Violet he drew power from the earth and became venin."]] },
       { id: 'dain', n: 'Dain Aetos', c: 'people', o: 2, g: 'fw:0', t: 'Squad leader, second year', rel: ['violet', 'aetos', 'cath'], s: [
         ['fw:0', "Violet's childhood best friend, a second-year and her squad leader. He tried to steer her toward the scribes to keep her safe. His dragon is Cath, a red swordtail."],
-        ['fw', "His signet is retrocognition: by touching someone he can see their memories. Violet stopped trusting him when she learned he had used it on her without asking."]] },
+        ['fw', "His signet is retrocognition: by touching someone he can see their memories. Violet stopped trusting him when she learned he had used it on her without asking."], ['if:2', "He is the new wingleader."], ['if:6', "He says he never meant the ambush or Liam's death when he reported what he read in Violet's memories."], ['if:7', "He refused Varrish's order to read Violet's memories, citing the Codex."], ['if:9', "Made to read her memories after all, he saw Resson and the venin, turned on Varrish and freed her. As wingleader he told the quadrant the truth."]] },
       { id: 'liam', n: 'Liam Mairi', c: 'people', o: 2, g: 'fw:0', t: 'First-year, a rebellion child', rel: ['xaden', 'sloane', 'deigh', 'marked'], s: [
         ['fw:0', "One of the rebellion's children, raised in foster care alongside Xaden, who asked him to watch over Violet. His dragon is Deigh, a red daggertail."],
-        ['fw', "His signet is farsight. He died protecting Violet, and she promised to look after his sister, Sloane."]] },
-      { id: 'rhiannon', n: 'Rhiannon Matthias', c: 'people', o: 2, g: 'fw:0', t: 'First-year', rel: ['violet', 'feirge'], s: [['fw:0', "A first-year in Violet's squad, Second Squad of Flame Section in Fourth Wing, and her friend."], ['fw', "Her dragon is Feirge, a green daggertail, and her signet is summoning."]] },
-      { id: 'ridoc', n: 'Ridoc Gamlyn', c: 'people', o: 3, g: 'fw:0', t: 'First-year', rel: ['violet', 'aotrom'], s: [['fw:0', "A first-year in Violet's squad."], ['fw', "His dragon is Aotrom, a brown swordtail, and his signet is ice."]] },
-      { id: 'sawyer', n: 'Sawyer Henrick', c: 'people', o: 3, g: 'fw:0', t: 'First-year, repeating the year', rel: ['violet', 'sliseag'], s: [['fw:0', "A first-year in Violet's squad who is repeating the year after failing to bond."], ['fw', "This time he bonded Sliseag, a red swordtail."]] },
+        ['fw', "His signet is farsight. He died protecting Violet, and she promised to look after his sister, Sloane."],
+        ['if:1', "Violet and Xaden found the letters he wrote to his sister."]] },
+      { id: 'rhiannon', n: 'Rhiannon Matthias', c: 'people', o: 2, g: 'fw:0', t: 'First-year', rel: ['violet', 'feirge'], s: [['fw:0', "A first-year in Violet's squad, Second Squad of Flame Section in Fourth Wing, and her friend."], ['fw', "Her dragon is Feirge, a green daggertail, and her signet is summoning."], ['if:2', "She is the squad's new leader."], ['if:8', "Her signet pulled a stolen dagger out of Violet's jacket before Varrish could find it."]] },
+      { id: 'ridoc', n: 'Ridoc Gamlyn', c: 'people', o: 3, g: 'fw:0', t: 'First-year', rel: ['violet', 'aotrom'], s: [['fw:0', "A first-year in Violet's squad."], ['fw', "His dragon is Aotrom, a brown swordtail, and his signet is ice."], ['if:8', "He saw in a ledger that Lyra and Warrick, two of the First Six, kept journals."]] },
+      { id: 'sawyer', n: 'Sawyer Henrick', c: 'people', o: 3, g: 'fw:0', t: 'First-year, repeating the year', rel: ['violet', 'sliseag'], s: [['fw:0', "A first-year in Violet's squad who is repeating the year after failing to bond."], ['fw', "This time he bonded Sliseag, a red swordtail."], ['if:7', "His signet melted the hinges of the door in the interrogation."]] },
       { id: 'imogen', n: 'Imogen Cardulo', c: 'people', o: 3, g: 'fw:0', t: 'Second-year', rel: ['xaden'], s: [['fw:0', "A second-year in Violet's squad."], ['fw', "Her signet wipes away recent memories."]] },
       { id: 'garrick', n: 'Garrick Tavis', c: 'people', o: 3, g: 'fw:0', t: 'Flame Section leader', rel: ['xaden'], s: [['fw:0', "A third-year and leader of Flame Section, the section Violet's squad belongs to."]] },
       { id: 'bodhi', n: 'Bodhi Durran', c: 'people', o: 3, g: 'fw:0', t: "Xaden's cousin", rel: ['xaden', 'fen'], s: [['fw:0', "Xaden's cousin, the son of Fen Riorson's sister, and the nearest thing Xaden has to a brother. He is also a rider."]] },
-      { id: 'jack', n: 'Jack Barlowe', c: 'people', o: 3, g: 'fw:0', t: 'First-year', rel: ['violet', 'baide'], s: [['fw:0', "A first-year cadet and Violet's enemy."], ['fw', "His dragon is Baide, an orange scorpiontail."], ['if', "He became venin by killing his dragon."]] },
+      { id: 'jack', n: 'Jack Barlowe', c: 'people', o: 3, g: 'fw:0', t: 'First-year', rel: ['violet', 'baide'], s: [['fw:0', "A first-year cadet and Violet's enemy."], ['fw', "His dragon is Baide, an orange scorpiontail."], ['if:7', "He is alive. Violet thought she had killed him; Nolon mended him."], ['if:8', "He saved Violet from an assassin on the parapet, saying his death had given him a second chance."], ['if', "He became venin by killing his dragon."]] },
       { id: 'mira', n: 'Mira Sorrengail', c: 'people', o: 2, g: 'fw:0', t: 'First Lieutenant', rel: ['violet', 'lilith', 'brennan', 'teine'], s: [
         ['fw:0', "Violet's older sister, a first lieutenant and rider who won the Order of the Talon at the Battle of Strythemore and patrols the border with the Eastern Wing. She argues with their mother and never stops. She gave Violet a scale vest and rider's boots, and repacked her bag."],
-        ['fw', "Her dragon is Teine, a green clubtail. Her signet extends Navarre's wards to cover herself and other riders."]] },
+        ['fw', "Her dragon is Teine, a green clubtail. Her signet extends Navarre's wards to cover herself and other riders."],
+        ['if:5', "Now stationed at Samara, she warned Violet not to trust Xaden."]] },
       { id: 'brennan', n: 'Brennan Sorrengail', c: 'people', o: 2, g: 'fw:0', t: [['fw:0', 'Believed dead'], ['fw', 'Alive, with the rebels']], rel: ['violet', 'mira', 'lilith', 'fen', 'marbh'], s: [
         ['fw:0', "The eldest Sorrengail child, a rider believed killed in the rebellion. His death broke their father."],
-        ['fw', "At the Battle of Aretia, Fen Riorson shot him in the chest with a crossbolt. He lived. His signet is mending, his dragon is Marbh, an orange daggertail, and he is with the rebels in Aretia."], ['if:0', "He mended Violet after the poisoned blade."]] },
+        ['fw', "At the Battle of Aretia, Fen Riorson shot him in the chest with a crossbolt. He lived. His signet is mending, his dragon is Marbh, an orange daggertail, and he is with the rebels in Aretia."], ['if:0', "He mended Violet after the poisoned blade."], ['if:1', "He faked his death and joined the resistance under the name Aisereigh. Naolin brought him back with his signet and died doing it. Mira does not know he is alive."]] },
       { id: 'lilith', n: 'General Lilith Sorrengail', c: 'people', o: 2, g: 'fw:0', t: 'Commanding general of Basgiath', rel: ['violet', 'mira', 'brennan', 'asher', 'aimsir', 'fen'], s: [
         ['fw:0', "Commanding general of Basgiath War College and Violet's mother. She captured Fen Riorson. Her dragon is Aimsir, a brown. Her signet is the power of storms."],
+        ['if:9', "She has been working with Xaden. She offered the marked ones a chance at Basgiath in return for his keeping Violet alive, and she gave him the hundred and seven scars."],
         ['if', "She gave her life to save Violet and put the wards back."]] },
       { id: 'asher', n: 'Asher Sorrengail', c: 'people', o: 3, g: 'fw:0', t: 'Scribe, died before the story', rel: ['violet', 'lilith'], s: [['fw:0', "Violet's father, a scribe. He died of heart failure about a year before Violet entered the quadrant, grieving the son he thought he had lost."]] },
       { id: 'fen', n: 'Fen Riorson', c: 'people', o: 2, g: 'fw:0', t: 'Led the rebellion, executed', rel: ['xaden', 'bodhi', 'rebellion', 'codagh'], s: [
@@ -54,17 +74,24 @@
         ['fw', "He sent Xaden away before the Battle of Aretia to keep him safe, and they parted in anger. Under questioning he accused the king and the kings before him of a conspiracy. His last words were: You're all cowards."]] },
       { id: 'melgren', n: 'General Melgren', c: 'people', o: 3, g: 'fw:0', t: 'Commanding general of Navarre', rel: ['codagh'], s: [['fw:0', "Commanding general of Navarre's forces. His dragon is Codagh, a black swordtail. His signet shows him the outcome of battles."]] },
       { id: 'aetos', n: 'Colonel Aetos', c: 'people', o: 4, g: 'fw:0', t: "Dain's father", rel: ['dain', 'lilith'], s: [['fw:0', "Dain's father and an adviser to General Sorrengail."]] },
-      { id: 'naolin', n: 'Naolin', c: 'people', o: 4, g: 'fw', t: "Tairn's last rider", rel: ['tairn'], s: [['fw', "Tairn's rider before Violet. He died at Aretia. His signet was siphoning power."]] },
-      { id: 'nolon', n: 'Nolon', c: 'people', o: 4, g: 'fw:0', t: 'Mender', s: [['fw:0', "An old rider whose signet is mending."]] },
+      { id: 'naolin', n: 'Naolin', c: 'people', o: 4, g: 'fw', t: "Tairn's last rider", rel: ['tairn'], s: [['fw', "Tairn's rider before Violet. He died at Aretia. His signet was siphoning power."], ['if:1', "He died bringing Brennan back with his signet."]] },
+      { id: 'nolon', n: 'Nolon', c: 'people', o: 4, g: 'fw:0', t: 'Mender', s: [['fw:0', "An old rider whose signet is mending."], ['if:7', "He mended Jack Barlowe."], ['if:9', "He drugged Violet for Varrish."]] },
       { id: 'kaori', n: 'Professor Kaori', c: 'people', o: 4, g: 'fw:0', t: 'Teaches about dragons', s: [['fw:0', "Teaches about dragons. His dragon is Smachd."]] },
       { id: 'jesinia', n: 'Jesinia Neilwart', c: 'people', o: 4, g: 'fw:0', t: 'Scribe', rel: ['violet'], s: [['fw:0', "A cadet in the Scribe Quadrant."]] },
-      { id: 'sloane', n: 'Sloane Mairi', c: 'people', o: 4, g: 'fw', t: "Liam's sister", rel: ['liam'], s: [['fw', "Liam's younger sister, due to enter the Riders Quadrant the year after. Violet promised Liam she would look after her."], ['if', "Her signet is siphoning, and she channels power to help restore the wards."]] },
+      { id: 'sloane', n: 'Sloane Mairi', c: 'people', o: 4, g: 'fw', t: "Liam's sister", rel: ['liam'], s: [['fw', "Liam's younger sister, due to enter the Riders Quadrant the year after. Violet promised Liam she would look after her."], ['if:2', "She crossed the parapet, blames Violet for Liam's death, and was put in Violet's squad."], ['if:4', "She trains with Imogen, in exchange for one of Liam's unsent letters each week."], ['if', "Her signet is siphoning, and she channels power to help restore the wards."]] },
+
+      { id: 'aaric', n: 'Aaric Graycastle', c: 'people', o: 3, g: 'if:2', t: 'First-year', rel: ['violet', 'dain'], s: [['if:2', "A first-year who crossed the parapet under a false name. He is Prince Camlaen Aaric Tauri, the king's third-youngest son, and Violet and Dain let him through."], ['if:6', "He ran away from the palace to become a rider because he knows about the venin."], ['if:9', "He hates his father and opened the royal vault for Violet; its wards burned his hands."]] },
+      { id: 'varrish', n: 'Major Burton Varrish', c: 'people', o: 3, g: 'if:2', t: 'Vice commandant', rel: ['violet', 'tairn'], s: [['if:2', "The new vice commandant at Basgiath. His dragon, Solas, killed first-years who fled at the sight of dragons."], ['if:4', "He wants Violet to bring Andarna to him and searches her bag when she does not."], ['if:9', "His signet shows him people's weaknesses. Violet and Xaden killed him."]] },
+      { id: 'cat', n: 'Catriona', c: 'people', o: 4, g: 'if:8', t: 'Gryphon flier', rel: ['xaden'], s: [['if:8', "A gryphon flier from Poromiel who goes by Cat, and Xaden's former partner. She rides with Syrena, who speaks for the fliers."]] },
+      { id: 'grady', n: 'Professor Grady', c: 'people', o: 4, g: 'if:2', t: 'Rider Survival Course', s: [['if:2', "Teaches the secret Rider Survival Course: finding your way, surviving and resisting torture if you are cut off from your dragon behind enemy lines."]] },
+      { id: 'carr', n: 'Professor Carr', c: 'people', o: 4, g: 'if:4', t: 'Wielding professor', s: [['if:4', "Teaches wielding at Basgiath. He stopped Varrish's punishment of Violet, pointing out that her death could kill Xaden and both dragons too."]] },
 
       // ---------- dragons ----------
-      { id: 'tairn', n: 'Tairn', c: 'dragons', o: 1, g: 'fw', t: 'Black morningstartail', rel: ['violet', 'sgaeyl', 'naolin', 'andarna'], s: [['fw', "Tairneanach, a huge black morningstartail. Black dragons are the rarest. He chose Violet at Threshing. His rider before her was Naolin. He is mated to Sgaeyl, so he can speak to Xaden and Sgaeyl to Violet. Violet's lightning comes through him."]] },
-      { id: 'andarna', n: 'Andarna', c: 'dragons', o: 1, g: 'fw', t: [['fw', 'Golden feathertail'], ['if', 'Out of the Dreamless Sleep']], rel: ['violet', 'tairn'], s: [
+      { id: 'tairn', n: 'Tairn', c: 'dragons', o: 1, g: 'fw', t: 'Black morningstartail', rel: ['violet', 'sgaeyl', 'naolin', 'andarna'], s: [['fw', "Tairneanach, a huge black morningstartail. Black dragons are the rarest. He chose Violet at Threshing. His rider before her was Naolin. He is mated to Sgaeyl, so he can speak to Xaden and Sgaeyl to Violet. Violet's lightning comes through him."], ['if:2', "When Solas, the vice commandant's dragon, killed first-years who ran from the dragons, Tairn came and warned Solas and Varrish never to harm Violet."], ['if:5', "He attacked Solas when Varrish charged Violet with dereliction of duty, and Varrish withdrew the charge on his knees."]] },
+      { id: 'andarna', n: 'Andarna', c: 'dragons', o: 1, g: 'fw', t: [['fw', 'Golden feathertail'], ['if:1', 'Growing up, now black']], rel: ['violet', 'tairn'], s: [
         ['fw', "Andarnaurram, a small golden feathertail that Violet defended from three cadets at Threshing. She chose Violet as well. Through her, Violet could stop time for a moment, at a cost to both of them."],
-        ['if', "She came out of the Dreamless Sleep with scales that look black."],
+        ['if:1', "She has doubled in size, her scales have turned black, and she can no longer stop time now that she is becoming an adolescent."],
+        ['if:3', "She is still young and must grow in the Dreamless Sleep, away from people. No one can be told, because the Empyrean protects young dragons."],
         ['os', "She is an irid, a seventh kind of dragon that can change colour and use magic other dragons cannot."]] },
       { id: 'sgaeyl', n: 'Sgaeyl', c: 'dragons', o: 2, g: 'fw:0', t: 'Blue daggertail', rel: ['xaden', 'tairn'], s: [['fw:0', "Xaden's dragon, a blue daggertail."], ['fw', "She is mated to Tairn, which ties their riders together. She can speak to Violet."]] },
       { id: 'codagh', n: 'Codagh', c: 'dragons', o: 3, g: 'fw:0', t: 'Black swordtail', rel: ['melgren', 'fen'], s: [['fw:0', "General Melgren's dragon, a black swordtail. His fire executed Fen Riorson and the rebellion's leaders."]] },
@@ -81,11 +108,24 @@
         ['os', "There is a seventh kind, the irids."]] },
       { id: 'wards', n: 'The wards', c: 'powers', o: 2, g: 'fw:0', t: "Navarre's protection", rel: ['navarre', 'mira'], s: [
         ['fw:0', "Ancient magical wards have protected Navarre for centuries. Mira's signet extends them around her and other riders."],
-        ['if', "The First Six, legendary riders, made the wards. When the wardstone at Basgiath was destroyed, the wards there fell, and Lilith Sorrengail gave her life to raise them again."]] },
+        ['if:5', "The First Six, the first dragon riders about six hundred years ago, made the wards. Mira explains them as woven into the ground like the spokes of an umbrella around the wardstone at Basgiath, weaker the farther they reach."],
+        ['if:6', "The First Six carved the first wardstone themselves."],
+        ['if:8', "Lyra and Warrick, two of the First Six, kept journals, held in the royal vault, which only the king's bloodline can open."],
+        ['if:9', "Warrick's journal says the First Six set a wardstone where dragons feel the deepest currents of magic."],
+        ['if', "When the wardstone at Basgiath was destroyed, the wards there fell, and Lilith Sorrengail gave her life to raise them again."]] },
       { id: 'venin', n: 'Venin', c: 'powers', o: 1, g: 'fw', t: 'Not a myth', rel: ['poromiel', 'xaden'], s: [
         ['fw', "Thought to be creatures of legend. They are real: they drain the power of the land to make themselves strong, and they attack Poromiel while Navarre does nothing."],
-        ['if', "Navarre's leaders have lied for generations, denying the venin exist and blaming Poromiel for their attacks. Wyverns are real too."]] },
+        ['if:1', "In the old fables, venin come from the Barrens, drain the magic from cities and pour their power into wyvern."],
+        ['if:3', "The rebels give gryphon fliers alloy daggers to fight venin and wyvern."],
+        ['if:7', "Zolya, the third-largest city in the province of Braevick, fell to what the reports call blue-fire dragons. Violet takes them for wyvern."],
+        ['if', "Navarre's leaders have lied for generations, denying the venin exist and blaming Poromiel for their attacks."]] },
       { id: 'relics', n: 'Rebellion relics', c: 'powers', o: 2, g: 'fw:0', t: 'The marks on the rebellion children', rel: ['marked', 'xaden'], s: [['fw:0', "The children of the executed rebels carry rebellion relics, dark marks on their skin. Xaden's runs from his left wrist up his neck."]] },
+
+      { id: 'luminary', n: 'Luminaries and the alloy', c: 'powers', o: 2, g: 'if:1', t: 'The weapons that kill venin', rel: ['venin', 'wards'], s: [
+        ['if:1', "A luminary makes dragon fire hot enough to smelt the alloy for the only weapons that kill venin. Aretia needs one."],
+        ['if:3', "The daggers are made of the same material that powers the wards. Each holds only so much power and has to be refilled by a rider."],
+        ['if:5', "The alloy is talladium, other ores and dragon eggshell."],
+        ['if:8', "Viscount Tecarus will give his luminary to Aretia if he sees Violet wield."]] },
 
       // ---------- Basgiath and the Codex ----------
       { id: 'basgiath', n: 'Basgiath War College', c: 'school', o: 1, g: 'fw:0', t: "Navarre's war college", rel: ['quadrant', 'parapet', 'codex'], s: [['fw:0', "Navarre's war college. Violet meant to join the Scribe Quadrant; her mother sent her to the Riders Quadrant instead. About a quarter of the riders' cadets graduate."]] },
@@ -102,8 +142,10 @@
       // ---------- places ----------
       { id: 'navarre', n: 'Navarre', c: 'places', o: 1, g: 'fw:0', t: 'The kingdom', rel: ['wards', 'poromiel', 'basgiath'], s: [['fw:0', "A kingdom built around its military and protected for centuries by wards. Its leaders teach that the greatest threat lies beyond the border, above all in Poromiel."]] },
       { id: 'poromiel', n: 'Poromiel', c: 'places', o: 2, g: 'fw:0', t: 'The enemy across the border', rel: ['navarre', 'venin'], s: [['fw:0', "The kingdom Navarre is at war with."], ['fw', "The venin attack it, and Navarre refuses to help."]] },
-      { id: 'aretia', n: 'Aretia', c: 'places', o: 2, g: 'fw:0', t: "The rebellion's city", rel: ['fen', 'rebellion', 'brennan'], s: [['fw:0', "The city at the heart of the rebellion, where the Battle of Aretia was fought."], ['fw', "Riorson House in Aretia is the rebellion's headquarters. Brennan is there."]] },
+      { id: 'aretia', n: 'Aretia', c: 'places', o: 2, g: 'fw:0', t: "The rebellion's city", rel: ['fen', 'rebellion', 'brennan'], s: [['fw:0', "The city at the heart of the rebellion, where the Battle of Aretia was fought."], ['fw', "Riorson House in Aretia is the rebellion's headquarters. Brennan is there."], ['if:0', "Aretia, capital of the province of Tyrrendor, is thought to be in ruins, but the rebels are rebuilding it in secret. Seven leaders, the Assembly, govern it."], ['if:1', "Its wardstone does not work, so it has little time before the venin reach it."]] },
       { id: 'athebyne', n: 'Athebyne', c: 'places', o: 3, g: 'fw', t: 'Outpost beyond the wards', rel: ['venin'], s: [['fw', "An outpost beyond the wards, the site of a trap in the War Games."]] },
+
+      { id: 'samara', n: 'Samara', c: 'places', o: 3, g: 'if:4', t: "Xaden's post", rel: ['xaden', 'mira'], s: [['if:4', "An outpost with an operations centre, where Xaden is posted."], ['if:5', "Mira is stationed there too."]] },
 
       // ---------- history and lore ----------
       { id: 'rebellion', n: 'The Tyrrish rebellion', c: 'lore', o: 1, g: 'fw:0', t: 'Fen Riorson’s uprising', rel: ['fen', 'marked', 'aretia'], s: [['fw:0', "An uprising led by Fen Riorson that tried to break away from Navarre. It ended with its leaders executed by Codagh's fire."], ['fw', "At the Battle of Aretia, Fen shot Brennan Sorrengail with a crossbolt."]] },
