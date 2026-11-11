@@ -37,5 +37,23 @@ const SPOIL = /Lucavi|Glabados|massacre|Area Zero|true final boss|true ending|re
   await R(() => openSheet('game:Fire Emblem: Fortune’s Weave')); await page.waitForTimeout(400);
   ok(await R(() => /Heroic Games/.test(document.querySelector('#sheet .syn').textContent) && /September 17, 2026/.test(document.querySelector('#sheet .syn').textContent)), 'Fortune’s Weave carries its checked premise and date');
   await R(() => closeSheet());
+  // ---------- poster matching: the same name and the right year, never a prefix or the first result ----------
+  ok(await R(() => L16.sameOk('Goblin', 'Goblin') && !L16.sameOk('Goblin Slayer', 'Goblin') && !L16.sameOk('Goblin Slayer II', 'Goblin') && L16.sameOk('ONE PIECE', 'One Piece') && !L16.sameOk('The Game Plan', 'The Game')), 'a longer title is not taken for a shorter one');
+  ok(await R(() => L16.yearOk('One Piece', '1999-10-20') && !L16.yearOk('One Piece', '2023-08-31') && !L16.yearOk('Cowboy Bebop', '2021-11-19') && L16.yearOk('Cowboy Bebop', 1998) && !L16.yearOk('Yu Yu Hakusho', '2023') && !L16.yearOk('The Game', '2025-05-12') && L16.yearOk('The Game', '2006-10-01') && !L16.yearOk('One Piece', '')), 'a remake or a namesake from another year is turned down');
+  // ---------- counts and ratings checked against their sources (Nov 11 2026) ----------
+  const C = await R(() => { const g = t => MEDIA_DB[t]; return { ted: g('Ted Lasso'), bear: g('The Bear'), abb: g('Abbott Elementary'), xm: g('X-Men ’97'), pr: g('Power Rangers (through Jungle Fury)'), digi: g('Digimon (every season before Tri)'), ygo: g('Yu-Gi-Oh! (through 5D’s)'), db: g('Dragon Ball (all series)'), hp: g('Harry Potter (all 8)'), game: g('The Game'), bl: g('Bleach'), saiki: g('The Disastrous Life of Saiki K'), kp: g('Kim Possible Movie: So the Drama') }; });
+  ok(C.ted.s === 4 && C.ted.e === 44 && C.bear.e === 47 && C.abb.s === 6 && C.xm.s === 2 && C.xm.e === 19 && C.game.e === 147, 'TV counts match Wikipedia');
+  ok(C.pr.e === 668 && C.digi.e === 332 && C.ygo.e === 558 && C.db.e === 639 && C.bl.e === 416 && C.saiki.e === 54, 'franchise and anime totals add up from their parts');
+  ok(C.hp.ia === 1 && C.hp.i === 7.7 && C.db.ia === 1 && C.kp.m === 71, 'averaged ratings are flagged, and running times match');
+  await R(() => switchLib('screen')); await page.waitForTimeout(1200);
+  await R(() => openSheet('show:Harry Potter (all 8)')); await page.waitForTimeout(400);
+  ok(await R(() => /IMDb avg 7\.7/.test(document.querySelector('#sheet .sheet-body').textContent)), 'an averaged rating says it is an average');
+  await R(() => openSheet('show:Dragon Ball (all series)')); await page.waitForTimeout(400);
+  ok(await R(() => /4 series · 639 eps/.test(document.querySelector('#sheet .sheet-body').textContent)), 'a franchise entry counts series, not seasons');
+  await R(() => openSheet('show:Ted Lasso')); await page.waitForTimeout(400);
+  ok(await R(() => /4 seasons · 44 eps/.test(document.querySelector('#sheet .sheet-body').textContent)), 'Ted Lasso shows four seasons');
+  await R(() => closeSheet());
+  // ---------- guide links ----------
+  ok(await R(() => { const all = [].concat(...Object.values(GMINFO).map(v => v[4] || [])); return all.length >= 28 && all.every(l => /^https:\/\//.test(l[1])) && !all.some(l => /ign\.com\/wikis\/dragon-quest-iii-hd-2d-remake|^https:\/\/game8\.co\/$/.test(l[1])); }), 'no dead or generic guide links');
   ok(errs.length === 0, 'no page errors: ' + errs.slice(0, 3).join(' | '));
   console.log(pass + ' passed, ' + fail + ' failed', JSON.stringify(errs.slice(0, 5))); await br.close(); srv.close(); process.exit(fail ? 1 : 0); })();

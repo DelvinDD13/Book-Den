@@ -461,8 +461,106 @@ def links():
         time.sleep(0.4)
     save('links.json', out); log('links', len(out), 'dead', len([o for o in out if o[2] in (404, 410)]))
 
+# ---------------------------------------------------------------- fourth pass: write the checked posters, hunt for the rest
+def apply():
+    """Write the posters in sync/poster_apply.json to the store. Every one was looked at first; each is downloaded again
+    here and measured, and only what loads is written. src is 'audit' so later cover jobs leave these rows alone."""
+    AP = json.load(open(os.path.join(HERE, 'poster_apply.json'))); rows = {}; rep = {}; now = int(time.time() * 1000)
+    for k, v in AP.items():
+        u = v['url']
+        try:
+            b = wget(u) if 'wikimedia' in u else raw(u, 40); im = Image.open(io.BytesIO(b)); w, h = im.size
+            if w < 150: raise ValueError('only %d px wide' % w)
+            rows[k] = {'u': now, 'j': json.dumps({'url': u, 'src': 'audit', 'via': v.get('from'), 'at': now, 'w': w, 'h': h})}; rep[k] = [u, w, h]
+        except Exception as e: rep[k] = ['ERR ' + str(e)[:90], u]
+    keys = list(rows); wrote = 0
+    for n in range(0, len(keys), 40):
+        body = json.dumps({'key': KEY, 'v': {k: rows[k] for k in keys[n:n + 40]}}).encode()
+        r = json.loads(urllib.request.urlopen(urllib.request.Request(STORE, data=body, headers={'Content-Type': 'text/plain'}), timeout=120).read().decode()); wrote += int(r.get('wrote') or 0); log('posted', len(keys[n:n + 40]), r.get('wrote'))
+    save('applied.json', {'wrote': wrote, 'rows': rep}); log('apply: wrote', wrote, 'of', len(AP), 'errors', len([1 for v in rep.values() if str(v[0]).startswith('ERR')]))
+
+def hunt():
+    """Second tries for the posters that are still missing or the wrong shape. Candidates only; nothing is written."""
+    import hashlib
+    out = {}; items = []
+    BR = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15', 'Accept-Language': 'en-US,en;q=0.9'}
+    def braw(u, ref=None, t=40):
+        h = dict(BR);
+        if ref: h['Referer'] = ref
+        return urllib.request.urlopen(urllib.request.Request(u, headers=h), timeout=t).read()
+    def add(key, label, url, extra=None):
+        rec = {'label': label, 'url': url}
+        try:
+            b = wget(url) if 'wikimedia' in url else braw(url); im = Image.open(io.BytesIO(b)); rec['w'], rec['h'] = im.size
+        except Exception as e: rec['err'] = str(e)[:80]
+        if extra: rec.update(extra)
+        out.setdefault(key, []).append(rec); items.append(('%s | %s' % (key.split(':', 1)[1][:22], label[:26]), url if 'err' not in rec else ''))
+    for t, iid in [('Goblin', 'tt5994364'), ('The Game', 'tt0772137')]:
+        try:
+            d = get('https://api.tvmaze.com/lookup/shows?imdb=' + iid, 30); im = (d.get('image') or {})
+            if im.get('original'): add('show:' + t, 'tvmaze ' + str(d.get('name')) + ' ' + str(d.get('premiered'))[:4], im['original'])
+        except Exception as e: out.setdefault('show:' + t, []).append({'label': 'tvmaze', 'err': str(e)[:80]})
+        time.sleep(0.6)
+    for t, mid in [('Rosario + Vampire', 2993), ('Pokémon (through Diamond & Pearl)', 527), ('Aquarion', 478)]:
+        try:
+            a = get('https://api.jikan.moe/v4/anime/%d' % mid, 30).get('data') or {}; im = (a.get('images') or {}).get('jpg', {})
+            if im.get('large_image_url'): add('show:' + t, 'mal ' + str(a.get('title'))[:22], im['large_image_url'])
+        except Exception as e: out.setdefault('show:' + t, []).append({'label': 'jikan', 'err': str(e)[:80]})
+        time.sleep(1.3)
+    for t, q, yr in [('Harry Potter (all 8)', "Harry Potter and the Sorcerer's Stone", 2001), ('StarStruck', 'Starstruck', 2010), ('Kim Possible: A Sitch in Time', 'Kim Possible A Sitch in Time', 2003), ('Codename: Kids Next Door – Operation Z.E.R.O.', 'Kids Next Door Operation Z.E.R.O.', 2006), ('Dracula', "Bram Stoker's Dracula", 1992), ('Dracula', 'Dracula', 2025)]:
+        try:
+            d = get('https://itunes.apple.com/search?country=us&limit=12&media=movie&entity=movie&term=' + urllib.parse.quote(q), 30)
+            for m in d.get('results', []):
+                y = str(m.get('releaseDate') or '')[:4]
+                if m.get('artworkUrl100') and y.isdigit() and abs(int(y) - yr) <= 1:
+                    add('show:' + t, 'itunes %s %s' % (str(m.get('trackName'))[:20], y), re.sub(r'/[0-9]+x[0-9]+[a-z]*(-[0-9]+)?\.(jpg|png|webp)$', '/600x900bb.jpg', m['artworkUrl100']))
+        except Exception as e: out.setdefault('show:' + t, []).append({'label': 'itunes', 'err': str(e)[:80]})
+        time.sleep(3.2)
+    for t, titles in [('StarStruck', ['Starstruck (2010 film)']), ('Harry Potter (all 8)', ['Harry Potter and the Deathly Hallows – Part 2', 'Harry Potter and the Chamber of Secrets (film)', 'Harry Potter and the Prisoner of Azkaban (film)']), ('Dracula', ["Bram Stoker's Dracula (1992 film)", 'Dracula (2025 film)', 'Dracula: A Love Tale'])]:
+        for ti in titles:
+            try:
+                r = wiki_image(ti)
+                if r.get('url'): add('show:' + t, 'wiki ' + str(r.get('page'))[:24], (r.get('orig') or r['url']).split('?')[0])
+            except Exception as e: pass
+            time.sleep(0.4)
+    for t, q in [('Codename: Kids Next Door – Operation Z.E.R.O.', 'Codename Kids Next Door Operation Z.E.R.O. film'), ('Kim Possible: A Sitch in Time', 'Kim Possible A Sitch in Time')]:
+        try:
+            d = get('https://en.wikipedia.org/w/api.php?action=query&format=json&generator=search&gsrlimit=5&gsrsearch=%s&prop=pageimages&piprop=original|name&pilicense=any' % urllib.parse.quote(q), 30)
+            for pg in sorted((d.get('query') or {}).get('pages', {}).values(), key=lambda x: x.get('index', 0)):
+                u = (pg.get('original') or {}).get('source')
+                if u: add('show:' + t, 'wiki ' + pg.get('title', '')[:24], u.split('?')[0])
+        except Exception as e: pass
+        time.sleep(0.4)
+    # Pokemon Scarlet's own box art
+    for nm in ['Scarlet_EN_boxart.png', 'Scarlet_EN_boxart.jpg']:
+        h = hashlib.md5(nm.encode()).hexdigest(); u = 'https://archives.bulbagarden.net/media/upload/%s/%s/%s' % (h[0], h[:2], nm)
+        rec = {'label': 'bulbagarden ' + nm, 'url': u}
+        try:
+            b = braw(u, 'https://bulbapedia.bulbagarden.net/'); im = Image.open(io.BytesIO(b)); rec['w'], rec['h'] = im.size
+            d2 = os.path.join(OUT, 'covers'); os.makedirs(d2, exist_ok=True); im2 = im.convert('RGB'); im2.thumbnail((600, 1000)); im2.save(os.path.join(d2, 'pokemon-scarlet-bulba.jpg'), quality=88)
+        except Exception as e: rec['err'] = str(e)[:80]
+        out.setdefault('game:Pokémon Scarlet', []).append(rec); items.append(('Pokemon Scarlet | ' + rec['label'][:24], u if 'err' not in rec else ''))
+    try:
+        d = json.loads(braw('https://pokemon.fandom.com/api.php?action=query&format=json&generator=search&gsrnamespace=6&gsrlimit=12&gsrsearch=' + urllib.parse.quote('Scarlet boxart') + '&prop=imageinfo&iiprop=url|size').decode())
+        for pg in (d.get('query') or {}).get('pages', {}).values():
+            ii = (pg.get('imageinfo') or [{}])[0]
+            if ii.get('url') and (ii.get('height') or 0) > (ii.get('width') or 0): add('game:Pokémon Scarlet', 'fandom ' + pg.get('title', '')[5:27], ii['url'])
+    except Exception as e: out.setdefault('game:Pokémon Scarlet', []).append({'label': 'fandom', 'err': str(e)[:80]})
+    try:
+        html = braw('https://www.nintendo.com/us/store/products/pokemon-scarlet-switch/').decode('utf-8', 'ignore')
+        seen = []
+        for u in re.findall(r'https://assets\.nintendo\.com/image/upload/[^"\\ ]+', html):
+            base = u.split('/upload/')[1]
+            if 'store/software' in u or 'ncom/software' in u:
+                pid = re.sub(r'^.*?((?:ncom|store)/software/[^"?]+)$', r'\1', u)
+                if pid not in seen: seen.append(pid)
+        for pid in seen[:5]: add('game:Pokémon Scarlet', 'nintendo ' + pid[-18:], 'https://assets.nintendo.com/image/upload/f_auto/q_auto/c_fill,w_600/' + pid)
+        out.setdefault('game:Pokémon Scarlet', []).append({'label': 'nintendo page', 'ids': seen[:8], 'og': re.findall(r'property="og:image" content="([^"]+)"', html)[:2]})
+    except Exception as e: out.setdefault('game:Pokémon Scarlet', []).append({'label': 'nintendo', 'err': str(e)[:80]})
+    save('hunt.json', out); sheet(items, 'hunt.jpg', cols=6, w=180, h=270, fit=True)
+
 if __name__ == '__main__':
-    todo = sys.argv[1:] or ['steam', 'pkmn', 'wikiraw', 'links', 'anime', 'imdb2', 'books']
+    todo = sys.argv[1:] or ['apply', 'hunt']
     for name in todo:
-        try: {'imdb': imdb, 'tvmaze': tvmaze, 'posters': posters, 'superman': superman, 'fix': fix, 'wikibox': wikibox, 'anime': anime, 'steam': steam, 'pkmn': pkmn, 'wikiraw': wikiraw, 'imdb2': imdb2, 'books': books, 'links': links}[name]()
+        try: {'imdb': imdb, 'tvmaze': tvmaze, 'posters': posters, 'superman': superman, 'fix': fix, 'wikibox': wikibox, 'anime': anime, 'steam': steam, 'pkmn': pkmn, 'wikiraw': wikiraw, 'imdb2': imdb2, 'books': books, 'links': links, 'apply': apply, 'hunt': hunt}[name]()
         except Exception: log('FAILED', name); traceback.print_exc()

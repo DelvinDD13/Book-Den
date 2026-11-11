@@ -12,7 +12,10 @@ from PIL import Image
 STORE = os.environ['DEN_STORE_URL']; KEY = os.environ['DEN_KEY']
 MIN_W = 320
 UA = {'User-Agent': 'BookDen/1.0 (+https://delvindd13.github.io/Book-Den/)'}
-RANK = {'apple-books': 5, 'itunes-movies': 5, 'jikan': 4, 'tvmaze': 4, 'apple-audiobooks': 4, 'google-books': 3, 'wikipedia': 2, 'app-store': 2, 'openlibrary': 1}
+RANK = {'audit': 9, 'apple-books': 5, 'itunes-movies': 5, 'jikan': 4, 'tvmaze': 4, 'apple-audiobooks': 4, 'google-books': 3, 'wikipedia': 2, 'app-store': 2, 'openlibrary': 1}
+# posters checked by eye (sync/poster_apply.json) are never replaced by a lookup
+try: CHECKED = set(json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'poster_apply.json'))))
+except Exception: CHECKED = set()
 log = lambda *a: print(*a, flush=True)
 ERR = {}
 def err(src, e):
@@ -38,6 +41,16 @@ def starts(name, q, n=3):
     a, b = norm(name), norm(q)
     if not a or not b: return False
     head = ' '.join(b.split()[:n]); return a.startswith(head) or b.startswith(a)
+
+def same(name, q): return bool(norm(name)) and norm(name) == norm(q)
+try: YEARS = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'show_years.json')))
+except Exception: YEARS = {}
+def year_ok(t, got):
+    # when the list knows the year a show began, a candidate has to state a year within one of it
+    want = YEARS.get(t)
+    if not want: return True
+    m = re.match(r'\s*(\d{4})', str(got or ''))
+    return bool(m) and abs(int(m.group(1)) - int(want)) <= 1
 
 def measure(url):
     """download and measure; returns (w, h) or None"""
@@ -107,13 +120,14 @@ def clean_show(t):
     t = re.sub(r'\s*\([^)]*\)\s*', ' ', t); t = re.sub(r' – .*$', '', t).split(' / ')[0].split(' + ')[0]
     return re.sub(r'\s+\d+[–-]\d+$', '', t).replace('’', "'").strip()
 
-def wiki(q, hint):
+def wiki(q, hint, exact=False):
     pace('wiki', 0.5)
     try: d = get('https://en.wikipedia.org/w/api.php?action=query&format=json&generator=search&gsrlimit=5&gsrsearch=%s&prop=pageimages&piprop=original|thumbnail&pithumbsize=900&pilicense=any' % urllib.parse.quote(q + ' ' + hint))
     except Exception as e: err('wiki', e); return None
     pages = sorted((d.get('query') or {}).get('pages', {}).values(), key=lambda p: p.get('index', 0))
     for p in pages:
-        if not starts(p.get('title'), q): continue
+        if exact and not same(re.sub(r'\s*\([^)]*\)\s*$', '', str(p.get('title'))), q): continue
+        if not exact and not starts(p.get('title'), q): continue
         src = ((p.get('thumbnail') or p.get('original') or {}).get('source'))
         if src: src = src.split('?')[0]  # the API appends a tracking query that breaks thumb paths
         if src and not src.lower().endswith('.svg'): return src
@@ -129,7 +143,7 @@ def show(t, kind):
             d = get('https://api.jikan.moe/v4/anime?limit=5&q=' + urllib.parse.quote(q))
             for a in d.get('data', []):
                 names = [a.get('title'), a.get('title_english')] + [x.get('title') for x in a.get('titles', [])]
-                if any(starts(n, q) for n in names if n):
+                if a.get('type') in ('TV', 'ONA') and any(same(n, q) for n in names if n) and year_ok(t, a.get('year') or (a.get('aired') or {}).get('from')):
                     im = (a.get('images') or {}).get('jpg', {}); u = im.get('large_image_url') or im.get('image_url')
                     if u: cands.append(('jikan', u)); break
         except Exception as e: err('jikan', e)
@@ -137,18 +151,19 @@ def show(t, kind):
         pace('apple', 3.1)
         try:
             d = get('https://itunes.apple.com/search?country=us&limit=8&media=movie&entity=movie&term=' + urllib.parse.quote(q))
-            rs = sorted([m for m in d.get('results', []) if m.get('artworkUrl100') and starts(m.get('trackName'), q)], key=lambda m: len(norm(m.get('trackName'))))
+            rs = [m for m in d.get('results', []) if m.get('artworkUrl100') and same(m.get('trackName'), q) and year_ok(t, m.get('releaseDate'))]
             if rs: cands.append(('itunes-movies', re.sub(r'/[0-9]+x[0-9]+[a-z]*(-[0-9]+)?\.(jpg|png|webp)$', '/600x900bb.jpg', rs[0]['artworkUrl100'])))
         except Exception as e: err('itunes-movies', e)
     if kind in ('tv', 'cartoon', 'anime'):
         pace('tvmaze', 0.6)
         try:
-            d = get('https://api.tvmaze.com/singlesearch/shows?q=' + urllib.parse.quote(q))
-            if d and d.get('image') and starts(d.get('name'), q): cands.append(('tvmaze', d['image'].get('original') or d['image'].get('medium')))
+            L = get('https://api.tvmaze.com/search/shows?q=' + urllib.parse.quote(q)) or []
+            hit = next((o['show'] for o in L if o.get('show') and o['show'].get('image') and same(o['show'].get('name'), q) and year_ok(t, o['show'].get('premiered')) and (kind != 'anime' or o['show'].get('type') == 'Animation')), None)
+            if hit: cands.append(('tvmaze', hit['image'].get('original') or hit['image'].get('medium')))
         except Exception as e: err('tvmaze', e)
-    u = wiki(q, 'film' if kind == 'movie' else 'anime' if kind == 'anime' else 'TV series')
+    u = wiki(q, 'film' if kind == 'movie' else 'anime' if kind == 'anime' else 'TV series', exact=True)
     if u: cands.append(('wikipedia', u))
-    if not u: u = wiki(q, '');
+    if not u: u = wiki(q, '', exact=True);
     if u and ('wikipedia', u) not in cands: cands.append(('wikipedia', u))
     if kind == 'movie': cands.sort(key=lambda c: 0 if c[0] == 'wikipedia' else 1)
     for src, u in cands:
@@ -199,7 +214,9 @@ def main():
         if not out: return
         r = store_post(out); log('  posted', len(out), 'wrote', r.get('wrote')); out.clear()
     for i, (k, fn) in enumerate(jobs):
+        if k in CHECKED: n_keep += 1; continue
         old = have(k) or {}
+        if old.get('src') == 'audit' and old.get('url'): n_keep += 1; continue
         old_rank = RANK.get(old.get('src'), 0) if old.get('url') else 0
         # a stored image that no longer loads or is small gets replaced whatever its source
         if old.get('url') and old_rank >= 4 and old.get('w', 0) >= MIN_W:

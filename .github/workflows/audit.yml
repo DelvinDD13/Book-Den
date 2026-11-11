@@ -21,11 +21,13 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install pillow
-      - name: quick passes
+      - name: passes
         run: |
           git config user.name "book-den-bot"
           git config user.email "book-den-bot@users.noreply.github.com"
-          push() { git add audit; git diff --cached --quiet || git commit -m "Accuracy audit data: $1"; for i in 1 2 3 4; do git pull --rebase && git push && break; sleep 5; done; }
-          python sync/audit.py steam pkmn wikiraw links; push "game covers, infobox lines, link check"
-          python sync/audit.py anime imdb2; push "anime records, remaining IMDb rows"
-          python sync/audit.py books; push "book cover sheets"
+          python sync/audit.py
+          # results go to their own branch so the site itself stays small
+          git checkout -B audit-data
+          git add -f audit
+          git diff --cached --quiet || git commit -m "Accuracy audit data"
+          git push -f origin audit-data
