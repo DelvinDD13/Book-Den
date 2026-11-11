@@ -28,7 +28,7 @@
     if (o.min > 0) { rs.push([iso(now) + 'T' + pad(now.getHours()) + ':' + pad(now.getMinutes()), Math.round(o.min), +o.sp || 1, o.ch || null]); patch.rs = rs; patch.sp = +o.sp || 1; }
     if (o.ch) { patch.ch = +o.ch; const b = codexBook(t); if (b) { if (b.chs) patch.progress = Math.max(+cur.progress || 0, Math.min(99, Math.round((+o.ch - 1) / b.chs * 100))); if (b.ch) { let p = 0; b.ch.forEach((last, i) => { if (+o.ch - 1 >= last) p = i + 1; }); try { if (p > L29.part(b.k)) L29.setPart(b.k, p); } catch (e) {} } } }
     if (o.len) patch.len = +o.len;
-    const len = +o.len || +cur.len; if (len && !o.ch) { const bookMin = rs.reduce((a, x) => a + (+x[1] || 0) * (+x[2] || 1), 0); patch.progress = Math.max(+cur.progress || 0, Math.min(99, Math.round(bookMin / len * 100))); }
+    const len = +o.len || +cur.len || (window.L46 ? +L46.len(t) || 0 : 0); if (len && !o.ch) { const bookMin = rs.reduce((a, x) => a + (+x[1] || 0) * (+x[2] || 1), 0); patch.progress = Math.max(+cur.progress || 0, Math.min(99, Math.round(bookMin / len * 100))); }
     try { if (cur.status !== 'read' && cur.status !== 'currently-reading') patch.status = 'currently-reading'; setOverride(t, patch); if (o.sp) setOverride('rt0', { sp: +o.sp }); } catch (e) {}
     if (o.note && o.note.trim()) L35.addNote(t, { tx: o.note.trim(), k: o.kind || 'note', ch: o.ch || cur.ch || null }); };
 

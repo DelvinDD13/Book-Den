@@ -13,6 +13,8 @@
   // a narrator credit the app lacks is filled from the same edition's catalogue entry, except where L42 removed one it could not confirm
   const vetted = t => !!(window.L42 && L42.NARR && Object.prototype.hasOwnProperty.call(L42.NARR, t));
   try { Object.keys(AUD).forEach(t => { const m = META[t]; if (m && !m.narrator && AUD[t][2] && !vetted(t)) m.narrator = AUD[t][2]; }); } catch (e) {}
+  // real lengths where the app had none (it used to count those as 8–9 hours): the same edition's catalogue entry
+  try { Object.keys(AUD).forEach(t => { const m = META[t]; if (m && !m.runtime && AUD[t][0] > 0) m.runtime = Math.floor(AUD[t][0] / 60) + 'h ' + (AUD[t][0] % 60) + 'm'; }); } catch (e) {}
   let G = null;
   function groups() { const n = (typeof ALL_TITLES !== 'undefined' && ALL_TITLES.length) || 0; if (G && G.n === n) return G.m; const m = {};
     try { ALL_TITLES.forEach(t => { const k = wk(t); if (k) (m[k] = m[k] || []).push(t); }); } catch (e) {}
