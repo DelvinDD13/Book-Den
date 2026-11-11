@@ -45,13 +45,17 @@ const store = fs.readFileSync(path.join(__dirname, 'store.json')); let pass = 0,
   ok(await page.evaluate(() => { const w = ALL_TITLES.find(t => /^Words of Radiance/.test(t)); const k = ALL_TITLES.find(t => /^The Way of Kings/.test(t)); const o1 = getOverride(w), o2 = getOverride(k); setOverride(k, { status: 'read' }); setOverride(w, { status: 'read' }); L29.flush(); const h = [...L20.picker().matchAll(/<i>([^<]*)<\/i>/g)].map(m => m[1]).join(' '); const r = /sylblade/.test(h) && /sunraiser/.test(h) && !/mayalaran/.test(h) && !/wyndle/.test(h); setOverride(w, { status: o1.status || null }); setOverride(k, { status: 'currently-reading' }); L29.flush(); return r; }), 'names open with the books that give them');
 
   // ---------- 3. sequel synopsis ----------
-  await page.evaluate(() => { window.HG = ALL_TITLES.find(t => /^The Hunger of the Gods/.test(t)); window.SG = ALL_TITLES.find(t => /^The Shadow of the Gods/.test(t)); setOverride(SG, { status: 'currently-reading' }); openSheet(HG); }); await page.waitForTimeout(500);
-  ok(await page.evaluate(() => { const p = document.querySelector('#sheet .sheet-body p.syn'); return !!p && p.classList.contains('l39-fold') && !/dragon god/.test(p.textContent) && /Shadow of the Gods/.test(p.textContent) && p.querySelector('button').getBoundingClientRect().height >= 44; }), 'a sequel synopsis is folded while the book before it is unfinished');
+  // Dungeon Crawler Carl book 8's synopsis says how far the dungeon has got, so it carries no "safe to show" mark and folds behind the earlier books
+  await page.evaluate(() => { window.D8 = ALL_TITLES.find(t => /^A Parade of Horribles/.test(t)); window.DB = L39.before(D8); window.D7 = ALL_TITLES.filter(t => /Dungeon Crawler Carl/.test(t) && t !== D8).pop(); setOverride(D8, { status: 'to-read' }); setOverride(D7, { status: 'currently-reading' }); openSheet(D8); }); await page.waitForTimeout(500);
+  ok(await page.evaluate(() => { const p = document.querySelector('#sheet .sheet-body p.syn'); return !!p && p.classList.contains('l39-fold') && !/tenth floor/.test(p.textContent) && p.querySelector('button').getBoundingClientRect().height >= 44; }), 'a sequel synopsis is folded while a book before it is unfinished');
   await page.evaluate(() => document.querySelector('#sheet p.syn button').click()); await page.waitForTimeout(200);
-  ok(await page.evaluate(() => /dragon god/.test(document.querySelector('#sheet .sheet-body p.syn').textContent)), 'one tap shows it');
+  ok(await page.evaluate(() => /tenth floor/.test(document.querySelector('#sheet .sheet-body p.syn').textContent)), 'one tap shows it');
+  // a sequel whose synopsis only says which book it is stays open
+  await page.evaluate(() => { closeSheet(); window.HG = ALL_TITLES.find(t => /^The Hunger of the Gods/.test(t)); window.SG = ALL_TITLES.find(t => /^The Shadow of the Gods/.test(t)); setOverride(SG, { status: 'currently-reading' }); openSheet(HG); }); await page.waitForTimeout(400);
+  ok(await page.evaluate(() => { const p = document.querySelector('#sheet .sheet-body p.syn'); return !!p && !p.classList.contains('l39-fold') && /^Book 2 of the Bloodsworn Saga\.$/.test(p.textContent.trim()); }), 'a synopsis marked safe to show is not folded');
   await page.evaluate(() => { closeSheet(); const t = ALL_TITLES.find(t => /^Words of Radiance/.test(t)); openSheet(t); }); await page.waitForTimeout(400);
   ok(await page.evaluate(() => { const p = document.querySelector('#sheet .sheet-body p.syn'); return !!p && !p.classList.contains('l39-fold') && /Roshar/.test(p.textContent); }), 'a synopsis shared by the whole series is left open');
-  await page.evaluate(() => { closeSheet(); setOverride(SG, { status: 'read' }); const J = ALL_TITLES.find(t => /^Jade War/.test(t)); const J1 = ALL_TITLES.find(t => /^Jade City/.test(t)); setOverride(J1, { status: 'read' }); openSheet(J); }); await page.waitForTimeout(400);
+  await page.evaluate(() => { closeSheet(); L39.before(D8).forEach(t => setOverride(t, { status: 'read' })); openSheet(D8); }); await page.waitForTimeout(400);
   ok(await page.evaluate(() => { const p = document.querySelector('#sheet .sheet-body p.syn'); return !!p && !p.classList.contains('l39-fold'); }), 'no fold once the earlier book is finished');
   await page.evaluate(() => closeSheet());
 

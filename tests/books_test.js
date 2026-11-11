@@ -34,6 +34,26 @@ async function boot(port, opts) { const br = await chromium.launch(); const ctx 
   // the book page shows the corrected credit
   await R(() => openSheet('House of Chains: Malazan Book of the Fallen, Book 4')); await page.waitForTimeout(700);
   const sheetTxt = await R(() => (document.querySelector('.d-page, #sheet, .sheet') || document.body).innerText); ok(/Michael Page/.test(sheetTxt) && !/Ralph Lister/.test(sheetTxt), 'the book page for House of Chains names Michael Page');
+  // ---------- 1b. synopses say what the book is ----------
+  const SY = await R(() => ALL_TITLES.filter(t => (META[t] || {}).synopsis).map(t => ({ t, s: META[t].synopsis, ok: !!META[t].sok })));
+  ok(SY.length >= 250, 'the 250 books that had a synopsis still have one: ' + SY.length);
+  const SELL = /\b(sprawling|demanding|richly|sizzling|classic|foundational|swashbuckling|gritty|epic-scale|slow-burn|high-stakes|Dune-esque|myth-haunted|morally gr[ae]y|introspective|rollicking|riveting|stunning|beloved|masterpiece|unforgettable|gripping|hilarious|addictive|bestselling|best-selling|award-winning|Hugo-winning|romantasy|grimdark|YA-adjacent|richly told|music-soaked|saga)\b/i;
+  const sell = SY.filter(x => SELL.test(x.s) && !/Green Bone Saga|Bloodsworn Saga|A Romantasy:/.test(x.s)); ok(sell.length === 0, 'no synopsis sells the book or labels it: ' + sell.map(x => x.t.slice(0, 30) + ' [' + (x.s.match(SELL) || [''])[0] + ']').join('; '));
+  const brand = SY.filter(x => /^[A-Z][\w.]+(?: [A-Z][\w.']+){1,2}'s (YA|epic|adult|dark|classic|mythic|Forgotten|Grishaverse|seven|Martian|time|richly|swash|gangster|Hugo|foundational|introspective|Arthurian|romantasy|urban|traditional|retellings|debut)/.test(x.s)); ok(brand.length === 0, 'no synopsis opens with the author as a brand: ' + brand.map(x => x.t).join('; '));
+  const longS = SY.filter(x => x.s.length > 240); ok(longS.length === 0, 'synopses stay short: ' + longS.map(x => x.t + ' ' + x.s.length).join(', '));
+  const syn = t => (SY.find(x => x.t.indexOf(t) === 0) || {}).s || '';
+  ok(/Jorgen/.test(syn('Evershore')) && !/Kimmalyn/.test(syn('Evershore')), 'Evershore is Jorgen\'s story: ' + syn('Evershore'));
+  ok(!/Cosmere/.test(syn("The Frugal Wizard")) && /medieval England/.test(syn("The Frugal Wizard")), 'The Frugal Wizard\'s Handbook is not called a Cosmere book');
+  ok(!/Callender/.test(syn('City of Gods and Monsters')) && /Loren Calla/.test(syn('City of Gods and Monsters')), 'House of Devils no longer names the wrong author');
+  ok(!/\bgod\b/i.test(syn('From Blood and Ash')) && /Maiden/.test(syn('From Blood and Ash')), 'From Blood and Ash gives away nothing past its opening');
+  ok(!/queen/i.test(syn('Throne of Glass')) && /champion/.test(syn('Throne of Glass')), 'Throne of Glass gives away nothing past its opening');
+  ok(!/demigod|Half-Blood/i.test(syn('The Throne of Fire')) && /Kane/.test(syn('The Throne of Fire')), 'The Throne of Fire is described as a Kane Chronicles book');
+  ok(!/exile/i.test(syn('The Queen of Nothing')) && !/wards|allies/i.test(syn('Onyx Storm')), 'sequels say which book they are and no more');
+  ok(!/One Ring/.test(syn('The Hobbit')) && /Smaug/.test(syn('The Hobbit')), 'The Hobbit has its own synopsis');
+  ok(SY.filter(x => !x.ok).length <= 3 && SY.some(x => !x.ok && /^A Parade of Horribles/.test(x.t)), 'only a synopsis that says where a series has got to can still fold: ' + SY.filter(x => !x.ok).map(x => x.t.slice(0, 24)).join('; '));
+  await R(() => { closeSheet(); openSheet('Warbreaker'); }); await page.waitForTimeout(600);
+  ok(await R(() => { const p = document.querySelector('#sheet .sheet-body p.syn'); return !!p && !p.classList.contains('l39-fold') && /Hallandren/.test(p.textContent); }), 'a standalone shows its synopsis without a fold');
+  await R(() => closeSheet());
   ok(B.errs.length === 0, 'no page errors: ' + B.errs.slice(0, 2).join(' | ')); await B.br.close();
 
   // ---------- 2. tidy: a phone that already pulled the poster records ----------

@@ -3,6 +3,8 @@
 //    entry for the same title on Nov 11 2026 (sync/audit.py: Audible's catalogue, Apple Books for a few). An author is filled in
 //    only where the app has none. A narrator listed here replaces the one that was there; an empty one removes a credit that
 //    could not be confirmed for his edition.
+//    Synopses were rewritten on Nov 11 to say what the book is at its start and nothing past that. A synopsis marked sok in META is
+//    safe to show whatever he has read, so the L39 fold leaves it open. One without the mark is still folded behind earlier books.
 // 2) Tidy. On Nov 11 the cover job wrote poster records into show:<title> and game:<title>. Those are his own rows for a show or
 //    game (status, rating, dates, notes), not cover rows. The job has since blanked them in the store. Here: a poster record the
 //    phone picked up is removed, anything he typed on top of one is kept without the poster fields, and (once per device) his own
@@ -35,6 +37,7 @@
       if (out.dropped || out.kept || out.resaved) { try { saveLocal(); } catch (e) {} try { DIRTY = true; } catch (e) {} try { if (typeof memoClear === 'function') memoClear(); } catch (e) {} try { if (typeof sync82Soon === 'function') sync82Soon(3000); } catch (e) {} }
       if (!done) { try { localStorage.setItem(FLAG, JSON.stringify(out)); } catch (e) {} }
     } catch (e) {} return out; };
+  (function () { if (!window.L39 || typeof L39.folds !== 'function') return; const _f = L39.folds; L39.folds = function (t) { try { if ((META[t] || {}).sok) return null; } catch (e) {} return _f.apply(this, arguments); }; })();
   L42.did = { facts: L42.facts(), tidy: L42.tidy() };
   // a pull can hand back an older copy of a row on a phone that was offline: tidy again after each one
   (function () { if (typeof rerender82 !== 'function') return; const _r = rerender82; rerender82 = function () { try { const t = L42.tidy(); if (t.dropped || t.kept) L42.did.tidy2 = t; } catch (e) {} return _r.apply(this, arguments); }; })();
