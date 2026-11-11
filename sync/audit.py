@@ -708,6 +708,19 @@ def summaries():
         time.sleep(0.2)
     out['__fields'] = keys; save('summaries.json', out); log('summaries', len(out), 'with text', sum(1 for v in out.values() if isinstance(v, dict) and v.get('sum')), 'fields', sorted(keys))
 
+def live():
+    """Is the build in this commit the one the public page serves? Polls the live page until its build number matches index.html."""
+    want = re.search(r'DEN_BUILD="(\d{12})"', open(os.path.join(HERE, '..', 'index.html')).read()).group(1); got = None; n = 0
+    for n in range(1, 19):
+        try:
+            h = urllib.request.urlopen(urllib.request.Request('https://delvindd13.github.io/Book-Den/?t=%d' % time.time(), headers=dict(UA, **{'Cache-Control': 'no-cache'})), timeout=40).read().decode('utf-8', 'replace')
+            m = re.search(r'DEN_BUILD="(\d{12})"', h); got = m.group(1) if m else None
+            if got == want: break
+        except Exception as e: got = 'ERR ' + str(e)[:60]
+        time.sleep(20)
+    save('live.json', {'expected': want, 'live': got, 'same': got == want, 'tries': n, 'has_L42': ('// ===== L42' in h) if got == want else None, 'bytes': len(h) if got == want else None})
+    log('live', want, got, got == want)
+
 BOOKFIX = [('The Games Gods Play', 'Abigail Owen'), ('Generations: A Memoir', 'Lucille Clifton'), ('The Midnight Library', 'Matt Haig'), ('Sherlock Holmes: The Definitive Collection', 'Arthur Conan Doyle'), ('The Daily Stoic: 366 Meditations on Wisdom, Perseverance, and the Art of Living', 'Ryan Holiday'), ('Percy Jackson and the Olympians: The Chalice of the Gods', 'Rick Riordan'), ('Gild: The Plated Prisoner Series, Book 1', 'Raven Kennedy'), ('Gleam: The Plated Prisoner Series, Book 3', 'Raven Kennedy'), ('Glow: The Plated Prisoner Series, Book 4', 'Raven Kennedy'), ('Goldfinch: The Plated Prisoner Series, Book 6', 'Raven Kennedy'), ('The Poison Daughter', 'Sheila Masterson'), ('Arcanum Unbounded: The Cosmere Collection', 'Brandon Sanderson'), ('Air Awakens: The Complete Series', 'Elise Kova'), ('Reminders of Him', 'Colleen Hoover'), ('Yellow face', 'R. F. Kuang'), ('The Keeper Chronicles: The Complete Trilogy', 'JA Andrews'), ('Return to Honor', ''), ('The Titan’s Curse', 'Rick Riordan'), ('Sixth of the Dusk', 'Brandon Sanderson'), ('Giovanni’s Room', 'James Baldwin'), ('I Am a Cat', 'Soseki Natsume'), ('The Sundering', 'John Gwynne'), ('Legends of Sleeping Dragons', ''), ('The Amber Spyglass', 'Philip Pullman')]
 def bookfix():
     """Cover candidates for the books whose stored cover is the wrong book, a foreign edition, or missing. Candidates only."""
@@ -771,7 +784,7 @@ def hunt2():
     save('hunt2.json', out); sheet(items, 'hunt2.jpg', cols=6, w=180, h=270, fit=True)
 
 if __name__ == '__main__':
-    todo = sys.argv[1:] or ['unstray', 'apply', 'summaries']   # unstray first, every run: no poster record may sit in a show: or game: row
+    todo = sys.argv[1:] or ['unstray', 'apply', 'live']   # unstray first, every run: no poster record may sit in a show: or game: row
     for name in todo:
-        try: {'imdb': imdb, 'tvmaze': tvmaze, 'posters': posters, 'superman': superman, 'fix': fix, 'wikibox': wikibox, 'anime': anime, 'steam': steam, 'pkmn': pkmn, 'wikiraw': wikiraw, 'imdb2': imdb2, 'books': books, 'links': links, 'apply': apply, 'hunt': hunt, 'audible': audible, 'bookfix': bookfix, 'hunt2': hunt2, 'unstray': unstray, 'audible2': audible2, 'bookfix2': bookfix2, 'summaries': summaries}[name]()
+        try: {'imdb': imdb, 'tvmaze': tvmaze, 'posters': posters, 'superman': superman, 'fix': fix, 'wikibox': wikibox, 'anime': anime, 'steam': steam, 'pkmn': pkmn, 'wikiraw': wikiraw, 'imdb2': imdb2, 'books': books, 'links': links, 'apply': apply, 'hunt': hunt, 'audible': audible, 'bookfix': bookfix, 'hunt2': hunt2, 'unstray': unstray, 'audible2': audible2, 'bookfix2': bookfix2, 'summaries': summaries, 'live': live}[name]()
         except Exception: log('FAILED', name); traceback.print_exc()
