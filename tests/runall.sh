@@ -1,7 +1,7 @@
 #!/bin/bash
 # Runs every suite against ROOT (default the repo) and prints one gate line: ALL PASS or FAILED.
 cd /home/claude/den/pt
-S="codex_test look_test timer_test steel_test quests_test manual_test screen_test upcoming_test audit_test sw_test facts_test books_test fixes_test versions_test audible_test arcs_test $EXTRA"
+S="codex_test look_test timer_test steel_test quests_test manual_test screen_test upcoming_test audit_test sw_test facts_test books_test fixes_test versions_test audible_test arcs_test dcc_test $EXTRA"
 mkdir -p out; rm -f out/*.txt
 run() { timeout 600 node $1.js > out/$1.txt 2>&1; echo "exit $?" >> out/$1.txt; }
 # three at a time keeps the timing-sensitive checks honest

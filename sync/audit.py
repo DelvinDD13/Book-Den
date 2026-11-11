@@ -742,10 +742,10 @@ def bookfix():
     save('bookfix.json', out); sheet(items, 'bookfix.jpg', cols=8, w=140, h=210, fit=True)
 
 BOOKFIX2 = [('Yellow face', 'Yellowface', 'R. F. Kuang'), ('Percy Jackson and the Olympians: The Chalice of the Gods', 'The Chalice of the Gods', 'Rick Riordan'), ('The Amber Spyglass', 'The Amber Spyglass', 'Philip Pullman'), ('The Poison Daughter', 'The Poison Daughter', 'Sheila Masterson'), ('Reminders of Him', 'Reminders of Him', 'Colleen Hoover'), ('Stardust', 'Stardust', 'Neil Gaiman'), ('Sixth of the Dusk', 'Sixth of the Dusk', 'Brandon Sanderson'), ('The Sundering', 'The Sundering', 'John Gwynne'), ('Shōgun, Part One', 'Shogun', 'James Clavell'), ("The Handmaid's Tale: Special Edition", "The Handmaid's Tale", 'Margaret Atwood'), ('A Poetry Handbook', 'A Poetry Handbook', 'Mary Oliver'), ('Doctor Strange: The Fate of Dreams', 'Doctor Strange: The Fate of Dreams', ''), ('Legends of Sleeping Dragons', 'Legends of Sleeping Dragons', ''), ('DSM-5-TR Diagnostic and Statistical Manual of Mental Disorders', 'DSM-5-TR', '')]
-def bookfix2():
-    """Second round of cover candidates: (title in the app, what to search for, author). Candidates only; nothing is written."""
+def bookfix2(lst=None, name='bookfix2'):
+    """Cover candidates: (title in the app, what to search for, author). Candidates only; nothing is written."""
     out = {}; items = []
-    for t, qt, a in BOOKFIX2:
+    for t, qt, a in (lst or BOOKFIX2):
         out[t] = []
         for media, entity, key in (('ebook', 'ebook', 'trackName'), ('audiobook', 'audiobook', 'collectionName')):
             try:
@@ -759,8 +759,10 @@ def bookfix2():
             except Exception as e: out[t].append({'src': media, 'err': str(e)[:80]})
             time.sleep(3.2)
         while len(items) % 8: items.append(('', ''))
-    save('bookfix2.json', out); sheet(items, 'bookfix2.jpg', cols=8, w=140, h=210, fit=True)
+    save(name + '.json', out); sheet(items, name + '.jpg', cols=8, w=140, h=210, fit=True)
 
+BOOKFIX3 = [('A Shadow in the Ember', 'A Shadow in the Ember', 'Jennifer L. Armentrout'), ('Ariel', 'Ariel', 'Sylvia Plath'), ('Legends of Sleeping Dragons', 'Legends of Sleeping Dragons', ''), ('The Justice of One', 'The Justice of One', 'James Islington'), ('The Sundering', 'The Sundering', 'John Gwynne'), ('THINGS WE DON’T TALK ABOUT', 'Things We Don’t Talk About', 'Pandora Owl'), ('Visiting Her in Queens Is More Enlightening than a Month in a Monastery in Tibet', 'Visiting Her in Queens', 'Michael J. Mark'), ('What I Wish I Said To You', 'What I Wish I Said To You', 'Isaac Paredes'), ('Cyclopsean Kingdom: Dungeon Crawler Carl, Book 3.5', 'Cyclopsean Kingdom', 'Matt Dinniman'), ('Sixth of the Dusk', 'Sixth of the Dusk', 'Brandon Sanderson')]
+def bookfix3(): bookfix2(BOOKFIX3, 'bookfix3')
 def hunt2():
     """Pokemon Scarlet's own box art from IGDB's public page (its og:image is the cover)."""
     out = {}; items = []
@@ -892,5 +894,5 @@ if __name__ == '__main__':
     todo = sys.argv[1:] or ['unstray', 'apply', 'live']   # unstray first, every run: no poster record may sit in a show: or game: row
     if todo[0] != 'unstray': todo = ['unstray'] + [x for x in todo if x != 'unstray']
     for name in todo:
-        try: {'imdb': imdb, 'tvmaze': tvmaze, 'posters': posters, 'superman': superman, 'fix': fix, 'wikibox': wikibox, 'anime': anime, 'steam': steam, 'pkmn': pkmn, 'wikiraw': wikiraw, 'imdb2': imdb2, 'books': books, 'links': links, 'apply': apply, 'hunt': hunt, 'audible': audible, 'bookfix': bookfix, 'hunt2': hunt2, 'unstray': unstray, 'audible2': audible2, 'bookfix2': bookfix2, 'summaries': summaries, 'live': live, 'coveraudit': coveraudit}[name]()
+        try: {'imdb': imdb, 'tvmaze': tvmaze, 'posters': posters, 'superman': superman, 'fix': fix, 'wikibox': wikibox, 'anime': anime, 'steam': steam, 'pkmn': pkmn, 'wikiraw': wikiraw, 'bookfix3': bookfix3, 'imdb2': imdb2, 'books': books, 'links': links, 'apply': apply, 'hunt': hunt, 'audible': audible, 'bookfix': bookfix, 'hunt2': hunt2, 'unstray': unstray, 'audible2': audible2, 'bookfix2': bookfix2, 'summaries': summaries, 'live': live, 'coveraudit': coveraudit}[name]()
         except Exception: log('FAILED', name); traceback.print_exc()
