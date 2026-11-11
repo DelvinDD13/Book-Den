@@ -1,0 +1,47 @@
+const { chromium } = require('playwright'); const http = require('http'), fs = require('fs'), path = require('path');
+const ROOT = process.env.ROOT || '/home/claude/book-den'; const MIME = { '.html': 'text/html', '.js': 'application/javascript', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.woff2': 'font/woff2', '.gif': 'image/gif' };
+const srv = http.createServer((req, res) => { let p = decodeURIComponent(req.url.split('?')[0]); if (p === '/') p = '/index.html'; fs.readFile(path.join(ROOT, p), (e, d) => { if (e) { res.writeHead(404); return res.end(); } res.writeHead(200, { 'Content-Type': MIME[path.extname(p)] || 'application/octet-stream' }); res.end(d); }); });
+const store = fs.readFileSync(path.join(__dirname, 'store.json')); let pass = 0, fail = 0; const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } };
+(async () => { await new Promise(r => srv.listen(8799, r)); const br = await chromium.launch(); const ctx = await br.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  await ctx.route(u => !/^http:\/\/localhost/.test(u.href), r => r.abort()); await ctx.route(/script\.google\.com/, r => r.fulfill({ status: 200, contentType: 'application/json', body: store }));
+  const page = await ctx.newPage(); const errs = []; page.on('pageerror', e => errs.push(String(e)));
+  await page.goto('http://localhost:8799/'); await page.waitForTimeout(7000);
+  const R = f => page.evaluate(f);
+  ok(await R(() => { const s = L29.by.steel; return !!s && s.lib === 'steel' && s.e.length >= 50 && s.e.filter(e => e.c === 'lift').length >= 35 && s.e.filter(e => e.c === 'day').length === 3; }), 'manual is built from the plan: three days and every lift');
+  ok(await R(() => { const s = L29.by.steel; const bad = []; s.e.forEach(e => { (e.rel || []).forEach(r => { if (!s.E[r]) bad.push(e.id + '->' + r); }); [e.g].concat((e.s || []).map(x => x[0])).forEach(g => String(g || '').split(/[|+]/).forEach(k => { if (k && !L29.B[k.split(':')[0]]) bad.push(e.id + ' gate ' + k); })); }); (s.charts || []).forEach(c => { if (c.type === 'table') c.rows.forEach(r => { if (r.c.length !== c.cols.length) bad.push('table ' + c.id); }); }); return bad.length === 0; }), 'every link, gate and table row is valid');
+  ok(await R(() => { const st = L29.stats(L29.by.steel); return st.n > 150 && st.u < st.n && st.lock.sat > 0 && !L29.read('sat') && !L29.read('six'); }), 'numbers are sealed until sessions are tracked');
+  ok(await R(() => { const s = L29.by.steel; const txt = JSON.stringify(s.E['r-rp'].s) + JSON.stringify(s.E['r-fail'].s); return /RP 9 means one was left/.test(txt) && /Zourdos/.test(txt) && /Robinson/.test(txt) && s.src.length === 3 && s.src.every(x => /^https:\/\//.test(x[1])); }), 'scoring rules cite their sources');
+  // the Books encyclopedia is untouched by the new library
+  ok(await R(() => { const c = L29.card(); return /Encyclopedia/.test(c) && !/Steel/.test(c) && /data-lib="books"/.test(c); }), 'Books card lists book series only');
+  await R(() => switchLib('steel')); await page.waitForTimeout(1600);
+  ok(await R(() => { const c = document.querySelector('#lib-other .l29-sec[data-lib=steel]'); return !!c && /Steel Manual/.test(c.textContent) && /Open the Steel Manual/.test(c.textContent) && document.querySelectorAll('#lib-other .l29-sec').length === 1; }), 'Steel tab has one manual card');
+  ok(await R(() => { const a = document.querySelector('#lib-other .l36c'), c = document.querySelector('#lib-other .l29-sec'); return !!a && !!(a.compareDocumentPosition(c) & 4); }), 'card sits under the tracker card');
+  await R(() => document.querySelector('#lib-other .l29-all').click()); await page.waitForTimeout(600);
+  const S = f => page.evaluate(f);
+  ok(await S(() => { const r = document.getElementById('l29').shadowRoot; return /Steel Manual/.test(r.querySelector('h1').textContent) && r.querySelectorAll('.tile').length === 1 && /Pages opened/.test(r.querySelector('.scr').textContent) && !/Stormlight/.test(r.querySelector('.scr').textContent); }), 'opens the Steel shelf, not the book encyclopedia');
+  await S(() => document.getElementById('l29').shadowRoot.querySelector('.tile').click()); await page.waitForTimeout(500);
+  ok(await S(() => { const r = document.getElementById('l29').shadowRoot; return r.querySelector('.app').classList.contains('sk-steel') && r.querySelectorAll('.shelf .spine').length === 5 && !/Family trees/.test(r.querySelector('.tabs').textContent) && /Reach/.test(r.querySelector('.nxt').textContent); }), 'steel skin, five milestones on the shelf, no family-tree tab');
+  await S(() => L29.open('steel', 'x-flat-machine-chest-press')); await page.waitForTimeout(400);
+  ok(await S(() => { const t = document.getElementById('l29').shadowRoot.querySelector('.scr').textContent; return /4 × 8–10, rest 2 min/.test(t) && /Stretch pause at the bottom/.test(t) && /1 more section sealed/.test(t) && !/Not in your log yet/.test(t); }), 'a lift page shows the plan and keeps the numbers sealed');
+  // track a Krypton session
+  await S(() => { const d = L35.today(); setOverride('sl:' + d, { day: 'sat', t0: Date.now() - 80 * 60000, t1: Date.now(), x: { 'Flat machine chest press': [[90, 10, 0, 'w', 0], [185, 10, 8, '', 0], [185, 10, 8, '', 0], [185, 10, 8.5, '', 0], [185, 10, 8.5, '', 0]], 'T-bar row, wide grip, elbows out': [[135, 8, 8, '', 0], [135, 7, 9, '', 0], [135, 6, 9, '', 0]], 'Wide-grip lat pulldown': [[150, 12, 8, '', 0], [150, 10, 9, '', 0]], 'Dumbbell lateral raise': [[20, 18, 9, '', 0], [20, 16, 9, '', 0], [20, 15, 10, 'f', 0]], 'Leg press, feet high': [[360, 12, 8, '', 0]] } }); document.dispatchEvent(new CustomEvent('l36log', { detail: {} })); }); await page.waitForTimeout(900);
+  ok(await S(() => L29.read('sat') && !L29.read('tue') && L29.started('six') && !L29.read('six')), 'one tracked Krypton reaches the first milestone only');
+  await S(() => L29.open('steel', 'x-flat-machine-chest-press')); await page.waitForTimeout(400);
+  ok(await S(() => { const t = document.getElementById('l29').shadowRoot.querySelector('.scr').textContent; return /Logged 1 time/.test(t) && /Heaviest: 185 lb × 10/.test(t) && /Best estimated max: 247 lb/.test(t) && /185×10 @8, 185×10 @8, 185×10 @8.5, 185×10 @8.5/.test(t) && /Every set hit 10 at RP 8.3. Add 5 lb next time/.test(t) && !/90×10/.test(t); }), 'the lift page now shows his numbers, warm-up left out, with the same advice the tracker gives');
+  await S(() => L29.open('steel', 'd-sat')); await page.waitForTimeout(300);
+  ok(await S(() => /Tracked 1 time\. Last on .*: 13 working sets, [\d,]+ lb moved, 80 min/.test(document.getElementById('l29').shadowRoot.querySelector('.scr').textContent)), 'the day page shows the tracked session');
+  await S(() => L29.open('steel', 'm-chest')); await page.waitForTimeout(300);
+  ok(await S(() => /This week: 4 hard sets so far/.test(document.getElementById('l29').shadowRoot.querySelector('.scr').textContent)), 'muscle page counts this week from the log');
+  await S(() => L29.open('steel', 'm-rear')); await page.waitForTimeout(300);
+  ok(await S(() => /This week: 2\.5 hard sets so far/.test(document.getElementById('l29').shadowRoot.querySelector('.scr').textContent)), 'helpers count as half: rows and pulldowns give rear delts 2.5');
+  await S(() => { L29.open('steel'); const r = document.getElementById('l29').shadowRoot; [...r.querySelectorAll('.tabs button')].find(b => /Charts/.test(b.textContent)).click(); }); await page.waitForTimeout(400);
+  ok(await S(() => { const t = document.getElementById('l29').shadowRoot.querySelector('.scr').textContent; return /Bests board/.test(t) && /Flat machine chest press 185 lb × 10 \(est\. 247\)/.test(t) && /Steel ranks/.test(t) && /Here · /.test(t) && /Calf stages/.test(t); }), 'charts: bests board opened for Krypton, ranks show where he is, calf stages from the plan');
+  ok(await S(() => { const el = document.getElementById('l29b'); return !!el && /Pages opened/.test(el.textContent) && /steel manual/.test(el.textContent); }), 'banner says pages opened in the steel manual');
+  ok(await S(() => { const st = L29.stats(L29.by.steel); return st.lock.sat === undefined && st.lock.tue > 0; }), 'Krypton pieces all open, Smallville still sealed');
+  // bookmarks pick up the milestones; quests and timer are not confused by non-book entries
+  ok(await S(() => { const B = L37.bookmarks(); const k = B.find(b => b.id === 'bk:sat'); return k && k.got && k.sub === 'Steel' && k.name === 'Krypton' && B.find(b => b.id === 'bk:six').need === 'Reach six tracked sessions'; }), 'Steel milestones are bookmarks too');
+  ok(await S(() => { const c = ALL_TITLES.find(t => /Circe/.test(t)); return L35.codexBook(c) === null && L29.seriesFor(c) === null && L35.codexBook(ALL_TITLES.find(t => /^The Way of Kings/.test(t))).k === 'wok'; }), 'books outside a series are still matched to nothing');
+  await S(() => { L29.close(); switchLib('books'); }); await page.waitForTimeout(1200);
+  ok(await S(() => document.querySelectorAll('.l29-sec[data-lib=books]').length >= 1 && !document.querySelector('#lib-books .l29-sec[data-lib=steel], .lib-books .l29-sec[data-lib=steel]')), 'Books tab keeps its own card');
+  ok(await S(() => document.documentElement.scrollWidth <= window.innerWidth + 1), 'no sideways scroll');
+  console.log(pass + ' passed, ' + fail + ' failed', JSON.stringify(errs.slice(0, 5))); await br.close(); srv.close(); process.exit(fail ? 1 : 0); })();

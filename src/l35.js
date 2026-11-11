@@ -22,7 +22,7 @@
   L35.cancel = function () { try { setOverride('rt', { t: null, at: null }); } catch (e) {} bar(); try { rerender82(); } catch (e) {} };
   L35.stop = function (silent) { const r = L35.running(); if (!r) return; const min = Math.max(1, Math.round((Date.now() - r.at) / 60000)); if (silent) { L35.log(r.t, { min, sp: r.sp }); L35.cancel(); return; } openStop(r.t, min, r.sp, Date.now() - r.at > 6 * 36e5); };
   // the book in the encyclopedia, if it is one that has parts
-  const codexBook = t => { try { for (const k in L29.B) { const b = L29.B[k]; if (new RegExp(b.m, 'i').test(t)) return b; } } catch (e) {} return null; };
+  const codexBook = t => { try { for (const k in L29.B) { const b = L29.B[k]; if (b.m && new RegExp(b.m, 'i').test(t)) return b; } } catch (e) {} return null; };
   L35.codexBook = codexBook;
   L35.log = function (t, o) { const cur = O(t); const rs = (cur.rs || []).slice(-299); const now = new Date(); const patch = { tm: Date.now() };
     if (o.min > 0) { rs.push([iso(now) + 'T' + pad(now.getHours()) + ':' + pad(now.getMinutes()), Math.round(o.min), +o.sp || 1, o.ch || null]); patch.rs = rs; patch.sp = +o.sp || 1; }
