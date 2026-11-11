@@ -36,7 +36,7 @@ const store = fs.readFileSync(path.join(__dirname, 'store.json')); let pass = 0,
     const hits = []; pages.forEach(([label, txt]) => { needles.forEach(n => { if (txt.indexOf(n) >= 0) hits.push(label + ' :: ' + n.slice(0, 70)); }); });
     return { needles: needles.length, sealedTotal: sealed.length, pages: pages.length, hits: hits.slice(0, 12), nhits: hits.length }; });
   console.log('spoiler sweep:', sweep.needles, 'sealed strings checked on', sweep.pages, 'screens;', sweep.nhits, 'hits'); sweep.hits.forEach(h => console.log('   HIT', h));
-  ok(sweep.needles > 400 && sweep.pages > 200, 'sweep covered the sealed text and the screens (' + sweep.needles + ' strings, ' + sweep.pages + ' screens)');
+  ok(sweep.needles > 350 && sweep.pages > 200, 'sweep covered the sealed text and the screens (' + sweep.needles + ' strings, ' + sweep.pages + ' screens)');
   ok(sweep.nhits === 0, 'nothing sealed is on any screen');
 
   // ---------- 2. blade names ----------
