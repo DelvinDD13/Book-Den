@@ -763,6 +763,33 @@ def bookfix2(lst=None, name='bookfix2'):
 
 BOOKFIX3 = [('A Shadow in the Ember', 'A Shadow in the Ember', 'Jennifer L. Armentrout'), ('Ariel', 'Ariel', 'Sylvia Plath'), ('Legends of Sleeping Dragons', 'Legends of Sleeping Dragons', ''), ('The Justice of One', 'The Justice of One', 'James Islington'), ('The Sundering', 'The Sundering', 'John Gwynne'), ('THINGS WE DON’T TALK ABOUT', 'Things We Don’t Talk About', 'Pandora Owl'), ('Visiting Her in Queens Is More Enlightening than a Month in a Monastery in Tibet', 'Visiting Her in Queens', 'Michael J. Mark'), ('What I Wish I Said To You', 'What I Wish I Said To You', 'Isaac Paredes'), ('Cyclopsean Kingdom: Dungeon Crawler Carl, Book 3.5', 'Cyclopsean Kingdom', 'Matt Dinniman'), ('Sixth of the Dusk', 'Sixth of the Dusk', 'Brandon Sanderson')]
 def bookfix3(): bookfix2(BOOKFIX3, 'bookfix3')
+SUPERMAN2 = ['File:Superman escapes from Krypton.jpg', 'File:This looks like a job for Superman.jpg', 'File:Superman saves Lois.jpg', 'File:Superman saves Lois again.jpg', 'File:Clark in a phone booth.jpg', 'File:Mechanical monster.jpg', 'File:Shadow of a kidnapping.jpg', 'File:A policeman opens fire.jpg', 'File:Superman Fleischer logo.png']
+def superman2():
+    """The Fleischer Superman stills the first pass could not fetch (Commons said too many requests): named files, one at a time,
+    with the licence Commons records. Public domain only. Candidates for the Steel masthead; nothing is written to the store."""
+    d = os.path.join(OUT, 'superman2'); os.makedirs(d, exist_ok=True); out = []; extra = []
+    try:
+        r = get('https://commons.wikimedia.org/w/api.php?action=query&format=json&generator=search&gsrnamespace=6&gsrlimit=30&gsrsearch=%s&prop=info' % urllib.parse.quote('Fleischer Superman flying'), 40)
+        extra = [p.get('title') for p in (r.get('query') or {}).get('pages', {}).values() if p.get('title')]
+    except Exception as e: log('superman2 search', e)
+    names = SUPERMAN2 + [t for t in extra if t not in SUPERMAN2][:12]
+    for i, t in enumerate(names):
+        try:
+            time.sleep(2.5)
+            r = get('https://commons.wikimedia.org/w/api.php?action=query&format=json&titles=%s&prop=imageinfo&iiprop=url|size|extmetadata|mime&iiurlwidth=1400' % urllib.parse.quote(t), 40)
+            pg = list((r.get('query') or {}).get('pages', {}).values())[0]; ii = (pg.get('imageinfo') or [{}])[0]; em = ii.get('extmetadata') or {}
+            lic = (em.get('LicenseShortName') or {}).get('value') or ''; use = re.sub('<[^>]+>', '', (em.get('UsageTerms') or {}).get('value') or '')
+            m = {'title': t, 'page': ii.get('descriptionurl'), 'url': ii.get('url'), 'w': ii.get('width'), 'h': ii.get('height'), 'license': lic, 'usage': use, 'artist': re.sub('<[^>]+>', '', (em.get('Artist') or {}).get('value') or '')[:120], 'desc': re.sub('<[^>]+>', '', (em.get('ImageDescription') or {}).get('value') or '')[:200]}
+            if not re.search(r'public domain|^pd', lic + ' ' + use, re.I) or ii.get('mime') not in ('image/jpeg', 'image/png'): m['skip'] = 'licence or type'; out.append(m); continue
+            b = wget(ii.get('thumburl') if (ii.get('width') or 0) > 1400 else ii.get('url')); im = Image.open(io.BytesIO(b)).convert('RGB'); fn = 'sm_%02d.jpg' % i; im.save(os.path.join(d, fn), quality=92); m['file'] = fn; m['got'] = list(im.size)
+        except Exception as e: m = {'title': t, 'err': str(e)[:90]}
+        out.append(m)
+    save('superman2.json', out); log('superman2', len([m for m in out if m.get('file')]), 'of', len(names))
+    got = [m for m in out if m.get('file')]; cols, w, h = 3, 340, 240; rows = max(1, (len(got) + cols - 1) // cols); img = Image.new('RGB', (cols * (w + 8) + 8, rows * (h + 30) + 8), (18, 18, 20)); dr = ImageDraw.Draw(img); f = font(11)
+    for i, m in enumerate(got):
+        x = 8 + (i % cols) * (w + 8); y = 8 + (i // cols) * (h + 30); im = Image.open(os.path.join(d, m['file'])); im.thumbnail((w, h)); img.paste(im, (x + (w - im.width) // 2, y)); dr.text((x, y + h + 4), (m['file'] + ' ' + m['title'][5:45])[:56], fill=(240, 240, 240), font=f)
+    img.save(os.path.join(OUT, 'superman2.jpg'), quality=85)
+
 def hunt2():
     """Pokemon Scarlet's own box art from IGDB's public page (its og:image is the cover)."""
     out = {}; items = []
@@ -894,5 +921,5 @@ if __name__ == '__main__':
     todo = sys.argv[1:] or ['unstray', 'apply', 'live']   # unstray first, every run: no poster record may sit in a show: or game: row
     if todo[0] != 'unstray': todo = ['unstray'] + [x for x in todo if x != 'unstray']
     for name in todo:
-        try: {'imdb': imdb, 'tvmaze': tvmaze, 'posters': posters, 'superman': superman, 'fix': fix, 'wikibox': wikibox, 'anime': anime, 'steam': steam, 'pkmn': pkmn, 'wikiraw': wikiraw, 'bookfix3': bookfix3, 'imdb2': imdb2, 'books': books, 'links': links, 'apply': apply, 'hunt': hunt, 'audible': audible, 'bookfix': bookfix, 'hunt2': hunt2, 'unstray': unstray, 'audible2': audible2, 'bookfix2': bookfix2, 'summaries': summaries, 'live': live, 'coveraudit': coveraudit}[name]()
+        try: {'imdb': imdb, 'tvmaze': tvmaze, 'posters': posters, 'superman': superman, 'fix': fix, 'wikibox': wikibox, 'anime': anime, 'steam': steam, 'pkmn': pkmn, 'wikiraw': wikiraw, 'bookfix3': bookfix3, 'superman2': superman2, 'imdb2': imdb2, 'books': books, 'links': links, 'apply': apply, 'hunt': hunt, 'audible': audible, 'bookfix': bookfix, 'hunt2': hunt2, 'unstray': unstray, 'audible2': audible2, 'bookfix2': bookfix2, 'summaries': summaries, 'live': live, 'coveraudit': coveraudit}[name]()
         except Exception: log('FAILED', name); traceback.print_exc()
