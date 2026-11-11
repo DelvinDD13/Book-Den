@@ -48,4 +48,8 @@ const store = fs.readFileSync('/home/claude/den/pt/store.json'); let pass = 0, f
   const emp2 = await page.evaluate(async () => { L29.setPart('if', 2); L29.close(); const root = () => document.getElementById('l29').shadowRoot; const all = []; const S = L29.by.empyrean;
     for (const e of S.e) { L29.open('empyrean', e.id); await new Promise(r => setTimeout(r, 30)); all.push(root().innerHTML); } L29.close(); L29.setPart('if', 0); return all.join(' '); });
   ok(/Camlaen Aaric Tauri/.test(emp2) && /vice commandant/.test(emp2) && !/Nadine|Samara|First Six|talladium/.test(emp2), 'Empyrean: through chapter 8 of Iron Flame opens chapters 1 to 8 and nothing after');
+  // through chapter 61 the second signet and the fall of Basgiath's wards are open, the ending is not
+  const emp3 = await page.evaluate(async () => { L29.setPart('if', 16); L29.close(); const root = () => document.getElementById('l29').shadowRoot; const all = []; const S = L29.by.empyrean;
+    for (const e of S.e) { L29.open('empyrean', e.id); await new Promise(r => setTimeout(r, 30)); all.push(root().innerHTML); } L29.close(); L29.setPart('if', 0); return all.join(' '); });
+  ok(/inntinnsic/.test(emp3) && /Baide, on Basgiath/.test(emp3) && !/became venin|seventh kind|gave her life|took his leg/.test(emp3), 'Empyrean: through chapter 61 the ending of Iron Flame stays sealed');
   console.log(pass + ' passed, ' + fail + ' failed', JSON.stringify(errs.slice(0, 5))); await br.close(); srv.close(); process.exit(fail ? 1 : 0); })();
