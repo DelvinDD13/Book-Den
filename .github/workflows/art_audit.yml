@@ -1,0 +1,29 @@
+name: art audit
+on:
+  workflow_dispatch:
+  push:
+    paths: [sync/art_audit.py, sync/art_frames.txt, .github/workflows/art_audit.yml]
+permissions:
+  contents: write
+concurrency:
+  group: art-audit
+  cancel-in-progress: true
+jobs:
+  art:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pillow imageio-ffmpeg
+      - run: |
+          if [ -s sync/art_frames.txt ]; then export FRAMES="$(tr '\n' ',' < sync/art_frames.txt)"; fi
+          python sync/art_audit.py
+      - run: |
+          git config user.name "book-den-bot"
+          git config user.email "book-den-bot@users.noreply.github.com"
+          git add audit
+          git diff --cached --quiet || git commit -m "Steel header art candidates (public-domain Fleischer Superman frames and stills)"
+          for i in 1 2 3 4; do git pull --rebase && git push && break; sleep 5; done

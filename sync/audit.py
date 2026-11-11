@@ -3,7 +3,11 @@ Gathers, for every show in sync/titles.json: IMDb's own dataset rows (type, year
 and TVmaze's record; makes contact sheets of the posters now in the store so they can be checked by eye; lists Wikipedia
 page-image candidates for each game; and collects public-domain Fleischer Superman stills from Wikimedia Commons with
 their licence text. Everything lands in audit/ for review. Nothing in the store is changed by this script."""
-import os, sys, json, re, gzip, time, urllib.request, urllib.parse, io, traceback
+import os, sys, json, re, gzip, time, urllib.request, urllib.parse, urllib.error, io, traceback, socket
+_gai = socket.getaddrinfo
+def _gai4(*a, **k):
+    r = _gai(*a, **k); v4 = [x for x in r if x[0] == socket.AF_INET]; return v4 or r
+socket.getaddrinfo = _gai4
 from PIL import Image, ImageDraw, ImageFont
 
 HERE = os.path.dirname(os.path.abspath(__file__)); OUT = os.path.join(HERE, '..', 'audit'); os.makedirs(OUT, exist_ok=True)
@@ -248,8 +252,217 @@ def wikibox():
         time.sleep(0.35)
     save('wikibox.json', out); log('wikibox', len(out))
 
+# ---------------------------------------------------------------- third pass
+AL = 'https://graphql.anilist.co'
+ALF = 'id idMal format status episodes startDate{year month} endDate{year month} title{romaji english} coverImage{extraLarge} nextAiringEpisode{episode} relations{edges{relationType node{id type format}}}'
+def al(query, variables):
+    body = json.dumps({'query': query, 'variables': variables}).encode()
+    for i in range(5):
+        try:
+            time.sleep(2.3)
+            r = urllib.request.urlopen(urllib.request.Request(AL, data=body, headers=dict(UA, **{'Content-Type': 'application/json', 'Accept': 'application/json'})), timeout=40)
+            return json.loads(r.read().decode()).get('data') or {}
+        except urllib.error.HTTPError as e:
+            if e.code == 429: time.sleep(62); continue
+            if e.code == 404: return {}
+            raise
+    return {}
+def al_brief(m):
+    if not m: return None
+    aired = m.get('episodes') or ((m.get('nextAiringEpisode') or {}).get('episode') or 1) - 1
+    return {'id': m['id'], 'mal': m.get('idMal'), 'format': m.get('format'), 'status': m.get('status'), 'eps': m.get('episodes'), 'aired': aired, 'start': (m.get('startDate') or {}).get('year'), 'end': (m.get('endDate') or {}).get('year'), 'romaji': (m.get('title') or {}).get('romaji'), 'english': (m.get('title') or {}).get('english'), 'cover': (m.get('coverImage') or {}).get('extraLarge')}
+# the name to search for, where the app's own title is a short form
+AN = {'86': '86 EIGHTY-SIX', 'Hell’s Paradise': "Hell's Paradise", 'Re:Zero': 'Re:ZERO -Starting Life in Another World-', 'Mushoku Tensei': 'Mushoku Tensei: Jobless Reincarnation', 'Gundam SEED Destiny': 'Mobile Suit Gundam SEED Destiny', 'Iron-Blooded Orphans': 'Mobile Suit Gundam: Iron-Blooded Orphans', 'Yaiba': 'YAIBA: Samurai Legend', 'Ghost in the Shell': 'Ghost in the Shell: Stand Alone Complex', 'Aquarion': 'Genesis of Aquarion', 'Frieren': "Frieren: Beyond Journey's End", 'Food Wars': 'Food Wars! Shokugeki no Soma', 'Zatch Bell': 'Zatch Bell!', 'Baka and Test': 'Baka and Test - Summon the Beasts', 'The Disastrous Life of Saiki K': 'The Disastrous Life of Saiki K.', 'Code Geass': 'Code Geass: Lelouch of the Rebellion', 'Naruto Shippuden': 'Naruto: Shippuden', 'JoJo’s Bizarre Adventure': "JoJo's Bizarre Adventure", 'Demon Slayer': 'Demon Slayer: Kimetsu no Yaiba', 'The Hentai Prince and the Stony Cat': 'Hentai Ouji to Warawanai Neko', 'Kenichi: The Mightiest Disciple': 'Shijou Saikyou no Deshi Kenichi', 'Mobile Suit Gundam SEED': 'Mobile Suit Gundam SEED', 'Dragon Ball (all series)': 'Dragon Ball', 'Yu-Gi-Oh! (through 5D’s)': 'Yu-Gi-Oh! Duel Monsters', 'Digimon (every season before Tri)': 'Digimon Adventure', 'Pokémon (through Diamond & Pearl)': 'Pokémon', 'Rascal Does Not Dream of Bunny Girl Senpai': 'Rascal Does Not Dream of Bunny Girl Senpai', 'Ace of Diamond': 'Ace of Diamond', 'Inuyasha': 'InuYasha', 'Yu Yu Hakusho': 'Yu Yu Hakusho', 'Bleach': 'Bleach', 'One Piece': 'ONE PIECE'}
+# MyAnimeList ids for the first TV series where a search would be ambiguous
+MALID = {'One Piece': 21, 'Yu Yu Hakusho': 392, 'Cowboy Bebop': 1, 'Ghost in the Shell': 467, 'Food Wars': 28171, 'Rosario + Vampire': 2993, 'Gundam SEED Destiny': 94, 'Iron-Blooded Orphans': 31251, 'Aquarion': 488, 'The Hentai Prince and the Stony Cat': 15225, 'Digimon (every season before Tri)': 552, 'Pokémon (through Diamond & Pearl)': 527, 'Naruto': 20, 'Naruto Shippuden': 1735, 'Bleach': 269, 'Death Note': 1535, 'Hunter x Hunter': 11061, 'Fairy Tail': 6702, 'Attack on Titan': 16498, 'Inuyasha': 249, 'Dragon Ball (all series)': 223, 'Yu-Gi-Oh! (through 5D’s)': 481, 'Gintama': 918, 'Eureka Seven': 237, 'The Big O': 567, 'Code Geass': 1575, 'Mobile Suit Gundam SEED': 93, 'Black Clover': 34572, 'Jujutsu Kaisen': 40748, 'Demon Slayer': 38000, 'Chainsaw Man': 44511, 'Haikyu!!': 20583, 'Nisekoi': 18897, 'The Prince of Tennis': 22}
+# franchises the app keeps as one entry: every TV series that belongs in it, by MyAnimeList id
+GROUPS = {'Dragon Ball (all series)': [223, 813, 225, 30694], 'Yu-Gi-Oh! (through 5D’s)': [481, 482, 4107], 'Digimon (every season before Tri)': [552, 1313, 874, 1132, 1629, 8687, 10159, 11743], 'Pokémon (through Diamond & Pearl)': [527, 1564, 1565]}
+def anime():
+    """AniList record for every anime in the list: the first TV series, every sequel after it, episode totals and the cover."""
+    out = {}; pairs = []
+    cur = {}
+    try: cur = json.load(open(os.path.join(OUT, 'poster_urls.json'))).get('shows', {})
+    except Exception: pass
+    for t, k in SHOWS:
+        if k != 'anime': continue
+        q = AN.get(t) or clean_show(t); rec = {'q': q}
+        try:
+            base = None
+            if t in MALID:
+                base = (al('query($id:Int){Media(idMal:$id,type:ANIME){%s}}' % ALF, {'id': MALID[t]}) or {}).get('Media')
+            res = ((al('query($q:String){Page(perPage:6){media(search:$q,type:ANIME,sort:SEARCH_MATCH){%s}}}' % ALF, {'q': q}) or {}).get('Page') or {}).get('media') or []
+            rec['results'] = [al_brief(m) for m in res]
+            if not base: base = next((m for m in res if m.get('format') == 'TV'), res[0] if res else None)
+            if not base: out[t] = dict(rec, err='nothing found'); continue
+            chain = [base]; seen = {base['id']}; queue = [base]
+            while queue and len(chain) < 22:
+                m = queue.pop(0)
+                for e in ((m.get('relations') or {}).get('edges') or []):
+                    n = e.get('node') or {}
+                    if e.get('relationType') == 'SEQUEL' and n.get('type') == 'ANIME' and n.get('id') not in seen:
+                        seen.add(n['id']); nx = (al('query($id:Int){Media(id:$id,type:ANIME){%s}}' % ALF, {'id': n['id']}) or {}).get('Media')
+                        if nx: chain.append(nx); queue.append(nx)
+            rec['base'] = al_brief(base); rec['chain'] = [al_brief(m) for m in chain]
+            tv = [c for c in rec['chain'] if c['format'] in ('TV', 'TV_SHORT', 'ONA')]
+            rec['tv_parts'] = len(tv); rec['tv_eps'] = sum((c['aired'] or 0) for c in tv); rec['years'] = [min([c['start'] for c in tv if c['start']] or [None]), max([(c['end'] or 0) for c in tv] or [None])]; rec['airing'] = any(c['status'] in ('RELEASING', 'NOT_YET_RELEASED') for c in tv)
+            if t in GROUPS:
+                rec['group'] = []
+                for mid in GROUPS[t]:
+                    g = (al('query($id:Int){Media(idMal:$id,type:ANIME){%s}}' % ALF, {'id': mid}) or {}).get('Media'); rec['group'].append(al_brief(g) or {'mal': mid, 'err': 'not found'})
+                rec['group_eps'] = sum((g.get('aired') or 0) for g in rec['group'])
+            pairs.append(('NOW ' + t, cur.get(t) or '')); pairs.append(('ANILIST ' + (rec['base']['english'] or rec['base']['romaji'] or ''), rec['base']['cover'] or ''))
+        except Exception as e: rec['err'] = str(e)[:120]
+        out[t] = rec; log('anime', t, rec.get('tv_parts'), rec.get('tv_eps'), rec.get('err', ''))
+    save('anime.json', out)
+    for n in range(0, len(pairs), 48): sheet(pairs[n:n + 48], 'anime_%02d.jpg' % (n // 48 + 1), cols=8, w=140, h=200, fit=True)
+
+def steam():
+    """Portrait store capsules for the games whose Wikipedia article only carries the old box art."""
+    out = {}; items = []
+    for t, q in [('Final Fantasy Tactics: The Ivalice Chronicles', 'FINAL FANTASY TACTICS The Ivalice Chronicles'), ('Dragon Quest III HD-2D Remake', 'DRAGON QUEST III HD-2D Remake'), ('Tactics Ogre: Reborn', 'Tactics Ogre Reborn'), ('Octopath Traveler II', 'OCTOPATH TRAVELER II'), ('Digimon Survive', 'Digimon Survive'), ('Elden Ring', 'ELDEN RING')]:
+        out[t] = []
+        try:
+            d = get('https://store.steampowered.com/api/storesearch/?cc=us&l=en&term=' + urllib.parse.quote(q), 30)
+            for x in (d.get('items') or [])[:3]:
+                rec = {'id': x.get('id'), 'name': x.get('name'), 'caps': []}
+                try:
+                    g = get('https://api.steampowered.com/IStoreBrowseService/GetItems/v1?input_json=' + urllib.parse.quote(json.dumps({'ids': [{'appid': x['id']}], 'context': {'language': 'english', 'country_code': 'US'}, 'data_request': {'include_assets': True}})), 30)
+                    a = (((g.get('response') or {}).get('store_items') or [{}])[0].get('assets') or {}); fmt = a.get('asset_url_format') or ''
+                    for key in ('library_capsule_2x', 'library_capsule', 'header'):
+                        if a.get(key) and fmt: rec['caps'].append([key, 'https://shared.steamstatic.com/store_item_assets/' + fmt.replace('${FILENAME}', a[key])])
+                except Exception as e: rec['err'] = str(e)[:80]
+                rec['caps'].append(['old', 'https://cdn.cloudflare.steamstatic.com/steam/apps/%s/library_600x900_2x.jpg' % x.get('id')]); rec['caps'].append(['old1x', 'https://cdn.cloudflare.steamstatic.com/steam/apps/%s/library_600x900.jpg' % x.get('id')])
+                for c in rec['caps']:
+                    try: im = Image.open(io.BytesIO(raw(c[1], 30))); c += [im.width, im.height]
+                    except Exception as e: c += [0, 0, str(e)[:50]]
+                out[t].append(rec); good = next((c for c in rec['caps'] if c[2] and c[3] > c[2]), None)
+                items.append(('%s -> %s (%s)' % (t[:22], x.get('name', '')[:24], x.get('id')), good[1] if good else ''))
+                time.sleep(0.5)
+        except Exception as e: out[t] = {'err': str(e)[:100]}
+    save('steam.json', out); sheet(items, 'steam.jpg', cols=6, w=180, h=270, fit=True)
+
+def pkmn():
+    """Pokemon Scarlet's own box art (the Wikipedia image shows both versions side by side)."""
+    out = {}; d = os.path.join(OUT, 'covers'); os.makedirs(d, exist_ok=True)
+    for name, api, title in [('bulba', 'https://archives.bulbagarden.net/w/api.php', 'File:Scarlet EN boxart.png'), ('bulba2', 'https://archives.bulbagarden.net/w/api.php', 'File:Scarlet EN boxart.jpg')]:
+        try:
+            r = get(api + '?action=query&format=json&titles=%s&prop=imageinfo&iiprop=url|size|mime&iiurlwidth=600' % urllib.parse.quote(title), 30)
+            for p in (r.get('query') or {}).get('pages', {}).values():
+                ii = (p.get('imageinfo') or [{}])[0]
+                if ii.get('url'):
+                    out[name] = {'title': p.get('title'), 'url': ii.get('url'), 'thumb': ii.get('thumburl'), 'w': ii.get('width'), 'h': ii.get('height')}
+                    try:
+                        im = Image.open(io.BytesIO(raw(ii.get('thumburl') or ii['url'], 40))).convert('RGB'); im.thumbnail((600, 1000)); im.save(os.path.join(d, 'pokemon-scarlet-%s.jpg' % name), quality=88); out[name]['saved'] = [im.width, im.height]
+                    except Exception as e: out[name]['err'] = str(e)[:80]
+        except Exception as e: out[name] = {'err': str(e)[:100]}
+        time.sleep(1)
+    try:
+        r = get('https://en.wikipedia.org/w/api.php?action=query&format=json&titles=%s&prop=imageinfo&iiprop=url|size' % urllib.parse.quote('File:Pokémon Scarlet and Violet banner.png'), 30)
+        for p in (r.get('query') or {}).get('pages', {}).values():
+            ii = (p.get('imageinfo') or [{}])[0]
+            if ii.get('url'):
+                im = Image.open(io.BytesIO(wget(ii['url']))).convert('RGB'); out['wiki'] = {'url': ii['url'], 'w': im.width, 'h': im.height}
+                im.crop((0, 0, im.width // 2, im.height)).save(os.path.join(d, 'pokemon-scarlet-wiki-left.jpg'), quality=90)
+    except Exception as e: out['wiki'] = {'err': str(e)[:100]}
+    save('pkmn.json', out)
+
+RAWPAGES = ['The Game (2006 TV series)', 'Rugrats', 'The Adventures of Jimmy Neutron, Boy Genius', 'Pucca (TV series)', 'Masters of the Universe: Revelation', 'Guardian: The Lonely and Great God', 'Reba (TV series)', 'Drake & Josh', 'Codename: Kids Next Door', 'Ben 10 (2005 TV series)', 'Regular Show', 'The West Wing', 'Kenan & Kel', 'SpongeBob SquarePants', 'Family Guy', 'American Dad!', 'Abbott Elementary', 'Superman: The Animated Series', 'Batman: The Animated Series', 'Roseanne', 'Hannah Montana', 'My Wife and Kids', 'Danny Phantom', 'The Fairly OddParents', 'Adventure Time', 'Kim Possible', 'Mythic Quest', 'Big Time Rush (TV series)', 'The Office (American TV series)', 'Seinfeld', 'Archer (2009 TV series)', 'All Grown Up!', "My Gym Partner's a Monkey", 'Unfabulous', 'Victorious', 'Hope & Faith', 'Justice League Unlimited', 'Psych', 'The Proud Family', 'Harley Quinn (TV series)', "X-Men '97", 'Ted Lasso', 'The Bear (TV series)', 'The Neighborhood (TV series)', 'Severance (TV series)', 'Westworld (TV series)', 'Game of Thrones', 'Everybody Loves Raymond', 'Xiaolin Showdown', 'Yin Yang Yo!',
+            'Mighty Morphin Power Rangers', 'Mighty Morphin Alien Rangers', 'Power Rangers Zeo', 'Power Rangers Turbo', 'Power Rangers in Space', 'Power Rangers Lost Galaxy', 'Power Rangers Lightspeed Rescue', 'Power Rangers Time Force', 'Power Rangers Wild Force', 'Power Rangers Ninja Storm', 'Power Rangers Dino Thunder', 'Power Rangers S.P.D.', 'Power Rangers Mystic Force', 'Power Rangers Operation Overdrive', 'Power Rangers Jungle Fury',
+            'StarStruck (2010 film)', 'Starstruck (2010 film)', 'Let It Shine (film)', 'Hatching Pete', 'Kim Possible: A Sitch in Time', 'Kim Possible Movie: So the Drama', 'Codename: Kids Next Door – Operation: Z.E.R.O.', 'Pokémon: The First Movie', 'Pokémon the Movie 2000', 'Pokémon 3: The Movie', 'Digimon: The Movie', 'Yu-Gi-Oh! The Movie: Pyramid of Light', 'Jujutsu Kaisen 0', 'Dragon Ball Super: Super Hero', 'Walking Tall (2004 film)', 'Dr. Dolittle (1998 film)', 'Anchorman: The Legend of Ron Burgundy', 'Cadet Kelly', 'Bram Stoker\'s Dracula (1992 film)', 'Dracula (2025 film)']
+def wikiraw():
+    """The infobox lines themselves, for the pages where a parsed number needs reading by eye."""
+    out = {}
+    for pg in RAWPAGES:
+        try:
+            w = get('https://en.wikipedia.org/w/api.php?action=parse&format=json&prop=wikitext&section=0&redirects=1&page=%s' % urllib.parse.quote(pg), 30)
+            tx = ((w.get('parse') or {}).get('wikitext') or {}).get('*', ''); rec = {'title': (w.get('parse') or {}).get('title')}
+            for name in ('num_seasons', 'num_series', 'num_episodes', 'first_aired', 'last_aired', 'released', 'runtime', 'network', 'director', 'image'):
+                hits = re.findall(r'\|\s*' + name + r'\d*\s*=\s*([^\n]*)', tx)
+                if hits: rec[name] = [h.strip()[:220] for h in hits[:4]]
+            out[pg] = rec
+        except Exception as e: out[pg] = {'err': str(e)[:100]}
+        time.sleep(0.4)
+    save('wikiraw.json', out); log('wikiraw', len(out))
+
+# titles the first IMDb pass could not match by name, and the parts of the entries that stand for several titles
+IMDB2 = {'Goblin': [('Guardian: The Lonely and Great God', 2016)], 'Gundam SEED Destiny': [('Mobile Suit Gundam SEED Destiny', 2004)], 'Iron-Blooded Orphans': [('Mobile Suit Gundam: Iron-Blooded Orphans', 2015)], 'Yaiba': [('Yaiba: Samurai Legend', 2025)], 'Aquarion': [('Aquarion', 2005), ('Genesis of Aquarion', 2005), ('Sousei no Aquarion', 2005)], 'Frieren': [("Frieren: Beyond Journey's End", 2023)], 'Haikyu!!': [('Haikyuu!!', 2014), ('Haikyu!!', 2014)], 'Pucca': [('Pucca', 2006)], 'Jimmy Neutron': [('The Adventures of Jimmy Neutron, Boy Genius', 2002), ('The Adventures of Jimmy Neutron: Boy Genius', 2002)], 'Dr. Dolittle (Eddie Murphy)': [('Doctor Dolittle', 1998), ('Dr. Dolittle', 1998)], 'Anchorman': [('Anchorman: The Legend of Ron Burgundy', 2004)], 'Kim Possible Movie: So the Drama': [('Kim Possible: So the Drama', 2005), ('Kim Possible Movie: So the Drama', 2005)], 'Pokémon: The First Movie': [('Pokémon: The First Movie - Mewtwo Strikes Back', 1998), ('Pokémon: The First Movie', 1998), ('Pokémon the First Movie: Mewtwo Strikes Back', 1998)], 'Pokémon 3: The Movie': [('Pokémon 3: The Movie', 2000), ('Pokémon 3 the Movie: Spell of the Unown', 2000), ('Pokémon 3: The Movie - Spell of the Unown', 2000)], 'Yu-Gi-Oh! The Movie: Pyramid of Light': [('Yu-Gi-Oh!: The Movie', 2004), ('Yu-Gi-Oh! The Movie', 2004), ('Yu-Gi-Oh!: The Movie - Pyramid of Light', 2004)], 'Westworld (Season 1)': [('Westworld', 2016)], 'Ghost in the Shell': [('Ghost in the Shell: Stand Alone Complex', 2002), ('Ghost in the Shell', 1995)], 'Rosario + Vampire': [('Rosario + Vampire', 2008)], 'Power Rangers (through Jungle Fury)': [('Mighty Morphin Power Rangers', 1993)], 'Dragon Ball (all series)': [('Dragon Ball', 1986), ('Dragon Ball Z', 1989), ('Dragon Ball GT', 1996), ('Dragon Ball Super', 2015)], 'Yu-Gi-Oh! (through 5D’s)': [('Yu-Gi-Oh! Duel Monsters', 2000), ('Yu-Gi-Oh!', 2000), ('Yu-Gi-Oh! GX', 2004), ("Yu-Gi-Oh! 5D's", 2008)], 'Digimon (every season before Tri)': [('Digimon: Digital Monsters', 1999), ('Digimon Adventure', 1999)], 'Pokémon (through Diamond & Pearl)': [('Pokémon', 1997)], 'Harry Potter (all 8)': [("Harry Potter and the Sorcerer's Stone", 2001), ('Harry Potter and the Chamber of Secrets', 2002), ('Harry Potter and the Prisoner of Azkaban', 2004), ('Harry Potter and the Goblet of Fire', 2005), ('Harry Potter and the Order of the Phoenix', 2007), ('Harry Potter and the Half-Blood Prince', 2009), ('Harry Potter and the Deathly Hallows: Part 1', 2010), ('Harry Potter and the Deathly Hallows: Part 2', 2011)], 'Friday / Next Friday / Friday After Next': [('Friday', 1995), ('Next Friday', 2000), ('Friday After Next', 2002)], 'Rush Hour 1–3': [('Rush Hour', 1998), ('Rush Hour 2', 2001), ('Rush Hour 3', 2007)], 'Shrek 1–3': [('Shrek', 2001), ('Shrek 2', 2004), ('Shrek the Third', 2007)], 'Divergent + Insurgent': [('Divergent', 2014), ('Insurgent', 2015), ('The Divergent Series: Insurgent', 2015)], 'The Maze Runner + The Scorch Trials': [('The Maze Runner', 2014), ('Maze Runner: The Scorch Trials', 2015)], 'Dracula': [("Bram Stoker's Dracula", 1992), ('Dracula', 1992), ('Dracula', 2025), ('Dracula: A Love Tale', 2025), ('Dracula', 1931), ('Dracula', 2020), ('Dracula Untold', 2014)]}
+def imdb2():
+    def fetch(name):
+        p = '/tmp/' + name
+        if not os.path.exists(p): urllib.request.urlretrieve('https://datasets.imdbws.com/' + name, p)
+        return gzip.open(p, 'rt', encoding='utf-8', newline='')
+    wantk = {}
+    for t, L in IMDB2.items():
+        for nm, yr in L: wantk.setdefault(norm(nm), []).append((t, nm, yr))
+    TYPES = {'tvSeries', 'tvMiniSeries', 'movie', 'tvMovie', 'video'}; cands = {}
+    with fetch('title.basics.tsv.gz') as f:
+        f.readline()
+        for line in f:
+            p = line.rstrip('\n').split('\t')
+            if len(p) < 9 or p[1] not in TYPES: continue
+            for nm in {norm(p[2]), norm(p[3])}:
+                for (t, want_nm, yr) in wantk.get(nm, ()):
+                    if p[5].isdigit() and abs(int(p[5]) - yr) <= 1: cands[p[0]] = {'for': t, 'asked': want_nm, 'id': p[0], 'type': p[1], 'title': p[2], 'orig': p[3], 'start': p[5], 'end': p[6], 'mins': p[7], 'genres': p[8]}
+    with fetch('title.ratings.tsv.gz') as f:
+        f.readline()
+        for line in f:
+            p = line.rstrip('\n').split('\t')
+            if p[0] in cands: cands[p[0]]['rating'] = float(p[1]); cands[p[0]]['votes'] = int(p[2])
+    eps = {}; seas = {}
+    with fetch('title.episode.tsv.gz') as f:
+        f.readline()
+        for line in f:
+            p = line.rstrip('\n').split('\t')
+            if p[1] in cands:
+                eps[p[1]] = eps.get(p[1], 0) + 1
+                if p[2].isdigit(): seas.setdefault(p[1], set()).add(int(p[2]))
+    out = {}
+    for c in cands.values():
+        if c['id'] in eps: c['eps'] = eps[c['id']]; c['seasons'] = len(seas.get(c['id'], ()))
+        out.setdefault(c['for'], []).append(c)
+    for t in out: out[t].sort(key=lambda c: -(c.get('votes') or 0)); out[t] = [c for c in out[t] if c.get('votes')][:10]
+    save('imdb2.json', out); log('imdb2', len(out), 'of', len(IMDB2))
+
+def books():
+    """Contact sheets of every book cover in the store, so a wrong book or a wrong edition can be seen."""
+    cur = (get(STORE + '?key=' + urllib.parse.quote(KEY), 120).get('v') or {}); rows = []; meta = {}
+    for t, a in T['books']:
+        try: j = json.loads(cur['cv:' + t]['j'])
+        except Exception: j = {}
+        u = j.get('url') or ''
+        if 'mzstatic.com' in u: u = re.sub(r'/[0-9]+x[0-9]+[a-z]*(-[0-9]+)?\.(jpg|png|webp)$', '/200x300bb.jpg', u)
+        if 'covers.openlibrary.org' in u: u = re.sub(r'-[SML]\.jpg$', '-M.jpg', u)
+        rows.append((('%s | %s' % (t, a)), u)); meta[t] = {'author': a, 'url': j.get('url'), 'src': j.get('src'), 'w': j.get('w'), 'h': j.get('h'), 'miss': j.get('miss')}
+    save('book_covers.json', meta)
+    def bsheet(items, name, cols=10, w=118, h=177):
+        lab = 40; rws = (len(items) + cols - 1) // cols; img = Image.new('RGB', (cols * (w + 6) + 6, rws * (h + lab + 6) + 6), (18, 18, 20)); d = ImageDraw.Draw(img); f = font(10)
+        for i, (label, url) in enumerate(items):
+            x = 6 + (i % cols) * (w + 6); y = 6 + (i // cols) * (h + lab + 6)
+            if url:
+                try: im = Image.open(io.BytesIO(raw(url, 25))).convert('RGB'); im.thumbnail((w, h)); img.paste(im, (x + (w - im.width) // 2, y + (h - im.height) // 2))
+                except Exception as e: d.text((x + 2, y + 4), 'ERR ' + str(e)[:18], fill=(255, 90, 90), font=f)
+                time.sleep(0.05)
+            else: d.rectangle([x, y, x + w, y + h], outline=(120, 60, 60)); d.text((x + 4, y + 4), 'NO COVER', fill=(255, 90, 90), font=f)
+            ti, au = (label.split(' | ') + [''])[:2]
+            d.text((x, y + h + 2), ti[:21], fill=(240, 240, 240), font=f); d.text((x, y + h + 14), ti[21:42], fill=(240, 240, 240), font=f); d.text((x, y + h + 26), au[:21], fill=(150, 150, 150), font=f)
+        img.save(os.path.join(OUT, name), quality=80); log('sheet', name, len(items))
+    for n in range(0, len(rows), 70): bsheet(rows[n:n + 70], 'books_%02d.jpg' % (n // 70 + 1))
+
+def links():
+    """Does every outside link the app shows still answer? (Some sites refuse scripts, so only a clear 404 or 410 counts as dead.)"""
+    L = json.load(open(os.path.join(HERE, 'links.json'))); out = []
+    H = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15', 'Accept': 'text/html,application/xhtml+xml;q=0.9,*/*;q=0.8', 'Accept-Language': 'en-US,en;q=0.9'}
+    for where, u in L:
+        try:
+            r = urllib.request.urlopen(urllib.request.Request(u, headers=H), timeout=25); body = r.read(60000).decode('utf-8', 'ignore'); m = re.search(r'<title[^>]*>([^<]{0,120})', body, re.I)
+            out.append([where, u, r.status, r.geturl() if r.geturl() != u else '', (m.group(1).strip() if m else '')])
+        except urllib.error.HTTPError as e: out.append([where, u, e.code, '', ''])
+        except Exception as e: out.append([where, u, 0, '', str(e)[:60]])
+        time.sleep(0.4)
+    save('links.json', out); log('links', len(out), 'dead', len([o for o in out if o[2] in (404, 410)]))
+
 if __name__ == '__main__':
-    todo = sys.argv[1:] or ['fix', 'wikibox']
+    todo = sys.argv[1:] or ['steam', 'pkmn', 'wikiraw', 'links', 'anime', 'imdb2', 'books']
     for name in todo:
-        try: {'imdb': imdb, 'tvmaze': tvmaze, 'posters': posters, 'superman': superman, 'fix': fix, 'wikibox': wikibox}[name]()
+        try: {'imdb': imdb, 'tvmaze': tvmaze, 'posters': posters, 'superman': superman, 'fix': fix, 'wikibox': wikibox, 'anime': anime, 'steam': steam, 'pkmn': pkmn, 'wikiraw': wikiraw, 'imdb2': imdb2, 'books': books, 'links': links}[name]()
         except Exception: log('FAILED', name); traceback.print_exc()
