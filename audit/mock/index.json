@@ -1,0 +1,741 @@
+{
+ "books": {
+  "A Court of Mist and Fury (10th Anniversary Recording)": [
+   "b_a-court-of-mist-and-fury-10th-anniversary-recording.jpg",
+   400,
+   600,
+   "Sarah J. Maas"
+  ],
+  "A Court of Thorns and Roses (10th Anniversary Recording)": [
+   "b_a-court-of-thorns-and-roses-10th-anniversary-recording.jpg",
+   400,
+   600,
+   "Sarah J. Maas"
+  ],
+  "A Court of Wings and Ruin (10th Anniversary Recording)": [
+   "b_a-court-of-wings-and-ruin-10th-anniversary-recording.jpg",
+   400,
+   600,
+   "Sarah J. Maas"
+  ],
+  "Crown of Midnight: Throne of Glass, Book 2": [
+   "b_crown-of-midnight-throne-of-glass-book-2.jpg",
+   400,
+   600,
+   "Sarah J. Maas"
+  ],
+  "Fourth Wing": [
+   "b_fourth-wing.jpg",
+   400,
+   600,
+   "Rebecca Yarros"
+  ],
+  "House of Earth and Blood: Crescent City, Book 1": [
+   "b_house-of-earth-and-blood-crescent-city-book-1.jpg",
+   400,
+   600,
+   "Sarah J. Maas"
+  ],
+  "House of Flame and Shadow: Crescent City, Book 3": [
+   "b_house-of-flame-and-shadow-crescent-city-book-3.jpg",
+   400,
+   600,
+   "Sarah J. Maas"
+  ],
+  "House of Sky and Breath: Crescent City, Book 2": [
+   "b_house-of-sky-and-breath-crescent-city-book-2.jpg",
+   400,
+   600,
+   "Sarah J. Maas"
+  ],
+  "Iron Flame: Empyrean, Book 2": [
+   "b_iron-flame-empyrean-book-2.jpg",
+   400,
+   600,
+   "Rebecca Yarros"
+  ],
+  "Kingdom of Ash": [
+   "b_kingdom-of-ash.jpg",
+   400,
+   600,
+   "Sarah J. Maas"
+  ],
+  "Onyx Storm: Empyrean, Book 3": [
+   "b_onyx-storm-empyrean-book-3.jpg",
+   400,
+   600,
+   "Rebecca Yarros"
+  ],
+  "Shield of Sparrows": [
+   "b_shield-of-sparrows.jpg",
+   400,
+   600,
+   "Devney Perry"
+  ],
+  "The Cruel Prince": [
+   "b_the-cruel-prince.jpg",
+   397,
+   600,
+   "Holly Black"
+  ],
+  "The Poet Empress": [
+   "b_the-poet-empress.jpg",
+   400,
+   591,
+   ""
+  ],
+  "The Queen of Nothing: The Folk of the Air, Book 3": [
+   "b_the-queen-of-nothing-the-folk-of-the-air-book-3.jpg",
+   400,
+   599,
+   "Holly Black"
+  ],
+  "The Wicked King": [
+   "b_the-wicked-king.jpg",
+   400,
+   600,
+   "Holly Black"
+  ],
+  "Throne of Glass: Throne of Glass, Book 1": [
+   "b_throne-of-glass-throne-of-glass-book-1.jpg",
+   400,
+   600,
+   "Sarah J. Maas"
+  ],
+  "Eragon": [
+   "b_eragon.jpg",
+   398,
+   600,
+   "Christopher Paolini"
+  ],
+  "Graceling": [
+   "b_graceling.jpg",
+   398,
+   600,
+   "Kristin Cashore"
+  ],
+  "Howl's Moving Castle": [
+   "b_howl-s-moving-castle.jpg",
+   388,
+   600,
+   "Diana Wynne Jones"
+  ],
+  "Legends & Lattes": [
+   "b_legends-lattes.jpg",
+   391,
+   600,
+   "Travis Baldree"
+  ],
+  "Piranesi": [
+   "b_piranesi.jpg",
+   400,
+   600,
+   ""
+  ],
+  "Six of Crows": [
+   "b_six-of-crows.jpg",
+   391,
+   600,
+   "Leigh Bardugo"
+  ],
+  "Babel": [
+   "b_babel.jpg",
+   395,
+   600,
+   "R.F. Kuang"
+  ],
+  "Before They Are Hanged": [
+   "b_before-they-are-hanged.jpg",
+   387,
+   600,
+   "Joe Abercrombie"
+  ],
+  "Last Argument of Kings": [
+   "b_last-argument-of-kings.jpg",
+   386,
+   600,
+   "Joe Abercrombie"
+  ],
+  "The Blade Itself": [
+   "b_the-blade-itself.jpg",
+   386,
+   600,
+   "Joe Abercrombie"
+  ],
+  "The Shadow of the Gods: The Bloodsworn Saga, Book 1": [
+   "b_the-shadow-of-the-gods-the-bloodsworn-saga-book-1.jpg",
+   387,
+   600,
+   "John Gwynne"
+  ],
+  "Carl's Doomsday Scenario: Dungeon Crawler Carl, Book 2": [
+   "b_carl-s-doomsday-scenario-dungeon-crawler-carl-book-2.jpg",
+   377,
+   600,
+   "Matt Dinniman"
+  ],
+  "Dungeon Crawler Carl": [
+   "b_dungeon-crawler-carl.jpg",
+   375,
+   600,
+   "Matt Dinniman"
+  ],
+  "Circe": [
+   "b_circe.jpg",
+   372,
+   600,
+   "Madeline Miller"
+  ],
+  "Galatea": [
+   "b_galatea.jpg",
+   400,
+   588,
+   ""
+  ],
+  "The Song of Achilles: A Novel": [
+   "b_the-song-of-achilles-a-novel.jpg",
+   398,
+   600,
+   ""
+  ],
+  "When the Tides Held the Moon": [
+   "b_when-the-tides-held-the-moon.jpg",
+   394,
+   600,
+   ""
+  ],
+  "Elantris: Tenth Anniversary Special Edition": [
+   "b_elantris-tenth-anniversary-special-edition.jpg",
+   400,
+   599,
+   "Brandon Sanderson"
+  ],
+  "Jade City: The Green Bone Saga, Book 1": [
+   "b_jade-city-the-green-bone-saga-book-1.jpg",
+   400,
+   600,
+   "Fonda Lee"
+  ],
+  "Mistborn: The Final Empire": [
+   "b_mistborn-the-final-empire.jpg",
+   398,
+   600,
+   "Brandon Sanderson"
+  ],
+  "The Emperor's Soul": [
+   "b_the-emperor-s-soul.jpg",
+   375,
+   600,
+   "Brandon Sanderson"
+  ],
+  "The Hero of Ages": [
+   "b_the-hero-of-ages.jpg",
+   398,
+   600,
+   "Brandon Sanderson"
+  ],
+  "The Lies of Locke Lamora: Gentleman Bastard, Book 1": [
+   "b_the-lies-of-locke-lamora-gentleman-bastard-book-1.jpg",
+   400,
+   600,
+   "Scott Lynch"
+  ],
+  "The Name of the Wind: Kingkiller Chronicle, Book 1": [
+   "b_the-name-of-the-wind-kingkiller-chronicle-book-1.jpg",
+   400,
+   600,
+   "Patrick Rothfuss"
+  ],
+  "The Rage of Dragons": [
+   "b_the-rage-of-dragons.jpg",
+   387,
+   600,
+   "Evan Winter"
+  ],
+  "The Way of Kings: Book One of the Stormlight Archive": [
+   "b_the-way-of-kings-book-one-of-the-stormlight-archive.jpg",
+   398,
+   600,
+   "Brandon Sanderson"
+  ],
+  "The Well of Ascension": [
+   "b_the-well-of-ascension.jpg",
+   397,
+   600,
+   "Brandon Sanderson"
+  ],
+  "The Will of the Many: Hierarchy, Book 1": [
+   "b_the-will-of-the-many-hierarchy-book-1.jpg",
+   399,
+   600,
+   "James Islington"
+  ],
+  "Tress of the Emerald Sea: A Cosmere Novel": [
+   "b_tress-of-the-emerald-sea-a-cosmere-novel.jpg",
+   386,
+   600,
+   "Brandon Sanderson"
+  ],
+  "Tress of the Emerald Sea: A Cosmere Novel (Dramatized Adaptation)": [
+   "b_tress-of-the-emerald-sea-a-cosmere-novel-dramatized-adaptation.jpg",
+   386,
+   600,
+   "Brandon Sanderson"
+  ],
+  "Warbreaker": [
+   "b_warbreaker.jpg",
+   397,
+   600,
+   "Brandon Sanderson"
+  ],
+  "Words of Radiance: Book Two of the Stormlight Archive": [
+   "b_words-of-radiance-book-two-of-the-stormlight-archive.jpg",
+   398,
+   600,
+   "Brandon Sanderson"
+  ],
+  "Yumi and the Nightmare Painter: A Cosmere Novel": [
+   "b_yumi-and-the-nightmare-painter-a-cosmere-novel.jpg",
+   386,
+   600,
+   "Brandon Sanderson"
+  ],
+  "All-Star Superman": [
+   "b_all-star-superman.jpg",
+   390,
+   600,
+   ""
+  ],
+  "Golden Son: Book II of the Red Rising Trilogy": [
+   "b_golden-son-book-ii-of-the-red-rising-trilogy.jpg",
+   399,
+   600,
+   "Pierce Brown"
+  ],
+  "Leviathan Wakes": [
+   "b_leviathan-wakes.jpg",
+   389,
+   600,
+   "James S.A. Corey"
+  ],
+  "Project Hail Mary": [
+   "b_project-hail-mary.jpg",
+   389,
+   600,
+   ""
+  ],
+  "Red Rising": [
+   "b_red-rising.jpg",
+   399,
+   600,
+   "Pierce Brown"
+  ],
+  "Skyward": [
+   "b_skyward.jpg",
+   400,
+   600,
+   "Brandon Sanderson"
+  ],
+  "Vengeful: Villains, Book 2": [
+   "b_vengeful-villains-book-2.jpg",
+   400,
+   600,
+   "V.E. Schwab"
+  ],
+  "Vicious: Villains, Book 1": [
+   "b_vicious-villains-book-1.jpg",
+   391,
+   600,
+   "V.E. Schwab"
+  ],
+  "Let Us Descend: A Novel": [
+   "b_let-us-descend-a-novel.jpg",
+   394,
+   600,
+   ""
+  ],
+  "The Serviceberry: Abundance and Reciprocity in the Natural World": [
+   "b_the-serviceberry-abundance-and-reciprocity-in-the-natural-world.jpg",
+   400,
+   562,
+   "Robin Wall Kimmerer"
+  ],
+  "A Court of Splintered Harmony": [
+   "b_a-court-of-splintered-harmony.jpg",
+   393,
+   600,
+   "Sarah J. Maas"
+  ],
+  "A Court of Frost and Starlight (10th Anniversary Recording)": [
+   "b_a-court-of-frost-and-starlight-10th-anniversary-recording.jpg",
+   400,
+   600,
+   "Sarah J. Maas"
+  ],
+  "A Court of Silver Flames (10th Anniversary Recording)": [
+   "b_a-court-of-silver-flames-10th-anniversary-recording.jpg",
+   400,
+   600,
+   "Sarah J. Maas"
+  ],
+  "Piranesi: Audies Audiobook of the Year Edition": [
+   "b_piranesi-audies-audiobook-of-the-year-edition.jpg",
+   400,
+   600,
+   "Susanna Clarke"
+  ],
+  "A Court of Mist and Fury (Original Recording)": [
+   "b_a-court-of-mist-and-fury-original-recording.jpg",
+   400,
+   600,
+   "Sarah J. Maas"
+  ],
+  "Yumi and the Nightmare Painter: A Cosmere Novel [Dramatized Adaptation]": [
+   "b_yumi-and-the-nightmare-painter-a-cosmere-novel-dramatized-adapta.jpg",
+   386,
+   600,
+   "Brandon Sanderson"
+  ]
+ },
+ "shows": {
+  "The Bear": [
+   "s_the-bear.jpg",
+   400,
+   600
+  ],
+  "Severance": [
+   "s_severance.jpg",
+   400,
+   600
+  ],
+  "Ted Lasso": [
+   "s_ted-lasso.jpg",
+   400,
+   600
+  ],
+  "Breaking Bad": [
+   "s_breaking-bad.jpg",
+   400,
+   576
+  ],
+  "Game of Thrones": [
+   "s_game-of-thrones.jpg",
+   400,
+   591
+  ],
+  "Attack on Titan": [
+   "s_attack-on-titan.jpg",
+   400,
+   567
+  ],
+  "Demon Slayer": [
+   "s_demon-slayer.jpg",
+   400,
+   560
+  ],
+  "Jujutsu Kaisen": [
+   "s_jujutsu-kaisen.jpg",
+   400,
+   588
+  ],
+  "Frieren": [
+   "s_frieren.jpg",
+   400,
+   600
+  ],
+  "Hunter x Hunter": [
+   "s_hunter-x-hunter.jpg",
+   400,
+   588
+  ],
+  "Naruto": [
+   "s_naruto.jpg",
+   400,
+   588
+  ],
+  "Naruto Shippuden": [
+   "s_naruto-shippuden.jpg",
+   400,
+   588
+  ],
+  "Death Note": [
+   "s_death-note.jpg",
+   400,
+   600
+  ],
+  "Code Geass": [
+   "s_code-geass.jpg",
+   400,
+   533
+  ],
+  "Bleach": [
+   "s_bleach.jpg",
+   400,
+   570
+  ],
+  "Black Clover": [
+   "s_black-clover.jpg",
+   400,
+   565
+  ],
+  "Chainsaw Man": [
+   "s_chainsaw-man.jpg",
+   400,
+   560
+  ],
+  "Young Justice": [
+   "s_young-justice.jpg",
+   400,
+   593
+  ],
+  "X-Men ’97": [
+   "s_x-men-97.jpg",
+   400,
+   600
+  ],
+  "My Adventures with Superman": [
+   "s_my-adventures-with-superman.jpg",
+   400,
+   600
+  ],
+  "Superman: The Animated Series": [
+   "s_superman-the-animated-series.jpg",
+   400,
+   588
+  ],
+  "Justice League Unlimited": [
+   "s_justice-league-unlimited.jpg",
+   400,
+   588
+  ],
+  "Batman: The Animated Series": [
+   "s_batman-the-animated-series.jpg",
+   400,
+   588
+  ],
+  "Abbott Elementary": [
+   "s_abbott-elementary.jpg",
+   400,
+   533
+  ],
+  "Brooklyn Nine-Nine": [
+   "s_brooklyn-nine-nine.jpg",
+   400,
+   600
+  ],
+  "The Wire": [
+   "s_the-wire.jpg",
+   400,
+   600
+  ],
+  "Barry": [
+   "s_barry.jpg",
+   400,
+   600
+  ],
+  "Psych": [
+   "s_psych.jpg",
+   400,
+   588
+  ],
+  "The Office": [
+   "s_the-office.jpg",
+   400,
+   533
+  ],
+  "Haikyu!!": [
+   "s_haikyu.jpg",
+   400,
+   588
+  ],
+  "Kaiju No. 8": [
+   "s_kaiju-no-8.jpg",
+   400,
+   565
+  ],
+  "Gachiakuta": [
+   "s_gachiakuta.jpg",
+   400,
+   600
+  ],
+  "Sakamoto Days": [
+   "s_sakamoto-days.jpg",
+   400,
+   566
+  ],
+  "Fairy Tail": [
+   "s_fairy-tail.jpg",
+   400,
+   588
+  ],
+  "Mushoku Tensei": [
+   "s_mushoku-tensei.jpg",
+   400,
+   565
+  ],
+  "Re:Zero": [
+   "s_re-zero.jpg",
+   400,
+   588
+  ],
+  "Lanterns": [
+   "s_lanterns.jpg",
+   400,
+   600
+  ],
+  "Pachinko": [
+   "s_pachinko.jpg",
+   400,
+   600
+  ],
+  "Arrow": [
+   "s_arrow.jpg",
+   400,
+   533
+  ],
+  "The Flash": [
+   "s_the-flash.jpg",
+   400,
+   600
+  ]
+ },
+ "games": {
+  "Final Fantasy Tactics: The Ivalice Chronicles": [
+   "g_final-fantasy-tactics-the-ivalice-chronicles.jpg",
+   400,
+   600
+  ],
+  "Dragon Quest III HD-2D Remake": [
+   "g_dragon-quest-iii-hd-2d-remake.jpg",
+   400,
+   600
+  ],
+  "Fire Emblem: Fortune’s Weave": [
+   "g_fire-emblem-fortunes-weave.jpg",
+   250,
+   350
+  ],
+  "Fire Emblem Engage": [
+   "g_fire-emblem-engage.jpg",
+   316,
+   316
+  ],
+  "Pokémon Scarlet": [
+   "g_pok-mon-scarlet.jpg",
+   400,
+   226
+  ],
+  "Tactics Ogre: Reborn": [
+   "g_tactics-ogre-reborn.jpg",
+   400,
+   600
+  ],
+  "Digimon Survive": [
+   "g_digimon-survive.jpg",
+   400,
+   600
+  ],
+  "Elden Ring": [
+   "g_elden-ring.jpg",
+   400,
+   600
+  ],
+  "Octopath Traveler II": [
+   "g_octopath-traveler-ii.jpg",
+   400,
+   600
+  ]
+ },
+ "upcoming": {
+  "A Court of Splintered Harmony": [
+   "u_a-court-of-splintered-harmony.jpg",
+   262,
+   400
+  ],
+  "Victorious": [
+   "u_victorious.jpg",
+   388,
+   600
+  ],
+  "A Conspiracy of Charming Monsters": [
+   "u_a-conspiracy-of-charming-monsters.jpg",
+   397,
+   600
+  ],
+  "A Married Little Christmas": [
+   "u_a-married-little-christmas.jpg",
+   400,
+   599
+  ],
+  "Seven and the Swift": [
+   "u_seven-and-the-swift.jpg",
+   400,
+   600
+  ],
+  "Feels Like Falling": [
+   "u_feels-like-falling.jpg",
+   400,
+   400
+  ],
+  "The Heretics": [
+   "u_the-heretics.jpg",
+   400,
+   600
+  ],
+  "Final Fantasy Resonance": [
+   "u_final-fantasy-resonance.jpg",
+   400,
+   225
+  ],
+  "Brigandine: Abyss": [
+   "u_brigandine-abyss.jpg",
+   400,
+   225
+  ],
+  "Mercenaries Grace: Black Feather and the Golden Right Arm": [
+   "u_mercenaries-grace-black-feather-and-the-golden-right-arm.jpg",
+   400,
+   225
+  ],
+  "Dragon Quest Monsters: The Withered World": [
+   "u_dragon-quest-monsters-the-withered-world.jpg",
+   400,
+   225
+  ],
+  "Romancing SaGa 3: Destinies United": [
+   "u_romancing-saga-3-destinies-united.jpg",
+   393,
+   600
+  ],
+  "Persona 4 Revival": [
+   "u_persona-4-revival.jpg",
+   400,
+   225
+  ],
+  "Final Fantasy VII Revelation": [
+   "u_final-fantasy-vii-revelation.jpg",
+   400,
+   225
+  ],
+  "Pokémon Winds and Pokémon Waves": [
+   "u_pok-mon-winds-and-pok-mon-waves.jpg",
+   400,
+   225
+  ],
+  "Digimon Story Time Stranger: A Hero's Eternal Legacy": [
+   "u_digimon-story-time-stranger-a-hero-s-eternal-legacy.jpg",
+   400,
+   225
+  ],
+  "Persona 6": [
+   "u_persona-6.jpg",
+   400,
+   225
+  ],
+  "Dragon Quest XII: Beyond Dreams": [
+   "u_dragon-quest-xii-beyond-dreams.jpg",
+   400,
+   159
+  ]
+ }
+}
