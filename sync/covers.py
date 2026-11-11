@@ -14,7 +14,8 @@ MIN_W = 320
 UA = {'User-Agent': 'BookDen/1.0 (+https://delvindd13.github.io/Book-Den/)'}
 RANK = {'audit': 9, 'apple-books': 5, 'itunes-movies': 5, 'jikan': 4, 'tvmaze': 4, 'apple-audiobooks': 4, 'google-books': 3, 'wikipedia': 2, 'app-store': 2, 'openlibrary': 1}
 # posters checked by eye (sync/poster_apply.json) are never replaced by a lookup
-try: CHECKED = set(json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'poster_apply.json'))))
+def cvkey(k): return 'cv:' + (k[5:] if k.startswith('book:') else k)   # show:X -> cv:show:X, game:X -> cv:game:X, book:X -> cv:X
+try: CHECKED = set(cvkey(k) for k in json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'poster_apply.json'))))
 except Exception: CHECKED = set()
 log = lambda *a: print(*a, flush=True)
 ERR = {}

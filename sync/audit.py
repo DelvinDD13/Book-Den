@@ -2,7 +2,8 @@
 Gathers, for every show in sync/titles.json: IMDb's own dataset rows (type, years, genres, rating, votes, seasons, episodes)
 and TVmaze's record; makes contact sheets of the posters now in the store so they can be checked by eye; lists Wikipedia
 page-image candidates for each game; and collects public-domain Fleischer Superman stills from Wikimedia Commons with
-their licence text. Everything lands in audit/ for review. Nothing in the store is changed by this script."""
+their licence text. Everything lands in audit/ for review. The only rows this script may write are cover rows (cv:...),
+through cover_rows_post(); unstray() is the one exception and touches only rows this script itself wrote by mistake."""
 import os, sys, json, re, gzip, time, urllib.request, urllib.parse, urllib.error, io, traceback, socket
 _gai = socket.getaddrinfo
 def _gai4(*a, **k):
@@ -462,23 +463,85 @@ def links():
     save('links.json', out); log('links', len(out), 'dead', len([o for o in out if o[2] in (404, 410)]))
 
 # ---------------------------------------------------------------- fourth pass: write the checked posters, hunt for the rest
+# ---------------- the store: the only functions in this file that touch his sheet ----------------
+COVER_FIELDS = {'url', 'src', 'via', 'at', 'w', 'h'}
+BLANK = 'removed'   # not JSON on purpose: every copy of the app skips a row it cannot read, and keeps what the phone holds
+def store_get(): return (get(STORE + '?key=' + urllib.parse.quote(KEY), 120).get('v') or {})
+def store_post(rows):
+    wrote = 0; keys = list(rows)
+    for n in range(0, len(keys), 40):
+        body = json.dumps({'key': KEY, 'v': {k: rows[k] for k in keys[n:n + 40]}}).encode()
+        r = json.loads(urllib.request.urlopen(urllib.request.Request(STORE, data=body, headers={'Content-Type': 'text/plain'}), timeout=120).read().decode())
+        wrote += int(r.get('wrote') or 0); log('posted', len(keys[n:n + 40]), r.get('wrote'))
+    return wrote
+def cover_rows_post(rows):
+    """Cover rows only. A row whose name does not start with cv: is his own (a status, a rating, a note) and is never written here."""
+    bad = [k for k in rows if not k.startswith('cv:')]
+    if bad: raise ValueError('refusing to write %d row(s) that are not covers, e.g. %r' % (len(bad), bad[0]))
+    return store_post(rows)
+def cvkey(k):
+    """Names in sync/poster_apply.json -> the row the app reads the picture from."""
+    if k.startswith('show:') or k.startswith('game:'): return 'cv:' + k
+    if k.startswith('book:'): return 'cv:' + k[5:]
+    raise ValueError('poster_apply.json: %r is not show:, game: or book:' % k)
+def parsed(cur, k):
+    e = cur.get(k)
+    if not e: return None
+    try: return json.loads(e['j'])
+    except Exception: return 'unreadable'
+
+def unstray():
+    """The first two apply() runs wrote the checked posters to show:<title> and game:<title>. Those names are his own rows for
+    that title (status, rating, dates, notes), not cover rows. This finds the rows this job wrote there and blanks them, so no
+    copy of the app can take a poster record for his data. Only rows that are provably this job's own are touched: src 'audit',
+    a url, and no field outside a cover record. Counts only are reported; nothing of his is printed or saved."""
+    AP = json.load(open(os.path.join(HERE, 'poster_apply.json'))); cur = store_get(); now = int(time.time() * 1000)
+    names = [k for k in AP if k.startswith('show:') or k.startswith('game:')]
+    rep = {'checked': len(names), 'absent': 0, 'ours': 0, 'already_blank': 0, 'not_ours': 0, 'not_ours_fields': [], 'ours_written_between': None}
+    mine = {}; us = []
+    for k in names:
+        o = parsed(cur, k)
+        if o is None: rep['absent'] += 1
+        elif o == 'unreadable' or o is None or not isinstance(o, dict): rep['already_blank'] += 1
+        elif o.get('src') == 'audit' and o.get('url') and set(o) <= COVER_FIELDS:
+            rep['ours'] += 1; mine[k] = {'u': now, 'j': BLANK}; us.append(int(cur[k].get('u') or 0))
+        else:
+            rep['not_ours'] += 1; rep['not_ours_fields'] = sorted(set(rep['not_ours_fields']) | set(o))
+    if us: rep['ours_written_between'] = [time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime(min(us) / 1000)), time.strftime('%Y-%m-%d %H:%M:%S UTC', time.gmtime(max(us) / 1000))]
+    # how much these rows are used at all: every other show:/game: row in the store, counted, field names only
+    other = [k for k in cur if (k.startswith('show:') or k.startswith('game:')) and k not in names]
+    fields = {}
+    for k in other:
+        o = parsed(cur, k)
+        for f in (o if isinstance(o, dict) else []): fields[f] = fields.get(f, 0) + 1
+    rep['other_show_game_rows'] = len(other); rep['other_fields'] = fields; rep['store_rows'] = len(cur)
+    rep['wrote'] = store_post(mine) if mine else 0     # allow-list: exactly the rows proven above to be this job's own
+    back = store_get(); left = [k for k in mine if (back.get(k) or {}).get('j') != BLANK]
+    if left:   # the store would not take plain text: fall back to JSON null, which the app's row check also drops
+        store_post({k: {'u': int(time.time() * 1000), 'j': 'null'} for k in left}); back = store_get(); rep['fallback_null'] = len(left)
+    rep['blank_now'] = sum(1 for k in mine if (back.get(k) or {}).get('j') in (BLANK, 'null'))
+    save('unstray.json', rep); log('unstray', json.dumps(rep))
+
 def apply():
-    """Write the posters in sync/poster_apply.json to the store. Every one was looked at first; each is downloaded again
-    here and measured, and only what loads is written. src is 'audit' so later cover jobs leave these rows alone."""
-    AP = json.load(open(os.path.join(HERE, 'poster_apply.json'))); rows = {}; rep = {}; now = int(time.time() * 1000)
+    """Write the pictures in sync/poster_apply.json to the store, each under its cover row (cv:show:, cv:game:, cv:<book>).
+    Every one was looked at first; each is downloaded again here and measured, and only what loads is written. src is 'audit'
+    so later cover jobs leave these rows alone. A row that already holds the same picture is left as it is. The store is read
+    back afterwards and every row compared."""
+    AP = json.load(open(os.path.join(HERE, 'poster_apply.json'))); cur = store_get(); rows = {}; rep = {}; now = int(time.time() * 1000)
     for k, v in AP.items():
-        if v.get('done'): continue   # written by an earlier run
-        u = v['url']
+        ck = cvkey(k); u = v['url']; old = parsed(cur, ck)
+        if isinstance(old, dict) and old.get('url') == u and old.get('src') == 'audit': rep[k] = ['kept', u]; continue
         try:
             b = wget(u) if 'wikimedia' in u else raw(u, 40); im = Image.open(io.BytesIO(b)); w, h = im.size
             if w < 150: raise ValueError('only %d px wide' % w)
-            rows[k] = {'u': now, 'j': json.dumps({'url': u, 'src': 'audit', 'via': v.get('from'), 'at': now, 'w': w, 'h': h})}; rep[k] = [u, w, h]
+            rows[ck] = {'u': now, 'j': json.dumps({'url': u, 'src': 'audit', 'via': v.get('from'), 'at': now, 'w': w, 'h': h})}; rep[k] = [u, w, h]
         except Exception as e: rep[k] = ['ERR ' + str(e)[:90], u]
-    keys = list(rows); wrote = 0
-    for n in range(0, len(keys), 40):
-        body = json.dumps({'key': KEY, 'v': {k: rows[k] for k in keys[n:n + 40]}}).encode()
-        r = json.loads(urllib.request.urlopen(urllib.request.Request(STORE, data=body, headers={'Content-Type': 'text/plain'}), timeout=120).read().decode()); wrote += int(r.get('wrote') or 0); log('posted', len(keys[n:n + 40]), r.get('wrote'))
-    save('applied.json', {'wrote': wrote, 'rows': rep}); log('apply: wrote', wrote, 'of', len(AP), 'errors', len([1 for v in rep.values() if str(v[0]).startswith('ERR')]))
+    wrote = cover_rows_post(rows) if rows else 0
+    back = store_get(); good = []; wrong = []
+    for k, v in AP.items():
+        o = parsed(back, cvkey(k)); (good if isinstance(o, dict) and o.get('url') == v['url'] else wrong).append(k)
+    save('applied.json', {'wrote': wrote, 'in_store_now': len(good), 'not_in_store': wrong, 'rows': rep})
+    log('apply: wrote', wrote, 'of', len(AP), '| in the store now', len(good), '| missing', len(wrong), '| errors', len([1 for v in rep.values() if str(v[0]).startswith('ERR')]))
 
 def hunt():
     """Second tries for the posters that are still missing or the wrong shape. Candidates only; nothing is written."""
@@ -561,10 +624,12 @@ def hunt():
     save('hunt.json', out); sheet(items, 'hunt.jpg', cols=6, w=180, h=270, fit=True)
 
 # ---------------------------------------------------------------- fifth pass: his Audible titles against Audible's own catalogue
-def audible():
-    """Author, narrator, length and cover for every Audible title in the library, from Audible's public catalogue.
-    A match needs the same title (with or without its subtitle); a narrator or author the app already has breaks ties."""
-    L = json.load(open(os.path.join(HERE, 'audible_titles.json'))); out = {}; H = dict(UA, **{'Accept': 'application/json'})
+def audible(src='audible_titles.json', dst='audible.json'):
+    """Author, narrator, length and cover from Audible's public catalogue for each row of sync/<src>:
+    [title, author, narrator, series, runtime, search title (optional)]. A match needs the same title (with or without its
+    subtitle); a narrator or author the app already has breaks ties. When the title search has no exact match the full
+    title is also tried as keywords."""
+    L = json.load(open(os.path.join(HERE, src))); out = {}; H = dict(UA, **{'Accept': 'application/json'})
     def q(params):
         u = 'https://api.audible.com/1.0/catalog/products?num_results=12&products_sort_by=Relevance&response_groups=contributors,product_desc,product_attrs,media,rating,series&image_sizes=500,1024&' + urllib.parse.urlencode(params)
         for a in range(3):
@@ -578,32 +643,40 @@ def audible():
         return {'asin': p.get('asin'), 'title': p.get('title'), 'subtitle': p.get('subtitle'), 'authors': names(p.get('authors')), 'narrators': names(p.get('narrators')), 'min': p.get('runtime_length_min'), 'released': p.get('release_date'), 'lang': p.get('language'), 'fmt': p.get('format_type'), 'series': [[x.get('title'), x.get('sequence')] for x in (p.get('series') or [])], 'img': (p.get('product_images') or {}).get('1024') or (p.get('product_images') or {}).get('500'), 'ratings': ((p.get('rating') or {}).get('overall_distribution') or {}).get('num_ratings')}
     def last(n): return norm(n).split(' ')[-1] if n else ''
     n_ok = 0
-    for i, (t, author, narr, series, rt) in enumerate(L):
-        main = re.sub(r'\s*[\(\[][^\)\]]*[\)\]]\s*$', '', t).split(':')[0].strip()
+    for i, row in enumerate(L):
+        t, author, narr, series, rt = row[:5]; qt = (row[5] if len(row) > 5 else None) or t
+        main = re.sub(r'\s*[\(\[][^\)\]]*[\)\]]\s*$', '', qt).split(':')[0].strip(); a1 = author.split(',')[0].split('&')[0].strip() if author else ''
+        nt = norm(qt)
+        def rank(P):
+            C = []
+            for p in P:
+                if (p.get('language') or 'english') != 'english': continue
+                full = norm('%s %s' % (p.get('title') or '', p.get('subtitle') or '')); tt = norm(p.get('title') or '')
+                how = 'exact' if nt in (full, tt) else 'main' if norm(main) == tt else 'starts' if (nt.startswith(tt + ' ') or tt.startswith(norm(main) + ' ')) else None
+                if not how: continue
+                sc = {'exact': 30, 'main': 20, 'starts': 8}[how]
+                if author and any(last(a) and last(a) == last(a1) for a in names(p.get('authors'))): sc += 10
+                if narr and any(last(x) and last(x) in norm(narr) for x in names(p.get('narrators'))): sc += 12
+                sc += min(6, (((p.get('rating') or {}).get('overall_distribution') or {}).get('num_ratings') or 0) ** 0.5 / 40)
+                C.append((sc, how, p))
+            return C
         try:
-            P = q({'title': main}) if not author else q({'title': main, 'author': author.split(',')[0].split('&')[0].strip()})
-            if not P and author: P = q({'title': main})
-            if not P: P = q({'keywords': t})
+            P = q({'title': main, 'author': a1}) if a1 else q({'title': main})
+            if not P and a1: P = q({'title': main})
+            C = rank(P)
+            if not any(c[1] == 'exact' for c in C):
+                time.sleep(0.25); P2 = q({'keywords': (qt + ' ' + a1).strip()}); seen = {p.get('asin') for p in P}
+                P = P + [p for p in P2 if p.get('asin') not in seen]; C = rank(P)
         except Exception as e: out[t] = {'err': str(e)[:100]}; continue
-        nt = norm(t); C = []
-        for p in P:
-            if (p.get('language') or 'english') != 'english': continue
-            full = norm('%s %s' % (p.get('title') or '', p.get('subtitle') or '')); tt = norm(p.get('title') or '')
-            how = 'exact' if nt in (full, tt) else 'main' if norm(main) == tt else 'starts' if (nt.startswith(tt + ' ') or tt.startswith(norm(main) + ' ')) else None
-            if not how: continue
-            sc = {'exact': 30, 'main': 20, 'starts': 8}[how]
-            if author and any(last(a) and last(a) == last(author.split(',')[0].split('&')[0]) for a in names(p.get('authors'))): sc += 10
-            if narr and any(last(x) and last(x) in norm(narr) for x in names(p.get('narrators'))): sc += 12
-            sc += min(6, (((p.get('rating') or {}).get('overall_distribution') or {}).get('num_ratings') or 0) ** 0.5 / 40)
-            C.append((sc, how, p))
         C.sort(key=lambda c: -c[0])
         if C:
-            b = brief(C[0][2]); b['how'] = C[0][1]; b['score'] = round(C[0][0], 1); b['others'] = [[x[1], (x[2].get('title') or '')[:50], names(x[2].get('authors'))[:2], names(x[2].get('narrators'))[:2], x[2].get('runtime_length_min')] for x in C[1:4]]
+            b = brief(C[0][2]); b['how'] = C[0][1]; b['score'] = round(C[0][0], 1); b['others'] = [[x[1], (x[2].get('title') or '')[:50], names(x[2].get('authors'))[:2], names(x[2].get('narrators'))[:2], x[2].get('runtime_length_min'), (x[2].get('product_images') or {}).get('1024')] for x in C[1:5]]
             out[t] = b; n_ok += 1
-        else: out[t] = {'miss': 1, 'saw': [[(p.get('title') or '')[:50], names(p.get('authors'))[:2]] for p in P[:4]]}
-        if i % 40 == 0: log('audible', i, n_ok)
+        else: out[t] = {'miss': 1, 'saw': [[(p.get('title') or '')[:50], names(p.get('authors'))[:2]] for p in P[:5]]}
+        if i % 40 == 0: log('audible', src, i, n_ok)
         time.sleep(0.25)
-    save('audible.json', out); log('audible matched', n_ok, 'of', len(L))
+    save(dst, out); log('audible matched', n_ok, 'of', len(L), '->', dst)
+def audible2(): audible('audible_titles2.json', 'audible2.json')
 
 BOOKFIX = [('The Games Gods Play', 'Abigail Owen'), ('Generations: A Memoir', 'Lucille Clifton'), ('The Midnight Library', 'Matt Haig'), ('Sherlock Holmes: The Definitive Collection', 'Arthur Conan Doyle'), ('The Daily Stoic: 366 Meditations on Wisdom, Perseverance, and the Art of Living', 'Ryan Holiday'), ('Percy Jackson and the Olympians: The Chalice of the Gods', 'Rick Riordan'), ('Gild: The Plated Prisoner Series, Book 1', 'Raven Kennedy'), ('Gleam: The Plated Prisoner Series, Book 3', 'Raven Kennedy'), ('Glow: The Plated Prisoner Series, Book 4', 'Raven Kennedy'), ('Goldfinch: The Plated Prisoner Series, Book 6', 'Raven Kennedy'), ('The Poison Daughter', 'Sheila Masterson'), ('Arcanum Unbounded: The Cosmere Collection', 'Brandon Sanderson'), ('Air Awakens: The Complete Series', 'Elise Kova'), ('Reminders of Him', 'Colleen Hoover'), ('Yellow face', 'R. F. Kuang'), ('The Keeper Chronicles: The Complete Trilogy', 'JA Andrews'), ('Return to Honor', ''), ('The Titan’s Curse', 'Rick Riordan'), ('Sixth of the Dusk', 'Brandon Sanderson'), ('Giovanni’s Room', 'James Baldwin'), ('I Am a Cat', 'Soseki Natsume'), ('The Sundering', 'John Gwynne'), ('Legends of Sleeping Dragons', ''), ('The Amber Spyglass', 'Philip Pullman')]
 def bookfix():
@@ -624,6 +697,26 @@ def bookfix():
             time.sleep(3.2)
         while len(items) % 8: items.append(('', ''))
     save('bookfix.json', out); sheet(items, 'bookfix.jpg', cols=8, w=140, h=210, fit=True)
+
+BOOKFIX2 = [('Yellow face', 'Yellowface', 'R. F. Kuang'), ('Percy Jackson and the Olympians: The Chalice of the Gods', 'The Chalice of the Gods', 'Rick Riordan'), ('The Amber Spyglass', 'The Amber Spyglass', 'Philip Pullman'), ('The Poison Daughter', 'The Poison Daughter', 'Sheila Masterson'), ('Reminders of Him', 'Reminders of Him', 'Colleen Hoover'), ('Stardust', 'Stardust', 'Neil Gaiman'), ('Sixth of the Dusk', 'Sixth of the Dusk', 'Brandon Sanderson'), ('The Sundering', 'The Sundering', 'John Gwynne'), ('Shōgun, Part One', 'Shogun', 'James Clavell'), ("The Handmaid's Tale: Special Edition", "The Handmaid's Tale", 'Margaret Atwood'), ('A Poetry Handbook', 'A Poetry Handbook', 'Mary Oliver'), ('Doctor Strange: The Fate of Dreams', 'Doctor Strange: The Fate of Dreams', ''), ('Legends of Sleeping Dragons', 'Legends of Sleeping Dragons', ''), ('DSM-5-TR Diagnostic and Statistical Manual of Mental Disorders', 'DSM-5-TR', '')]
+def bookfix2():
+    """Second round of cover candidates: (title in the app, what to search for, author). Candidates only; nothing is written."""
+    out = {}; items = []
+    for t, qt, a in BOOKFIX2:
+        out[t] = []
+        for media, entity, key in (('ebook', 'ebook', 'trackName'), ('audiobook', 'audiobook', 'collectionName')):
+            try:
+                d = get('https://itunes.apple.com/search?country=us&lang=en_us&limit=12&media=%s&entity=%s&term=%s' % (media, entity, urllib.parse.quote((qt + ' ' + a).strip())), 30)
+                for m in d.get('results', [])[:8]:
+                    nm = m.get(key) or ''; art = m.get('artworkUrl100')
+                    if not art or norm(qt)[:10] not in norm(nm): continue
+                    if a and norm(a).split(' ')[-1] not in norm(m.get('artistName') or ''): continue
+                    u = re.sub(r'/[0-9]+x[0-9]+[a-z]*(-[0-9]+)?\.(jpg|png|webp)$', '/600x900bb.jpg', art)
+                    out[t].append({'src': 'apple-' + media, 'name': nm, 'by': m.get('artistName'), 'url': u}); items.append(('%s | %s %s' % (t[:20], media[:5], (m.get('artistName') or '')[:14]), u))
+            except Exception as e: out[t].append({'src': media, 'err': str(e)[:80]})
+            time.sleep(3.2)
+        while len(items) % 8: items.append(('', ''))
+    save('bookfix2.json', out); sheet(items, 'bookfix2.jpg', cols=8, w=140, h=210, fit=True)
 
 def hunt2():
     """Pokemon Scarlet's own box art from IGDB's public page (its og:image is the cover)."""
@@ -648,7 +741,7 @@ def hunt2():
     save('hunt2.json', out); sheet(items, 'hunt2.jpg', cols=6, w=180, h=270, fit=True)
 
 if __name__ == '__main__':
-    todo = sys.argv[1:] or ['apply', 'hunt2', 'audible', 'bookfix']
+    todo = sys.argv[1:] or ['unstray', 'apply', 'audible2', 'bookfix2']
     for name in todo:
-        try: {'imdb': imdb, 'tvmaze': tvmaze, 'posters': posters, 'superman': superman, 'fix': fix, 'wikibox': wikibox, 'anime': anime, 'steam': steam, 'pkmn': pkmn, 'wikiraw': wikiraw, 'imdb2': imdb2, 'books': books, 'links': links, 'apply': apply, 'hunt': hunt, 'audible': audible, 'bookfix': bookfix, 'hunt2': hunt2}[name]()
+        try: {'imdb': imdb, 'tvmaze': tvmaze, 'posters': posters, 'superman': superman, 'fix': fix, 'wikibox': wikibox, 'anime': anime, 'steam': steam, 'pkmn': pkmn, 'wikiraw': wikiraw, 'imdb2': imdb2, 'books': books, 'links': links, 'apply': apply, 'hunt': hunt, 'audible': audible, 'bookfix': bookfix, 'hunt2': hunt2, 'unstray': unstray, 'audible2': audible2, 'bookfix2': bookfix2}[name]()
         except Exception: log('FAILED', name); traceback.print_exc()
