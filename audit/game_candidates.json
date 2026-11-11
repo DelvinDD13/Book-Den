@@ -1,0 +1,134 @@
+{
+ "Final Fantasy Tactics: The Ivalice Chronicles": [
+  [
+   "Final Fantasy Tactics",
+   "https://upload.wikimedia.org/wikipedia/en/4/4b/Fftbox.jpg",
+   "exact"
+  ],
+  [
+   "Final Fantasy Tactics Advance",
+   "https://upload.wikimedia.org/wikipedia/en/c/c4/FinalFantasyTacticsAdvanceGBACoverArtUS.jpg",
+   "search"
+  ],
+  [
+   "Final Fantasy (video game)",
+   "https://upload.wikimedia.org/wikipedia/en/d/d8/FF1_USA_boxart.jpg",
+   "search"
+  ]
+ ],
+ "Dragon Quest III HD-2D Remake": [
+  [
+   "Dragon Quest III",
+   "https://upload.wikimedia.org/wikipedia/en/b/b8/Dragon_Warrior_III.jpg",
+   "exact"
+  ],
+  [
+   "Dragon Quest (video game)",
+   "https://upload.wikimedia.org/wikipedia/en/8/84/Dragon_Warrior.jpg",
+   "search"
+  ],
+  [
+   "Dragon Quest II",
+   "https://upload.wikimedia.org/wikipedia/en/f/fd/Dragon_Warrior_II.jpg",
+   "search"
+  ],
+  [
+   "Video game remake",
+   "https://upload.wikimedia.org/wikipedia/commons/4/43/RE4_vs_RE4R_graphics.jpg",
+   "search"
+  ]
+ ],
+ "Fire Emblem: Fortune’s Weave": [
+  [
+   "Fire Emblem: Fortune's Weave",
+   "https://upload.wikimedia.org/wikipedia/en/a/af/Fire_Emblem_Fortune%27s_Weave_cover.jpg",
+   "exact"
+  ]
+ ],
+ "Fire Emblem Engage": [],
+ "Pokémon Scarlet": [],
+ "Tactics Ogre: Reborn": [],
+ "Digimon Survive": [
+  [
+   "Digimon Survive",
+   "https://upload.wikimedia.org/wikipedia/en/1/1f/Digimon_Survive.png",
+   "search"
+  ],
+  [
+   "Digimon Story: Time Stranger",
+   "https://upload.wikimedia.org/wikipedia/en/5/59/Digimon_Story_Time_Stranger.png",
+   "search"
+  ],
+  [
+   "Digimon World 3",
+   "https://upload.wikimedia.org/wikipedia/en/4/43/Digimonworld3boxart.jpg",
+   "search"
+  ],
+  [
+   "Digimon Story: Cyber Sleuth",
+   "https://upload.wikimedia.org/wikipedia/en/b/b1/Digimon_Story%2C_Cyber_Sleuth.jpeg",
+   "search"
+  ]
+ ],
+ "Mercenaries series (Rideon)": [
+  [
+   "Mercenary (video game)",
+   "https://upload.wikimedia.org/wikipedia/en/2/28/Mercenary_amstrad_version_cover.jpg",
+   "search"
+  ],
+  [
+   "Mercenaries: Playground of Destruction",
+   "https://upload.wikimedia.org/wikipedia/en/4/4f/Mercenaries_-_Playground_of_Destruction_Coverart.png",
+   "search"
+  ],
+  [
+   "Concord (video game)",
+   "https://upload.wikimedia.org/wikipedia/en/d/d7/Concord_key_art.png",
+   "search"
+  ],
+  [
+   "Starfield (video game)",
+   "https://upload.wikimedia.org/wikipedia/commons/f/fb/Starfield_-_game_cover.png",
+   "search"
+  ]
+ ],
+ "Elden Ring": [
+  [
+   "Elden Ring",
+   "https://upload.wikimedia.org/wikipedia/en/b/b9/Elden_Ring_Box_art.jpg",
+   "exact"
+  ],
+  [
+   "Elden Ring Nightreign",
+   "https://upload.wikimedia.org/wikipedia/en/f/f0/Elden_Ring_Nightreign_cover_art.png",
+   "search"
+  ],
+  [
+   "Elden Ring Shadow of the Erdtree",
+   "https://upload.wikimedia.org/wikipedia/en/d/de/Elden-Ring-Shadow-of-the-Erdtree-cover-art.jpg",
+   "search"
+  ],
+  [
+   "Malenia",
+   "https://upload.wikimedia.org/wikipedia/en/b/b8/Malenia_Elden_Ring.png",
+   "search"
+  ]
+ ],
+ "Octopath Traveler II": [
+  [
+   "Octopath Traveler II",
+   "https://upload.wikimedia.org/wikipedia/en/4/46/Octopath_Traveler_II_cover_art.jpg",
+   "exact"
+  ],
+  [
+   "Octopath Traveler",
+   "https://upload.wikimedia.org/wikipedia/en/3/34/Octopath_Traveler.jpg",
+   "search"
+  ],
+  [
+   "Primrose Azelhart",
+   "https://upload.wikimedia.org/wikipedia/en/c/c1/Primrose_Azelhart.png",
+   "search"
+  ]
+ ]
+}

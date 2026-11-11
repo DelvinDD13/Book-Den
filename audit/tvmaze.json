@@ -1,0 +1,2332 @@
+{
+ "The Bear": {
+  "name": "The Bear",
+  "type": "Scripted",
+  "genres": [
+   "Drama",
+   "Comedy",
+   "Food"
+  ],
+  "premiered": "2022-06-23",
+  "ended": "2026-06-25",
+  "status": "Ended",
+  "network": "Hulu",
+  "seasons": 5,
+  "eps": 46,
+  "url": "https://www.tvmaze.com/shows/54198/the-bear"
+ },
+ "Severance": {
+  "name": "Severance",
+  "type": "Scripted",
+  "genres": [
+   "Drama",
+   "Science-Fiction",
+   "Mystery"
+  ],
+  "premiered": "2022-02-18",
+  "ended": null,
+  "status": "Running",
+  "network": "Apple TV",
+  "seasons": 2,
+  "eps": 19,
+  "url": "https://www.tvmaze.com/shows/44933/severance"
+ },
+ "Lanterns": {
+  "name": "Lanterns",
+  "type": "Scripted",
+  "genres": [
+   "Action",
+   "Adventure",
+   "Science-Fiction"
+  ],
+  "premiered": "2026-08-16",
+  "ended": null,
+  "status": "To Be Determined",
+  "network": "HBO",
+  "seasons": 1,
+  "eps": 8,
+  "url": "https://www.tvmaze.com/shows/44776/lanterns"
+ },
+ "Ted Lasso": {
+  "name": "Ted Lasso",
+  "type": "Scripted",
+  "genres": [
+   "Drama",
+   "Comedy",
+   "Sports"
+  ],
+  "premiered": "2020-08-14",
+  "ended": null,
+  "status": "To Be Determined",
+  "network": "Apple TV",
+  "seasons": 4,
+  "eps": 44,
+  "url": "https://www.tvmaze.com/shows/44458/ted-lasso"
+ },
+ "New Girl": {
+  "name": "New Girl",
+  "type": "Scripted",
+  "genres": [
+   "Comedy",
+   "Romance"
+  ],
+  "premiered": "2011-09-20",
+  "ended": "2018-05-15",
+  "status": "Ended",
+  "network": "FOX",
+  "seasons": 7,
+  "eps": 146,
+  "url": "https://www.tvmaze.com/shows/58/new-girl"
+ },
+ "Breaking Bad": {
+  "name": "Breaking Bad",
+  "type": "Scripted",
+  "genres": [
+   "Drama",
+   "Crime",
+   "Thriller"
+  ],
+  "premiered": "2008-01-20",
+  "ended": "2019-10-11",
+  "status": "Ended",
+  "network": "AMC",
+  "seasons": 5,
+  "eps": 62,
+  "url": "https://www.tvmaze.com/shows/169/breaking-bad"
+ },
+ "Arrested Development": {
+  "name": "Arrested Development",
+  "type": "Scripted",
+  "genres": [
+   "Comedy",
+   "Family"
+  ],
+  "premiered": "2003-11-02",
+  "ended": "2019-03-15",
+  "status": "Ended",
+  "network": "Netflix",
+  "seasons": 5,
+  "eps": 84,
+  "url": "https://www.tvmaze.com/shows/321/arrested-development"
+ },
+ "The Neighborhood": {
+  "name": "The Neighborhood",
+  "type": "Scripted",
+  "genres": [
+   "Comedy",
+   "Family"
+  ],
+  "premiered": "2018-10-01",
+  "ended": "2026-05-11",
+  "status": "Ended",
+  "network": "CBS",
+  "seasons": 8,
+  "eps": 155,
+  "url": "https://www.tvmaze.com/shows/35839/the-neighborhood"
+ },
+ "Brooklyn Nine-Nine": {
+  "name": "Brooklyn Nine-Nine",
+  "type": "Scripted",
+  "genres": [
+   "Comedy",
+   "Action",
+   "Crime"
+  ],
+  "premiered": "2013-09-17",
+  "ended": "2021-09-16",
+  "status": "Ended",
+  "network": "NBC",
+  "seasons": 8,
+  "eps": 153,
+  "url": "https://www.tvmaze.com/shows/49/brooklyn-nine-nine"
+ },
+ "Young Sheldon": {
+  "name": "Young Sheldon",
+  "type": "Scripted",
+  "genres": [
+   "Comedy",
+   "Family"
+  ],
+  "premiered": "2017-09-25",
+  "ended": "2024-05-16",
+  "status": "Ended",
+  "network": "CBS",
+  "seasons": 7,
+  "eps": 141,
+  "url": "https://www.tvmaze.com/shows/26020/young-sheldon"
+ },
+ "Game of Thrones": {
+  "name": "Game of Thrones",
+  "type": "Scripted",
+  "genres": [
+   "Drama",
+   "Adventure",
+   "Fantasy"
+  ],
+  "premiered": "2011-04-17",
+  "ended": "2019-05-19",
+  "status": "Ended",
+  "network": "HBO",
+  "seasons": 8,
+  "eps": 73,
+  "url": "https://www.tvmaze.com/shows/82/game-of-thrones"
+ },
+ "Mythic Quest": {
+  "name": "Mythic Quest",
+  "type": "Scripted",
+  "genres": [
+   "Comedy"
+  ],
+  "premiered": "2020-02-07",
+  "ended": "2025-04-18",
+  "status": "Ended",
+  "network": "Apple TV",
+  "seasons": 4,
+  "eps": 38,
+  "url": "https://www.tvmaze.com/shows/41530/mythic-quest"
+ },
+ "Pachinko": {
+  "name": "Pachinko",
+  "type": "Scripted",
+  "genres": [
+   "Drama"
+  ],
+  "premiered": "2022-03-25",
+  "ended": null,
+  "status": "Running",
+  "network": "Apple TV",
+  "seasons": 2,
+  "eps": 16,
+  "url": "https://www.tvmaze.com/shows/41375/pachinko"
+ },
+ "Goblin": {
+  "name": "Goblin Slayer",
+  "type": "Animation",
+  "genres": [
+   "Action",
+   "Adventure",
+   "Anime",
+   "Fantasy"
+  ],
+  "premiered": "2018-10-06",
+  "ended": null,
+  "status": "To Be Determined",
+  "network": "AT-X",
+  "seasons": 2,
+  "eps": 24,
+  "url": "https://www.tvmaze.com/shows/38610/goblin-slayer"
+ },
+ "Seinfeld": {
+  "name": "Seinfeld",
+  "type": "Scripted",
+  "genres": [
+   "Comedy"
+  ],
+  "premiered": "1989-07-05",
+  "ended": "1998-05-14",
+  "status": "Ended",
+  "network": "NBC",
+  "seasons": 9,
+  "eps": 180,
+  "url": "https://www.tvmaze.com/shows/530/seinfeld"
+ },
+ "Psych": {
+  "name": "Psych",
+  "type": "Scripted",
+  "genres": [
+   "Drama",
+   "Comedy",
+   "Crime"
+  ],
+  "premiered": "2006-07-07",
+  "ended": "2021-11-18",
+  "status": "Ended",
+  "network": "USA Network",
+  "seasons": 8,
+  "eps": 88,
+  "url": "https://www.tvmaze.com/shows/517/psych"
+ },
+ "The West Wing": {
+  "name": "The West Wing",
+  "type": "Scripted",
+  "genres": [
+   "Drama"
+  ],
+  "premiered": "1999-09-22",
+  "ended": "2006-05-14",
+  "status": "Ended",
+  "network": "NBC",
+  "seasons": 7,
+  "eps": 154,
+  "url": "https://www.tvmaze.com/shows/523/the-west-wing"
+ },
+ "Westworld (Season 1)": {
+  "name": "Westworld",
+  "type": "Scripted",
+  "genres": [
+   "Drama",
+   "Science-Fiction",
+   "Western"
+  ],
+  "premiered": "2016-10-02",
+  "ended": "2022-08-14",
+  "status": "Ended",
+  "network": "HBO",
+  "seasons": 4,
+  "eps": 36,
+  "url": "https://www.tvmaze.com/shows/1371/westworld"
+ },
+ "Abbott Elementary": {
+  "name": "Abbott Elementary",
+  "type": "Scripted",
+  "genres": [
+   "Comedy"
+  ],
+  "premiered": "2021-12-07",
+  "ended": null,
+  "status": "Running",
+  "network": "ABC",
+  "seasons": 6,
+  "eps": 115,
+  "url": "https://www.tvmaze.com/shows/55350/abbott-elementary"
+ },
+ "Legacies": {
+  "name": "Legacies",
+  "type": "Scripted",
+  "genres": [
+   "Drama",
+   "Romance",
+   "Supernatural"
+  ],
+  "premiered": "2018-10-25",
+  "ended": "2022-06-16",
+  "status": "Ended",
+  "network": "The CW",
+  "seasons": 4,
+  "eps": 68,
+  "url": "https://www.tvmaze.com/shows/36708/legacies"
+ },
+ "Snowfall": {
+  "name": "Snowfall",
+  "type": "Scripted",
+  "genres": [
+   "Drama",
+   "Crime"
+  ],
+  "premiered": "2017-07-05",
+  "ended": "2023-04-19",
+  "status": "Ended",
+  "network": "FX",
+  "seasons": 6,
+  "eps": 60,
+  "url": "https://www.tvmaze.com/shows/2415/snowfall"
+ },
+ "The Wire": {
+  "name": "The Wire",
+  "type": "Scripted",
+  "genres": [
+   "Drama",
+   "Crime"
+  ],
+  "premiered": "2002-06-02",
+  "ended": "2008-03-09",
+  "status": "Ended",
+  "network": "HBO",
+  "seasons": 5,
+  "eps": 60,
+  "url": "https://www.tvmaze.com/shows/179/the-wire"
+ },
+ "Barry": {
+  "name": "Barry",
+  "type": "Scripted",
+  "genres": [
+   "Drama",
+   "Comedy",
+   "Crime"
+  ],
+  "premiered": "2018-03-25",
+  "ended": "2023-05-28",
+  "status": "Ended",
+  "network": "HBO",
+  "seasons": 4,
+  "eps": 32,
+  "url": "https://www.tvmaze.com/shows/11538/barry"
+ },
+ "86": {
+  "name": "86",
+  "type": "Animation",
+  "genres": [
+   "Drama",
+   "Action",
+   "Anime",
+   "Science-Fiction"
+  ],
+  "premiered": "2021-04-11",
+  "ended": "2022-03-19",
+  "status": "Ended",
+  "network": "Tokyo MX",
+  "seasons": 1,
+  "eps": 0,
+  "url": "https://www.tvmaze.com/shows/53961/86"
+ },
+ "Hell’s Paradise": {
+  "name": "Hell's Paradise",
+  "type": "Animation",
+  "genres": [
+   "Drama",
+   "Action",
+   "Anime",
+   "Fantasy"
+  ],
+  "premiered": "2023-04-01",
+  "ended": null,
+  "status": "To Be Determined",
+  "network": "TV Tokyo",
+  "seasons": 2,
+  "eps": 13,
+  "url": "https://www.tvmaze.com/shows/65876/hells-paradise"
+ },
+ "The Quintessential Quintuplets": {
+  "name": "The Quintessential Quintuplets",
+  "type": "Animation",
+  "genres": [
+   "Comedy",
+   "Anime",
+   "Romance"
+  ],
+  "premiered": "2019-01-10",
+  "ended": "2023-09-02",
+  "status": "Ended",
+  "network": "TBS",
+  "seasons": 2,
+  "eps": 24,
+  "url": "https://www.tvmaze.com/shows/39717/the-quintessential-quintuplets"
+ },
+ "Attack on Titan": {
+  "name": "Attack on Titan",
+  "type": "Animation",
+  "genres": [
+   "Action",
+   "Anime",
+   "Fantasy",
+   "Horror"
+  ],
+  "premiered": "2013-04-07",
+  "ended": "2023-11-05",
+  "status": "Ended",
+  "network": "NHK",
+  "seasons": 4,
+  "eps": 59,
+  "url": "https://www.tvmaze.com/shows/919/attack-on-titan"
+ },
+ "Re:Zero": {
+  "name": "Re:ZERO -Starting Life in Another World-",
+  "type": "Animation",
+  "genres": [
+   "Drama",
+   "Action",
+   "Anime",
+   "Fantasy"
+  ],
+  "premiered": "2016-04-04",
+  "ended": null,
+  "status": "Running",
+  "network": "AT-X",
+  "seasons": 4,
+  "eps": 66,
+  "url": "https://www.tvmaze.com/shows/14459/rezero-starting-life-in-another-world"
+ },
+ "Mushoku Tensei": {
+  "name": "Mushoku Tensei: Jobless Reincarnation",
+  "type": "Animation",
+  "genres": [
+   "Adventure",
+   "Anime",
+   "Fantasy",
+   "Romance"
+  ],
+  "premiered": "2021-01-10",
+  "ended": null,
+  "status": "Running",
+  "network": "Tokyo MX",
+  "seasons": 3,
+  "eps": 23,
+  "url": "https://www.tvmaze.com/shows/52279/mushoku-tensei-jobless-reincarnation"
+ },
+ "Kagurabachi": {
+  "name": "Kagurabachi",
+  "type": "Animation",
+  "genres": [
+   "Action",
+   "Anime",
+   "Fantasy"
+  ],
+  "premiered": null,
+  "ended": null,
+  "status": "In Development",
+  "network": null,
+  "seasons": 0,
+  "eps": 0,
+  "url": "https://www.tvmaze.com/shows/92057/kagurabachi"
+ },
+ "Sakamoto Days": {
+  "name": "Sakamoto Days",
+  "type": "Animation",
+  "genres": [
+   "Action",
+   "Anime",
+   "Crime",
+   "Fantasy"
+  ],
+  "premiered": "2025-01-11",
+  "ended": null,
+  "status": "Running",
+  "network": "TV Tokyo",
+  "seasons": 1,
+  "eps": 22,
+  "url": "https://www.tvmaze.com/shows/77383/sakamoto-days"
+ },
+ "Ace of Diamond": {
+  "name": "Ace of Diamond",
+  "type": "Animation",
+  "genres": [
+   "Drama",
+   "Anime",
+   "Sports"
+  ],
+  "premiered": "2013-10-06",
+  "ended": null,
+  "status": "Running",
+  "network": "TV Tokyo",
+  "seasons": 4,
+  "eps": 178,
+  "url": "https://www.tvmaze.com/shows/2871/ace-of-diamond"
+ },
+ "Mobile Suit Gundam SEED": {
+  "name": "Mobile Suit Gundam SEED",
+  "type": "Animation",
+  "genres": [
+   "Anime",
+   "Fantasy",
+   "Romance",
+   "Science-Fiction"
+  ],
+  "premiered": "2002-10-05",
+  "ended": "2003-09-27",
+  "status": "Ended",
+  "network": "TBS",
+  "seasons": 1,
+  "eps": 50,
+  "url": "https://www.tvmaze.com/shows/5365/mobile-suit-gundam-seed"
+ },
+ "Gundam SEED Destiny": {
+  "name": "Mobile Suit Gundam SEED Destiny",
+  "type": "Animation",
+  "genres": [
+   "Anime",
+   "Fantasy",
+   "Romance",
+   "Science-Fiction"
+  ],
+  "premiered": "2004-10-09",
+  "ended": "2005-10-01",
+  "status": "Ended",
+  "network": "TBS",
+  "seasons": 1,
+  "eps": 50,
+  "url": "https://www.tvmaze.com/shows/5361/mobile-suit-gundam-seed-destiny"
+ },
+ "Gintama": {
+  "name": "Gintama",
+  "type": "Animation",
+  "genres": [
+   "Comedy",
+   "Action",
+   "Anime"
+  ],
+  "premiered": "2006-04-04",
+  "ended": "2018-10-07",
+  "status": "Ended",
+  "network": "TV Tokyo",
+  "seasons": 10,
+  "eps": 328,
+  "url": "https://www.tvmaze.com/shows/4150/gintama"
+ },
+ "Iron-Blooded Orphans": {
+  "name": "Mobile Suit Gundam: Tekketsu no Orphans",
+  "type": "Animation",
+  "genres": [
+   "Drama",
+   "Action",
+   "Anime",
+   "Science-Fiction"
+  ],
+  "premiered": "2015-10-04",
+  "ended": "2017-04-02",
+  "status": "Ended",
+  "network": "MBS",
+  "seasons": 2,
+  "eps": 50,
+  "url": "https://www.tvmaze.com/shows/5168/mobile-suit-gundam-tekketsu-no-orphans"
+ },
+ "Eureka Seven": {
+  "name": "Eureka Seven",
+  "type": "Animation",
+  "genres": [
+   "Action",
+   "Adventure",
+   "Anime",
+   "Science-Fiction"
+  ],
+  "premiered": "2005-04-17",
+  "ended": "2012-11-20",
+  "status": "Ended",
+  "network": "MBS",
+  "seasons": 2,
+  "eps": 0,
+  "url": "https://www.tvmaze.com/shows/5285/eureka-seven"
+ },
+ "Yaiba": {
+  "name": "Yaiba: Samurai Legend",
+  "type": "Animation",
+  "genres": [
+   "Action",
+   "Adventure",
+   "Anime"
+  ],
+  "premiered": "2025-04-05",
+  "ended": null,
+  "status": "Running",
+  "network": "NTV",
+  "seasons": 1,
+  "eps": 0,
+  "url": "https://www.tvmaze.com/shows/83686/yaiba-samurai-legend"
+ },
+ "JoJo’s Bizarre Adventure": {
+  "name": "JoJo's Bizarre Adventure",
+  "type": "Animation",
+  "genres": [
+   "Action",
+   "Adventure",
+   "Anime"
+  ],
+  "premiered": "2012-10-05",
+  "ended": "2022-12-01",
+  "status": "Ended",
+  "network": "Tokyo MX",
+  "seasons": 5,
+  "eps": 190,
+  "url": "https://www.tvmaze.com/shows/8287/jojos-bizarre-adventure"
+ },
+ "Cowboy Bebop": {
+  "name": "Cowboy Bebop",
+  "type": "Animation",
+  "genres": [
+   "Action",
+   "Adventure",
+   "Anime",
+   "Science-Fiction"
+  ],
+  "premiered": "1998-10-24",
+  "ended": "2001-09-01",
+  "status": "Ended",
+  "network": "WOWOW",
+  "seasons": 1,
+  "eps": 26,
+  "url": "https://www.tvmaze.com/shows/1121/cowboy-bebop"
+ },
+ "The Big O": {
+  "name": "The Big O",
+  "type": "Animation",
+  "genres": [
+   "Action",
+   "Anime",
+   "Science-Fiction"
+  ],
+  "premiered": "2001-04-02",
+  "ended": "2003-11-02",
+  "status": "Ended",
+  "network": "WOWOW",
+  "seasons": 2,
+  "eps": 26,
+  "url": "https://www.tvmaze.com/shows/9050/the-big-o"
+ },
+ "Ghost in the Shell": {
+  "name": "Ghost in the Shell: SAC_2045",
+  "type": "Animation",
+  "genres": [
+   "Action",
+   "Anime",
+   "Science-Fiction"
+  ],
+  "premiered": "2020-04-23",
+  "ended": "2022-05-23",
+  "status": "Ended",
+  "network": "Netflix",
+  "seasons": 2,
+  "eps": 24,
+  "url": "https://www.tvmaze.com/shows/39990/ghost-in-the-shell-sac2045"
+ },
+ "Demon Slayer": {
+  "name": "Demon Slayer",
+  "type": "Animation",
+  "genres": [
+   "Action",
+   "Anime",
+   "Fantasy",
+   "Horror"
+  ],
+  "premiered": "2019-04-06",
+  "ended": "2024-06-30",
+  "status": "Ended",
+  "network": "Fuji TV",
+  "seasons": 4,
+  "eps": 37,
+  "url": "https://www.tvmaze.com/shows/41469/demon-slayer"
+ },
+ "Chainsaw Man": {
+  "name": "Chainsaw Man",
+  "type": "Animation",
+  "genres": [
+   "Anime",
+   "Horror",
+   "Supernatural"
+  ],
+  "premiered": "2022-10-11",
+  "ended": null,
+  "status": "Running",
+  "network": "TV Tokyo",
+  "seasons": 1,
+  "eps": 0,
+  "url": "https://www.tvmaze.com/shows/63451/chainsaw-man"
+ },
+ "Rascal Does Not Dream of Bunny Girl Senpai": {
+  "name": "Rascal Does Not Dream of Bunny Girl Senpai",
+  "type": "Animation",
+  "genres": [
+   "Comedy",
+   "Anime",
+   "Romance"
+  ],
+  "premiered": "2018-10-03",
+  "ended": "2025-09-27",
+  "status": "Ended",
+  "network": "ABC",
+  "seasons": 2,
+  "eps": 13,
+  "url": "https://www.tvmaze.com/shows/38180/rascal-does-not-dream-of-bunny-girl-senpai"
+ },
+ "X-Men ’97": {
+  "name": "X-Men '97",
+  "type": "Animation",
+  "genres": [
+   "Action",
+   "Science-Fiction"
+  ],
+  "premiered": "2024-03-20",
+  "ended": null,
+  "status": "Running",
+  "network": "Disney+",
+  "seasons": 2,
+  "eps": 19,
+  "url": "https://www.tvmaze.com/shows/58951/x-men-97"
+ },
+ "Adventure Time": {
+  "name": "Adventure Time",
+  "type": "Animation",
+  "genres": [
+   "Comedy",
+   "Adventure",
+   "Fantasy"
+  ],
+  "premiered": "2008-12-07",
+  "ended": "2018-09-03",
+  "status": "Ended",
+  "network": "Cartoon Network",
+  "seasons": 10,
+  "eps": 278,
+  "url": "https://www.tvmaze.com/shows/290/adventure-time"
+ },
+ "Regular Show": {
+  "name": "Regular Show",
+  "type": "Animation",
+  "genres": [
+   "Comedy",
+   "Adventure"
+  ],
+  "premiered": "2010-09-06",
+  "ended": "2017-01-16",
+  "status": "Ended",
+  "network": "Cartoon Network",
+  "seasons": 8,
+  "eps": 246,
+  "url": "https://www.tvmaze.com/shows/868/regular-show"
+ },
+ "Young Justice": {
+  "name": "Young Justice",
+  "type": "Animation",
+  "genres": [
+   "Action",
+   "Adventure",
+   "Science-Fiction"
+  ],
+  "premiered": "2010-11-26",
+  "ended": "2022-06-09",
+  "status": "Ended",
+  "network": "HBO Max",
+  "seasons": 4,
+  "eps": 98,
+  "url": "https://www.tvmaze.com/shows/689/young-justice"
+ },
+ "Harley Quinn": {
+  "name": "Harley Quinn",
+  "type": "Animation",
+  "genres": [
+   "Comedy",
+   "Action",
+   "Crime"
+  ],
+  "premiered": "2019-11-29",
+  "ended": null,
+  "status": "To Be Determined",
+  "network": "HBO Max",
+  "seasons": 5,
+  "eps": 56,
+  "url": "https://www.tvmaze.com/shows/33452/harley-quinn"
+ },
+ "My Adventures with Superman": {
+  "name": "My Adventures with Superman",
+  "type": "Animation",
+  "genres": [
+   "Action",
+   "Adventure",
+   "Science-Fiction"
+  ],
+  "premiered": "2023-07-06",
+  "ended": null,
+  "status": "To Be Determined",
+  "network": "Adult Swim",
+  "seasons": 3,
+  "eps": 30,
+  "url": "https://www.tvmaze.com/shows/55414/my-adventures-with-superman"
+ },
+ "The Office": {
+  "name": "The Office",
+  "type": "Scripted",
+  "genres": [
+   "Comedy"
+  ],
+  "premiered": "2005-03-24",
+  "ended": "2013-05-16",
+  "status": "Ended",
+  "network": "NBC",
+  "seasons": 9,
+  "eps": 203,
+  "url": "https://www.tvmaze.com/shows/526/the-office"
+ },
+ "Community": {
+  "name": "Community",
+  "type": "Scripted",
+  "genres": [
+   "Comedy"
+  ],
+  "premiered": "2009-09-17",
+  "ended": "2015-06-02",
+  "status": "Ended",
+  "network": "Yahoo! View",
+  "seasons": 6,
+  "eps": 110,
+  "url": "https://www.tvmaze.com/shows/318/community"
+ },
+ "The Vampire Diaries": {
+  "name": "The Vampire Diaries",
+  "type": "Scripted",
+  "genres": [
+   "Drama",
+   "Romance",
+   "Supernatural"
+  ],
+  "premiered": "2009-09-10",
+  "ended": "2017-03-10",
+  "status": "Ended",
+  "network": "The CW",
+  "seasons": 8,
+  "eps": 171,
+  "url": "https://www.tvmaze.com/shows/63/the-vampire-diaries"
+ },
+ "Teen Wolf": {
+  "name": "Teen Wolf",
+  "type": "Scripted",
+  "genres": [
+   "Drama",
+   "Romance",
+   "Supernatural"
+  ],
+  "premiered": "2011-06-05",
+  "ended": "2023-01-26",
+  "status": "Ended",
+  "network": "MTV",
+  "seasons": 6,
+  "eps": 100,
+  "url": "https://www.tvmaze.com/shows/176/teen-wolf"
+ },
+ "The Big Bang Theory": {
+  "name": "The Big Bang Theory",
+  "type": "Scripted",
+  "genres": [
+   "Comedy"
+  ],
+  "premiered": "2007-09-24",
+  "ended": "2019-05-16",
+  "status": "Ended",
+  "network": "CBS",
+  "seasons": 12,
+  "eps": 279,
+  "url": "https://www.tvmaze.com/shows/66/the-big-bang-theory"
+ },
+ "Victorious": {
+  "name": "Victorious",
+  "type": "Scripted",
+  "genres": [
+   "Drama",
+   "Comedy",
+   "Family"
+  ],
+  "premiered": "2010-03-27",
+  "ended": "2013-02-02",
+  "status": "Ended",
+  "network": "Nickelodeon",
+  "seasons": 4,
+  "eps": 56,
+  "url": "https://www.tvmaze.com/shows/2189/victorious"
+ },
+ "That’s So Raven": {
+  "name": "That's So Raven",
+  "type": "Scripted",
+  "genres": [
+   "Comedy",
+   "Children",
+   "Fantasy"
+  ],
+  "premiered": "2003-01-17",
+  "ended": "2007-11-10",
+  "status": "Ended",
+  "network": "Disney Channel",
+  "seasons": 4,
+  "eps": 0,
+  "url": "https://www.tvmaze.com/shows/1408/thats-so-raven"
+ },
+ "Drake & Josh": {
+  "name": "Drake & Josh",
+  "type": "Scripted",
+  "genres": [
+   "Comedy",
+   "Family"
+  ],
+  "premiered": "2004-01-11",
+  "ended": "2007-09-16",
+  "status": "Ended",
+  "network": "Nickelodeon",
+  "seasons": 4,
+  "eps": 0,
+  "url": "https://www.tvmaze.com/shows/988/drake-josh"
+ },
+ "The Suite Life of Zack & Cody": {
+  "name": "The Suite Life of Zack and Cody",
+  "type": "Scripted",
+  "genres": [
+   "Comedy",
+   "Children",
+   "Family"
+  ],
+  "premiered": "2005-03-18",
+  "ended": "2008-09-01",
+  "status": "Ended",
+  "network": "Disney Channel",
+  "seasons": 3,
+  "eps": 87,
+  "url": "https://www.tvmaze.com/shows/915/the-suite-life-of-zack-and-cody"
+ },
+ "The Suite Life on Deck": {
+  "name": "The Suite Life on Deck",
+  "type": "Scripted",
+  "genres": [
+   "Comedy",
+   "Children",
+   "Family"
+  ],
+  "premiered": "2008-09-26",
+  "ended": "2011-05-06",
+  "status": "Ended",
+  "network": "Disney Channel",
+  "seasons": 3,
+  "eps": 71,
+  "url": "https://www.tvmaze.com/shows/2195/the-suite-life-on-deck"
+ },
+ "Everybody Hates Chris": {
+  "name": "Everybody Hates Chris",
+  "type": "Scripted",
+  "genres": [
+   "Comedy"
+  ],
+  "premiered": "2005-09-22",
+  "ended": "2009-05-08",
+  "status": "Ended",
+  "network": "The CW",
+  "seasons": 4,
+  "eps": 88,
+  "url": "https://www.tvmaze.com/shows/692/everybody-hates-chris"
+ },
+ "The Game": {
+  "name": "The Game",
+  "type": "Scripted",
+  "genres": [
+   "Thriller"
+  ],
+  "premiered": "2025-05-12",
+  "ended": null,
+  "status": "Running",
+  "network": "5",
+  "seasons": 2,
+  "eps": 8,
+  "url": "https://www.tvmaze.com/shows/83042/the-game"
+ },
+ "Living Single": {
+  "name": "Living Single",
+  "type": "Scripted",
+  "genres": [
+   "Comedy"
+  ],
+  "premiered": "1993-08-22",
+  "ended": "1998-01-01",
+  "status": "Ended",
+  "network": "FOX",
+  "seasons": 5,
+  "eps": 118,
+  "url": "https://www.tvmaze.com/shows/12294/living-single"
+ },
+ "Unfabulous": {
+  "name": "Unfabulous",
+  "type": "Scripted",
+  "genres": [
+   "Drama",
+   "Comedy",
+   "Family"
+  ],
+  "premiered": "2004-09-12",
+  "ended": "2007-12-16",
+  "status": "Ended",
+  "network": "Nickelodeon",
+  "seasons": 3,
+  "eps": 39,
+  "url": "https://www.tvmaze.com/shows/6289/unfabulous"
+ },
+ "Zoey 101": {
+  "name": "Zoey 101",
+  "type": "Scripted",
+  "genres": [
+   "Drama",
+   "Comedy",
+   "Family"
+  ],
+  "premiered": "2005-01-09",
+  "ended": "2023-07-27",
+  "status": "Ended",
+  "network": "Nickelodeon",
+  "seasons": 4,
+  "eps": 0,
+  "url": "https://www.tvmaze.com/shows/1038/zoey-101"
+ },
+ "Cory in the House": {
+  "name": "Cory in the House",
+  "type": "Scripted",
+  "genres": [
+   "Comedy",
+   "Children",
+   "Family"
+  ],
+  "premiered": "2007-01-12",
+  "ended": "2008-09-12",
+  "status": "Ended",
+  "network": "Disney Channel",
+  "seasons": 2,
+  "eps": 0,
+  "url": "https://www.tvmaze.com/shows/2200/cory-in-the-house"
+ },
+ "Hannah Montana": {
+  "name": "Hannah Montana",
+  "type": "Scripted",
+  "genres": [
+   "Comedy",
+   "Family",
+   "Music"
+  ],
+  "premiered": "2006-03-24",
+  "ended": "2011-01-16",
+  "status": "Ended",
+  "network": "Disney Channel",
+  "seasons": 4,
+  "eps": 99,
+  "url": "https://www.tvmaze.com/shows/777/hannah-montana"
+ },
+ "Wizards of Waverly Place": {
+  "name": "Wizards of Waverly Place",
+  "type": "Scripted",
+  "genres": [
+   "Comedy",
+   "Family",
+   "Fantasy"
+  ],
+  "premiered": "2007-10-12",
+  "ended": "2012-01-06",
+  "status": "Ended",
+  "network": "Disney Channel",
+  "seasons": 4,
+  "eps": 0,
+  "url": "https://www.tvmaze.com/shows/807/wizards-of-waverly-place"
+ },
+ "The Bernie Mac Show": {
+  "name": "The Bernie Mac Show",
+  "type": "Scripted",
+  "genres": [
+   "Comedy"
+  ],
+  "premiered": "2001-11-14",
+  "ended": "2006-04-14",
+  "status": "Ended",
+  "network": "FOX",
+  "seasons": 5,
+  "eps": 104,
+  "url": "https://www.tvmaze.com/shows/6836/the-bernie-mac-show"
+ },
+ "My Wife and Kids": {
+  "name": "My Wife and Kids",
+  "type": "Scripted",
+  "genres": [
+   "Comedy",
+   "Family"
+  ],
+  "premiered": "2001-03-28",
+  "ended": "2005-05-17",
+  "status": "Ended",
+  "network": "ABC",
+  "seasons": 5,
+  "eps": 123,
+  "url": "https://www.tvmaze.com/shows/952/my-wife-and-kids"
+ },
+ "Reba": {
+  "name": "Reba",
+  "type": "Scripted",
+  "genres": [
+   "Drama",
+   "Comedy",
+   "Family"
+  ],
+  "premiered": "2001-10-05",
+  "ended": "2007-02-18",
+  "status": "Ended",
+  "network": "The CW",
+  "seasons": 6,
+  "eps": 125,
+  "url": "https://www.tvmaze.com/shows/944/reba"
+ },
+ "Roseanne": {
+  "name": "Roseanne",
+  "type": "Scripted",
+  "genres": [
+   "Comedy",
+   "Family"
+  ],
+  "premiered": "1988-10-18",
+  "ended": "2018-05-22",
+  "status": "Ended",
+  "network": "ABC",
+  "seasons": 10,
+  "eps": 231,
+  "url": "https://www.tvmaze.com/shows/690/roseanne"
+ },
+ "Hope & Faith": {
+  "name": "Hope & Faith",
+  "type": "Scripted",
+  "genres": [
+   "Comedy",
+   "Family"
+  ],
+  "premiered": "2003-09-26",
+  "ended": "2006-05-02",
+  "status": "Ended",
+  "network": "ABC",
+  "seasons": 3,
+  "eps": 0,
+  "url": "https://www.tvmaze.com/shows/4656/hope-faith"
+ },
+ "The King of Queens": {
+  "name": "The King of Queens",
+  "type": "Scripted",
+  "genres": [
+   "Comedy",
+   "Family"
+  ],
+  "premiered": "1998-09-21",
+  "ended": "2007-05-14",
+  "status": "Ended",
+  "network": "CBS",
+  "seasons": 9,
+  "eps": 207,
+  "url": "https://www.tvmaze.com/shows/552/the-king-of-queens"
+ },
+ "Everybody Loves Raymond": {
+  "name": "Everybody Loves Raymond",
+  "type": "Scripted",
+  "genres": [
+   "Comedy",
+   "Family"
+  ],
+  "premiered": "1996-09-13",
+  "ended": "2005-05-16",
+  "status": "Ended",
+  "network": "CBS",
+  "seasons": 9,
+  "eps": 209,
+  "url": "https://www.tvmaze.com/shows/573/everybody-loves-raymond"
+ },
+ "The Steve Harvey Show": {
+  "name": "The Steve Harvey Show",
+  "type": "Scripted",
+  "genres": [
+   "Comedy"
+  ],
+  "premiered": "1996-08-25",
+  "ended": "2002-02-17",
+  "status": "Ended",
+  "network": "The WB",
+  "seasons": 6,
+  "eps": 122,
+  "url": "https://www.tvmaze.com/shows/12299/the-steve-harvey-show"
+ },
+ "George Lopez": {
+  "name": "George Lopez",
+  "type": "Scripted",
+  "genres": [
+   "Comedy"
+  ],
+  "premiered": "2002-03-27",
+  "ended": "2007-05-08",
+  "status": "Ended",
+  "network": "ABC",
+  "seasons": 6,
+  "eps": 0,
+  "url": "https://www.tvmaze.com/shows/4129/george-lopez"
+ },
+ "Kenan & Kel": {
+  "name": "Kenan & Kel",
+  "type": "Scripted",
+  "genres": [
+   "Comedy",
+   "Children"
+  ],
+  "premiered": "1996-08-17",
+  "ended": "2000-04-01",
+  "status": "Ended",
+  "network": "Nickelodeon",
+  "seasons": 4,
+  "eps": 62,
+  "url": "https://www.tvmaze.com/shows/4131/kenan-kel"
+ },
+ "What I Like About You": {
+  "name": "What I Like About You",
+  "type": "Scripted",
+  "genres": [
+   "Drama",
+   "Comedy"
+  ],
+  "premiered": "2002-09-20",
+  "ended": "2006-03-24",
+  "status": "Ended",
+  "network": "The WB",
+  "seasons": 4,
+  "eps": 0,
+  "url": "https://www.tvmaze.com/shows/1508/what-i-like-about-you"
+ },
+ "The Originals": {
+  "name": "The Originals",
+  "type": "Scripted",
+  "genres": [
+   "Drama",
+   "Romance",
+   "Supernatural"
+  ],
+  "premiered": "2013-10-03",
+  "ended": "2018-08-01",
+  "status": "Ended",
+  "network": "The CW",
+  "seasons": 5,
+  "eps": 92,
+  "url": "https://www.tvmaze.com/shows/62/the-originals"
+ },
+ "Arrow": {
+  "name": "Arrow",
+  "type": "Scripted",
+  "genres": [
+   "Drama",
+   "Action",
+   "Science-Fiction"
+  ],
+  "premiered": "2012-10-10",
+  "ended": "2020-01-28",
+  "status": "Ended",
+  "network": "The CW",
+  "seasons": 8,
+  "eps": 170,
+  "url": "https://www.tvmaze.com/shows/4/arrow"
+ },
+ "The Flash": {
+  "name": "The Flash",
+  "type": "Scripted",
+  "genres": [
+   "Drama",
+   "Action",
+   "Science-Fiction"
+  ],
+  "premiered": "2014-10-07",
+  "ended": "2023-05-24",
+  "status": "Ended",
+  "network": "The CW",
+  "seasons": 9,
+  "eps": 184,
+  "url": "https://www.tvmaze.com/shows/13/the-flash"
+ },
+ "Power Rangers (through Jungle Fury)": {
+  "name": "Power Rangers",
+  "type": "Scripted",
+  "genres": [
+   "Action",
+   "Children",
+   "Science-Fiction"
+  ],
+  "premiered": "1993-08-28",
+  "ended": "2023-09-29",
+  "status": "Ended",
+  "network": "Netflix",
+  "seasons": 30,
+  "eps": 968,
+  "url": "https://www.tvmaze.com/shows/794/power-rangers"
+ },
+ "Code Geass": {
+  "name": "Code Geass: Hangyaku no Lelouch",
+  "type": "Animation",
+  "genres": [
+   "Drama",
+   "Action",
+   "Anime",
+   "Science-Fiction"
+  ],
+  "premiered": "2006-10-05",
+  "ended": "2012-07-27",
+  "status": "Ended",
+  "network": "MBS",
+  "seasons": 2,
+  "eps": 50,
+  "url": "https://www.tvmaze.com/shows/5276/code-geass-hangyaku-no-lelouch"
+ },
+ "The Legend of the Legendary Heroes": {
+  "name": "The Legend of the Legendary Heroes",
+  "type": "Animation",
+  "genres": [
+   "Action",
+   "Adventure",
+   "Anime",
+   "Fantasy"
+  ],
+  "premiered": "2010-06-26",
+  "ended": "2010-12-17",
+  "status": "Ended",
+  "network": "TV Tokyo",
+  "seasons": 1,
+  "eps": 24,
+  "url": "https://www.tvmaze.com/shows/6589/the-legend-of-the-legendary-heroes"
+ },
+ "Chrome Shelled Regios": {
+  "name": "Chrome Shelled Regios",
+  "type": "Animation",
+  "genres": [
+   "Adventure",
+   "Anime",
+   "Romance",
+   "Science-Fiction"
+  ],
+  "premiered": "2009-01-10",
+  "ended": "2009-06-21",
+  "status": "Ended",
+  "network": "TV Tokyo",
+  "seasons": 1,
+  "eps": 24,
+  "url": "https://www.tvmaze.com/shows/26210/chrome-shelled-regios"
+ },
+ "Air Gear": {
+  "name": "Air Gear",
+  "type": "Animation",
+  "genres": [
+   "Action",
+   "Anime"
+  ],
+  "premiered": "2006-04-04",
+  "ended": "2006-09-26",
+  "status": "Ended",
+  "network": "TV Tokyo",
+  "seasons": 1,
+  "eps": 25,
+  "url": "https://www.tvmaze.com/shows/4922/air-gear"
+ },
+ "Baka and Test": {
+  "name": "Baka and Test: Summon the Beasts",
+  "type": "Animation",
+  "genres": [
+   "Comedy",
+   "Anime",
+   "Fantasy",
+   "Romance"
+  ],
+  "premiered": "2010-01-07",
+  "ended": "2011-09-30",
+  "status": "Ended",
+  "network": "TV Tokyo",
+  "seasons": 2,
+  "eps": 26,
+  "url": "https://www.tvmaze.com/shows/18473/baka-and-test-summon-the-beasts"
+ },
+ "Kenichi: The Mightiest Disciple": {
+  "name": "Kenichi the Mightiest Disciple",
+  "type": "Animation",
+  "genres": [
+   "Adventure",
+   "Anime",
+   "Fantasy"
+  ],
+  "premiered": "2006-10-07",
+  "ended": "2007-09-29",
+  "status": "Ended",
+  "network": "TV Tokyo",
+  "seasons": 1,
+  "eps": 50,
+  "url": "https://www.tvmaze.com/shows/4248/kenichi-the-mightiest-disciple"
+ },
+ "Heroic Age": {
+  "name": "Heroic Age",
+  "type": "Animation",
+  "genres": [
+   "Action",
+   "Anime",
+   "Science-Fiction",
+   "War"
+  ],
+  "premiered": "2007-04-01",
+  "ended": "2007-09-30",
+  "status": "Ended",
+  "network": "TV Tokyo",
+  "seasons": 1,
+  "eps": 26,
+  "url": "https://www.tvmaze.com/shows/18958/heroic-age"
+ },
+ "Kaze no Stigma": {
+  "name": "Kaze no stigma",
+  "type": "Animation",
+  "genres": [
+   "Comedy",
+   "Action",
+   "Anime"
+  ],
+  "premiered": "2007-04-13",
+  "ended": "2007-09-21",
+  "status": "Ended",
+  "network": "Tokyo MX",
+  "seasons": 1,
+  "eps": 24,
+  "url": "https://www.tvmaze.com/shows/13018/kaze-no-stigma"
+ },
+ "Wind Breaker": {
+  "name": "Wind Breaker",
+  "type": "Animation",
+  "genres": [
+   "Drama",
+   "Action",
+   "Anime"
+  ],
+  "premiered": "2024-04-04",
+  "ended": null,
+  "status": "To Be Determined",
+  "network": "MBS",
+  "seasons": 2,
+  "eps": 0,
+  "url": "https://www.tvmaze.com/shows/74128/wind-breaker"
+ },
+ "Aquarion": {
+  "name": "Sousei no Aquarion",
+  "type": "Animation",
+  "genres": [
+   "Action",
+   "Anime",
+   "Romance",
+   "Science-Fiction"
+  ],
+  "premiered": "2005-04-04",
+  "ended": "2015-12-25",
+  "status": "Ended",
+  "network": "Tokyo MX",
+  "seasons": 3,
+  "eps": 78,
+  "url": "https://www.tvmaze.com/shows/5197/sousei-no-aquarion"
+ },
+ "Fairy Tail": {
+  "name": "Fairy Tail",
+  "type": "Animation",
+  "genres": [
+   "Action",
+   "Adventure",
+   "Anime",
+   "Fantasy"
+  ],
+  "premiered": "2009-10-12",
+  "ended": "2019-09-29",
+  "status": "Ended",
+  "network": "TV Tokyo",
+  "seasons": 8,
+  "eps": 328,
+  "url": "https://www.tvmaze.com/shows/2069/fairy-tail"
+ },
+ "Naruto": {
+  "name": "Naruto",
+  "type": "Animation",
+  "genres": [
+   "Action",
+   "Adventure",
+   "Anime",
+   "Fantasy"
+  ],
+  "premiered": "2002-10-03",
+  "ended": "2010-07-31",
+  "status": "Ended",
+  "network": "TV Tokyo",
+  "seasons": 6,
+  "eps": 0,
+  "url": "https://www.tvmaze.com/shows/495/naruto"
+ },
+ "Naruto Shippuden": {
+  "name": "Naruto: Shippūden",
+  "type": "Animation",
+  "genres": [
+   "Action",
+   "Adventure",
+   "Anime",
+   "Fantasy"
+  ],
+  "premiered": "2007-02-15",
+  "ended": "2017-03-23",
+  "status": "Ended",
+  "network": "TV Tokyo",
+  "seasons": 11,
+  "eps": 0,
+  "url": "https://www.tvmaze.com/shows/488/naruto-shippuden"
+ },
+ "One Piece": {
+  "name": "One Piece",
+  "type": "Scripted",
+  "genres": [
+   "Action",
+   "Adventure",
+   "Fantasy"
+  ],
+  "premiered": "2023-08-31",
+  "ended": null,
+  "status": "Running",
+  "network": "Netflix",
+  "seasons": 2,
+  "eps": 16,
+  "url": "https://www.tvmaze.com/shows/46065/one-piece"
+ },
+ "Yu Yu Hakusho": {
+  "name": "Yu Yu Hakusho",
+  "type": "Scripted",
+  "genres": [
+   "Action",
+   "Fantasy"
+  ],
+  "premiered": "2023-12-14",
+  "ended": "2023-12-14",
+  "status": "Ended",
+  "network": "Netflix",
+  "seasons": 1,
+  "eps": 5,
+  "url": "https://www.tvmaze.com/shows/71750/yu-yu-hakusho"
+ },
+ "Dragon Ball (all series)": {
+  "name": "Dragon Ball",
+  "type": "Animation",
+  "genres": [
+   "Action",
+   "Adventure",
+   "Anime",
+   "Fantasy"
+  ],
+  "premiered": "1986-02-26",
+  "ended": "1989-04-19",
+  "status": "Ended",
+  "network": "Fuji TV",
+  "seasons": 5,
+  "eps": 153,
+  "url": "https://www.tvmaze.com/shows/2102/dragon-ball"
+ },
+ "Inuyasha": {
+  "name": "InuYasha",
+  "type": "Animation",
+  "genres": [
+   "Action",
+   "Adventure",
+   "Anime",
+   "Fantasy"
+  ],
+  "premiered": "2000-10-16",
+  "ended": "2010-03-29",
+  "status": "Ended",
+  "network": "YTV",
+  "seasons": 7,
+  "eps": 193,
+  "url": "https://www.tvmaze.com/shows/4247/inuyasha"
+ },
+ "Zatch Bell": {
+  "name": "Zatch Bell!",
+  "type": "Animation",
+  "genres": [
+   "Comedy",
+   "Action",
+   "Adventure",
+   "Anime"
+  ],
+  "premiered": "2003-04-06",
+  "ended": "2006-03-26",
+  "status": "Ended",
+  "network": "Fuji TV",
+  "seasons": 3,
+  "eps": 0,
+  "url": "https://www.tvmaze.com/shows/26175/zatch-bell"
+ },
+ "The Prince of Tennis": {
+  "name": "The Prince of Tennis",
+  "type": "Animation",
+  "genres": [
+   "Comedy",
+   "Anime",
+   "Sports"
+  ],
+  "premiered": "2001-10-10",
+  "ended": "2005-03-30",
+  "status": "Ended",
+  "network": "TV Tokyo",
+  "seasons": 7,
+  "eps": 178,
+  "url": "https://www.tvmaze.com/shows/17126/the-prince-of-tennis"
+ },
+ "Jujutsu Kaisen": {
+  "name": "Jujutsu Kaisen",
+  "type": "Animation",
+  "genres": [
+   "Action",
+   "Anime",
+   "Horror",
+   "Supernatural"
+  ],
+  "premiered": "2020-10-02",
+  "ended": null,
+  "status": "To Be Determined",
+  "network": "MBS",
+  "seasons": 3,
+  "eps": 47,
+  "url": "https://www.tvmaze.com/shows/48450/jujutsu-kaisen"
+ },
+ "Gachiakuta": {
+  "name": "Gachiakuta",
+  "type": "Animation",
+  "genres": [
+   "Action",
+   "Anime",
+   "Fantasy"
+  ],
+  "premiered": "2025-07-06",
+  "ended": null,
+  "status": "To Be Determined",
+  "network": "TBS",
+  "seasons": 1,
+  "eps": 0,
+  "url": "https://www.tvmaze.com/shows/81834/gachiakuta"
+ },
+ "Yu-Gi-Oh! (through 5D’s)": {
+  "name": "Yu-Gi-Oh!",
+  "type": "Animation",
+  "genres": [
+   "Comedy",
+   "Action",
+   "Anime",
+   "Fantasy"
+  ],
+  "premiered": "1998-04-04",
+  "ended": "1998-10-10",
+  "status": "Ended",
+  "network": "TV Asahi",
+  "seasons": 1,
+  "eps": 27,
+  "url": "https://www.tvmaze.com/shows/19502/yu-gi-oh"
+ },
+ "Bleach": {
+  "name": "Bleach",
+  "type": "Animation",
+  "genres": [
+   "Action",
+   "Anime",
+   "Fantasy"
+  ],
+  "premiered": "2004-10-05",
+  "ended": "2012-03-27",
+  "status": "Ended",
+  "network": "TV Tokyo",
+  "seasons": 9,
+  "eps": 0,
+  "url": "https://www.tvmaze.com/shows/1905/bleach"
+ },
+ "Black Clover": {
+  "name": "Black Clover",
+  "type": "Animation",
+  "genres": [
+   "Action",
+   "Anime",
+   "Fantasy"
+  ],
+  "premiered": "2017-10-03",
+  "ended": null,
+  "status": "Running",
+  "network": "TV Tokyo",
+  "seasons": 2,
+  "eps": 0,
+  "url": "https://www.tvmaze.com/shows/31396/black-clover"
+ },
+ "Hunter x Hunter": {
+  "name": "Hunter x Hunter",
+  "type": "Animation",
+  "genres": [
+   "Action",
+   "Adventure",
+   "Anime",
+   "Fantasy"
+  ],
+  "premiered": "2011-10-02",
+  "ended": "2014-09-24",
+  "status": "Ended",
+  "network": "NTV",
+  "seasons": 1,
+  "eps": 148,
+  "url": "https://www.tvmaze.com/shows/1536/hunter-x-hunter"
+ },
+ "Frieren": {
+  "name": "Frieren: Beyond Journey's End",
+  "type": "Animation",
+  "genres": [
+   "Anime"
+  ],
+  "premiered": "2023-09-29",
+  "ended": null,
+  "status": "To Be Determined",
+  "network": "NTV",
+  "seasons": 2,
+  "eps": 38,
+  "url": "https://www.tvmaze.com/shows/69956/frieren-beyond-journeys-end"
+ },
+ "Food Wars": {
+  "name": "Food Wars",
+  "type": "Reality",
+  "genres": [
+   "Food"
+  ],
+  "premiered": "2010-03-09",
+  "ended": "2010-11-17",
+  "status": "Ended",
+  "network": "Travel Channel",
+  "seasons": 1,
+  "eps": 0,
+  "url": "https://www.tvmaze.com/shows/24523/food-wars"
+ },
+ "Haikyu!!": {
+  "name": "Haikyuu!!",
+  "type": "Animation",
+  "genres": [
+   "Comedy",
+   "Anime",
+   "Sports"
+  ],
+  "premiered": "2014-04-06",
+  "ended": "2024-02-16",
+  "status": "Ended",
+  "network": "MBS",
+  "seasons": 4,
+  "eps": 73,
+  "url": "https://www.tvmaze.com/shows/5193/haikyuu"
+ },
+ "Rosario + Vampire": {
+  "name": "Rosario Tijeras",
+  "type": "Scripted",
+  "genres": [
+   "Drama"
+  ],
+  "premiered": "2016-10-30",
+  "ended": null,
+  "status": "To Be Determined",
+  "network": "Netflix",
+  "seasons": 5,
+  "eps": 170,
+  "url": "https://www.tvmaze.com/shows/31918/rosario-tijeras"
+ },
+ "Nisekoi": {
+  "name": "Nisekoi",
+  "type": "Animation",
+  "genres": [
+   "Comedy",
+   "Anime",
+   "Romance"
+  ],
+  "premiered": "2014-01-11",
+  "ended": "2015-06-26",
+  "status": "Ended",
+  "network": "Tokyo MX",
+  "seasons": 2,
+  "eps": 32,
+  "url": "https://www.tvmaze.com/shows/13992/nisekoi"
+ },
+ "The Hentai Prince and the Stony Cat": {
+  "name": "HENNEKO: The Hentai Prince and the Stony Cat",
+  "type": "Animation",
+  "genres": [
+   "Comedy",
+   "Anime",
+   "Romance"
+  ],
+  "premiered": "2013-04-13",
+  "ended": "2013-06-29",
+  "status": "Ended",
+  "network": "Tokyo MX",
+  "seasons": 1,
+  "eps": 12,
+  "url": "https://www.tvmaze.com/shows/12801/henneko-the-hentai-prince-and-the-stony-cat"
+ },
+ "Digimon (every season before Tri)": {
+  "name": "Digimon Beatbreak",
+  "type": "Animation",
+  "genres": [
+   "Anime"
+  ],
+  "premiered": "2025-10-05",
+  "ended": null,
+  "status": "To Be Determined",
+  "network": "Fuji TV",
+  "seasons": 1,
+  "eps": 0,
+  "url": "https://www.tvmaze.com/shows/86361/digimon-beatbreak"
+ },
+ "Pokémon (through Diamond & Pearl)": {
+  "name": "Pokémon",
+  "type": "Animation",
+  "genres": [
+   "Adventure",
+   "Anime",
+   "Fantasy"
+  ],
+  "premiered": "1997-04-01",
+  "ended": "2023-03-24",
+  "status": "Ended",
+  "network": "TV Tokyo",
+  "seasons": 25,
+  "eps": 1125,
+  "url": "https://www.tvmaze.com/shows/590/pokemon"
+ },
+ "Kaiju No. 8": {
+  "name": "Kaiju No. 8",
+  "type": "Animation",
+  "genres": [
+   "Action",
+   "Anime",
+   "Fantasy",
+   "Science-Fiction"
+  ],
+  "premiered": "2024-04-13",
+  "ended": null,
+  "status": "To Be Determined",
+  "network": "TV Tokyo",
+  "seasons": 2,
+  "eps": 0,
+  "url": "https://www.tvmaze.com/shows/73362/kaiju-no-8"
+ },
+ "Death Note": {
+  "name": "Death Note",
+  "type": "Animation",
+  "genres": [
+   "Anime",
+   "Fantasy",
+   "Thriller"
+  ],
+  "premiered": "2006-10-03",
+  "ended": "2007-06-26",
+  "status": "Ended",
+  "network": "NTV",
+  "seasons": 1,
+  "eps": 37,
+  "url": "https://www.tvmaze.com/shows/40/death-note"
+ },
+ "The Disastrous Life of Saiki K": {
+  "name": "The Disastrous Life of Saiki K.: Reawakened",
+  "type": "Animation",
+  "genres": [
+   "Drama",
+   "Comedy",
+   "Anime",
+   "Supernatural"
+  ],
+  "premiered": "2019-12-30",
+  "ended": "2019-12-30",
+  "status": "Ended",
+  "network": "Netflix",
+  "seasons": 1,
+  "eps": 6,
+  "url": "https://www.tvmaze.com/shows/45663/the-disastrous-life-of-saiki-k-reawakened"
+ },
+ "Rave Master": {
+  "name": "Rave Master",
+  "type": "Animation",
+  "genres": [
+   "Comedy",
+   "Adventure",
+   "Anime",
+   "Fantasy"
+  ],
+  "premiered": "2001-10-13",
+  "ended": "2002-09-28",
+  "status": "Ended",
+  "network": "TBS",
+  "seasons": 1,
+  "eps": 51,
+  "url": "https://www.tvmaze.com/shows/28365/rave-master"
+ },
+ "Archer": {
+  "name": "Archer",
+  "type": "Animation",
+  "genres": [
+   "Comedy",
+   "Action",
+   "Espionage"
+  ],
+  "premiered": "2009-09-17",
+  "ended": "2023-12-17",
+  "status": "Ended",
+  "network": "FXX",
+  "seasons": 14,
+  "eps": 143,
+  "url": "https://www.tvmaze.com/shows/315/archer"
+ },
+ "Family Guy": {
+  "name": "Family Guy",
+  "type": "Animation",
+  "genres": [
+   "Comedy",
+   "Family"
+  ],
+  "premiered": "1999-01-31",
+  "ended": null,
+  "status": "Running",
+  "network": "FOX",
+  "seasons": 24,
+  "eps": 457,
+  "url": "https://www.tvmaze.com/shows/84/family-guy"
+ },
+ "American Dad": {
+  "name": "American Dad!",
+  "type": "Animation",
+  "genres": [
+   "Comedy",
+   "Family"
+  ],
+  "premiered": "2005-02-06",
+  "ended": null,
+  "status": "Running",
+  "network": "FOX",
+  "seasons": 21,
+  "eps": 401,
+  "url": "https://www.tvmaze.com/shows/215/american-dad"
+ },
+ "The Cleveland Show": {
+  "name": "The Cleveland Show",
+  "type": "Animation",
+  "genres": [
+   "Comedy"
+  ],
+  "premiered": "2009-09-27",
+  "ended": "2013-05-19",
+  "status": "Ended",
+  "network": "FOX",
+  "seasons": 4,
+  "eps": 88,
+  "url": "https://www.tvmaze.com/shows/774/the-cleveland-show"
+ },
+ "Batman: The Animated Series": {
+  "name": "Batman: The Animated Series",
+  "type": "Animation",
+  "genres": [
+   "Action",
+   "Adventure",
+   "Science-Fiction"
+  ],
+  "premiered": "1992-09-05",
+  "ended": "1998-03-17",
+  "status": "Ended",
+  "network": "FOX",
+  "seasons": 4,
+  "eps": 85,
+  "url": "https://www.tvmaze.com/shows/757/batman-the-animated-series"
+ },
+ "Justice League": {
+  "name": "Justice League",
+  "type": "Animation",
+  "genres": [
+   "Action",
+   "Adventure",
+   "Science-Fiction"
+  ],
+  "premiered": "2001-11-17",
+  "ended": "2004-05-29",
+  "status": "Ended",
+  "network": "Cartoon Network",
+  "seasons": 2,
+  "eps": 52,
+  "url": "https://www.tvmaze.com/shows/22040/justice-league"
+ },
+ "Justice League Unlimited": {
+  "name": "Justice League Unlimited",
+  "type": "Animation",
+  "genres": [
+   "Action",
+   "Adventure",
+   "Science-Fiction"
+  ],
+  "premiered": "2004-07-31",
+  "ended": "2006-05-13",
+  "status": "Ended",
+  "network": "Cartoon Network",
+  "seasons": 3,
+  "eps": 52,
+  "url": "https://www.tvmaze.com/shows/505/justice-league-unlimited"
+ },
+ "Xiaolin Showdown": {
+  "name": "Xiaolin Showdown",
+  "type": "Animation",
+  "genres": [
+   "Comedy",
+   "Adventure",
+   "Science-Fiction"
+  ],
+  "premiered": "2003-11-01",
+  "ended": "2006-05-13",
+  "status": "Ended",
+  "network": "The WB",
+  "seasons": 3,
+  "eps": 0,
+  "url": "https://www.tvmaze.com/shows/5949/xiaolin-showdown"
+ },
+ "SpongeBob SquarePants": {
+  "name": "SpongeBob SquarePants",
+  "type": "Animation",
+  "genres": [
+   "Comedy",
+   "Adventure",
+   "Fantasy"
+  ],
+  "premiered": "1999-05-01",
+  "ended": null,
+  "status": "Running",
+  "network": "Nickelodeon",
+  "seasons": 18,
+  "eps": 611,
+  "url": "https://www.tvmaze.com/shows/713/spongebob-squarepants"
+ },
+ "Rugrats": {
+  "name": "Rugrats",
+  "type": "Animation",
+  "genres": [
+   "Comedy",
+   "Children"
+  ],
+  "premiered": "1991-08-11",
+  "ended": "2006-09-05",
+  "status": "Ended",
+  "network": "Nickelodeon",
+  "seasons": 9,
+  "eps": 167,
+  "url": "https://www.tvmaze.com/shows/421/rugrats"
+ },
+ "All Grown Up!": {
+  "name": "All Grown Up!",
+  "type": "Animation",
+  "genres": [
+   "Comedy",
+   "Adventure",
+   "Children"
+  ],
+  "premiered": "2003-04-12",
+  "ended": "2008-08-17",
+  "status": "Ended",
+  "network": "Nickelodeon",
+  "seasons": 5,
+  "eps": 52,
+  "url": "https://www.tvmaze.com/shows/12510/all-grown-up"
+ },
+ "Kim Possible": {
+  "name": "Kim Possible",
+  "type": "Animation",
+  "genres": [
+   "Comedy",
+   "Action",
+   "Adventure"
+  ],
+  "premiered": "2002-06-07",
+  "ended": "2007-09-07",
+  "status": "Ended",
+  "network": "Disney Channel",
+  "seasons": 4,
+  "eps": 88,
+  "url": "https://www.tvmaze.com/shows/2557/kim-possible"
+ },
+ "The Proud Family": {
+  "name": "The Proud Family",
+  "type": "Animation",
+  "genres": [
+   "Comedy",
+   "Children"
+  ],
+  "premiered": "2001-09-15",
+  "ended": "2005-08-19",
+  "status": "Ended",
+  "network": "Disney Channel",
+  "seasons": 3,
+  "eps": 55,
+  "url": "https://www.tvmaze.com/shows/18458/the-proud-family"
+ },
+ "Yin Yang Yo!": {
+  "name": "Yin! Yang! Yo!",
+  "type": "Animation",
+  "genres": [
+   "Comedy",
+   "Children"
+  ],
+  "premiered": "2006-08-26",
+  "ended": "2009-04-18",
+  "status": "Ended",
+  "network": "Jetix",
+  "seasons": 2,
+  "eps": 65,
+  "url": "https://www.tvmaze.com/shows/17759/yin-yang-yo"
+ },
+ "Pucca": {
+  "name": "Pucca",
+  "type": "Animation",
+  "genres": [
+   "Comedy",
+   "Children"
+  ],
+  "premiered": "2006-09-18",
+  "ended": "2008-07-24",
+  "status": "Ended",
+  "network": "Jetix",
+  "seasons": 2,
+  "eps": 0,
+  "url": "https://www.tvmaze.com/shows/19174/pucca"
+ },
+ "Jimmy Neutron": {
+  "name": "The Adventures of Jimmy Neutron: Boy Genius",
+  "type": "Animation",
+  "genres": [
+   "Comedy",
+   "Children",
+   "Science-Fiction"
+  ],
+  "premiered": "2002-07-20",
+  "ended": "2006-11-25",
+  "status": "Ended",
+  "network": "Nickelodeon",
+  "seasons": 3,
+  "eps": 76,
+  "url": "https://www.tvmaze.com/shows/7457/the-adventures-of-jimmy-neutron-boy-genius"
+ },
+ "The Fairly OddParents": {
+  "name": "The Fairly OddParents",
+  "type": "Animation",
+  "genres": [
+   "Comedy",
+   "Children"
+  ],
+  "premiered": "2001-03-30",
+  "ended": "2017-02-22",
+  "status": "Ended",
+  "network": "Nicktoons",
+  "seasons": 10,
+  "eps": 201,
+  "url": "https://www.tvmaze.com/shows/2565/the-fairly-oddparents"
+ },
+ "Danny Phantom": {
+  "name": "Danny Phantom",
+  "type": "Animation",
+  "genres": [
+   "Comedy",
+   "Fantasy",
+   "Supernatural"
+  ],
+  "premiered": "2004-04-03",
+  "ended": "2007-08-24",
+  "status": "Ended",
+  "network": "Nickelodeon",
+  "seasons": 3,
+  "eps": 0,
+  "url": "https://www.tvmaze.com/shows/6301/danny-phantom"
+ },
+ "Codename: Kids Next Door": {
+  "name": "Codename: Kids Next Door",
+  "type": "Animation",
+  "genres": [],
+  "premiered": "2002-11-01",
+  "ended": "2007-12-07",
+  "status": "Ended",
+  "network": "Cartoon Network",
+  "seasons": 6,
+  "eps": 0,
+  "url": "https://www.tvmaze.com/shows/7302/codename-kids-next-door"
+ },
+ "My Gym Partner’s a Monkey": {
+  "name": "My Gym Partner's a Monkey",
+  "type": "Animation",
+  "genres": [
+   "Comedy",
+   "Children"
+  ],
+  "premiered": "2005-12-26",
+  "ended": "2008-07-27",
+  "status": "Ended",
+  "network": "Cartoon Network",
+  "seasons": 4,
+  "eps": 98,
+  "url": "https://www.tvmaze.com/shows/20434/my-gym-partners-a-monkey"
+ },
+ "Static Shock": {
+  "name": "Static Shock",
+  "type": "Animation",
+  "genres": [
+   "Action",
+   "Adventure"
+  ],
+  "premiered": "2000-09-23",
+  "ended": "2004-05-22",
+  "status": "Ended",
+  "network": "The WB",
+  "seasons": 4,
+  "eps": 0,
+  "url": "https://www.tvmaze.com/shows/5950/static-shock"
+ },
+ "Batman Beyond": {
+  "name": "Batman Beyond",
+  "type": "Animation",
+  "genres": [
+   "Action",
+   "Adventure",
+   "Science-Fiction"
+  ],
+  "premiered": "1999-01-10",
+  "ended": "2001-12-18",
+  "status": "Ended",
+  "network": "The WB",
+  "seasons": 3,
+  "eps": 52,
+  "url": "https://www.tvmaze.com/shows/504/batman-beyond"
+ },
+ "Superman: The Animated Series": {
+  "name": "Superman: The Animated Series",
+  "type": "Animation",
+  "genres": [
+   "Action",
+   "Adventure",
+   "Science-Fiction"
+  ],
+  "premiered": "1996-09-06",
+  "ended": "2000-02-12",
+  "status": "Ended",
+  "network": "The WB",
+  "seasons": 3,
+  "eps": 54,
+  "url": "https://www.tvmaze.com/shows/1957/superman-the-animated-series"
+ },
+ "The Batman": {
+  "name": "The Batman",
+  "type": "Animation",
+  "genres": [
+   "Action",
+   "Adventure",
+   "Science-Fiction"
+  ],
+  "premiered": "2004-09-11",
+  "ended": "2008-03-08",
+  "status": "Ended",
+  "network": "The CW",
+  "seasons": 5,
+  "eps": 65,
+  "url": "https://www.tvmaze.com/shows/481/the-batman"
+ },
+ "Ben 10 (original series)": {
+  "name": "Ben 10",
+  "type": "Animation",
+  "genres": [
+   "Action",
+   "Adventure",
+   "Science-Fiction"
+  ],
+  "premiered": "2016-10-01",
+  "ended": "2021-04-11",
+  "status": "Ended",
+  "network": "Cartoon Network",
+  "seasons": 5,
+  "eps": 0,
+  "url": "https://www.tvmaze.com/shows/22084/ben-10"
+ },
+ "Masters of the Universe: Revelation": {
+  "name": "Masters of the Universe: Revelation",
+  "type": "Animation",
+  "genres": [
+   "Action",
+   "Adventure",
+   "Fantasy"
+  ],
+  "premiered": "2021-07-23",
+  "ended": "2021-11-23",
+  "status": "Ended",
+  "network": "Netflix",
+  "seasons": 2,
+  "eps": 10,
+  "url": "https://www.tvmaze.com/shows/43428/masters-of-the-universe-revelation"
+ },
+ "Big Time Rush": {
+  "name": "Big Time Rush",
+  "type": "Scripted",
+  "genres": [
+   "Comedy",
+   "Children",
+   "Music"
+  ],
+  "premiered": "2009-11-28",
+  "ended": "2013-07-25",
+  "status": "Ended",
+  "network": "Nickelodeon",
+  "seasons": 4,
+  "eps": 72,
+  "url": "https://www.tvmaze.com/shows/5749/big-time-rush"
+ }
+}
