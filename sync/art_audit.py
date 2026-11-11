@@ -89,21 +89,43 @@ def sheets():
             except Exception as e: log('frames failed', key, item['id'], e); traceback.print_exc()
     save('sheets.json', done)
 
+def contact(path, key, every=3):
+    """Contact sheets for one film file: a frame every few seconds with the time under it."""
+    d = '/tmp/fr_' + key; os.makedirs(d, exist_ok=True)
+    subprocess.run([ffmpeg(), '-loglevel', 'error', '-y', '-i', path, '-vf', 'fps=1/%d,scale=320:-2' % every, '-q:v', '5', os.path.join(d, 'f_%04d.jpg')], check=True)
+    fr = sorted(os.listdir(d)); cols, w, h, lab = 8, 196, 147, 14; per = cols * 9
+    for n in range(0, len(fr), per):
+        part = fr[n:n + per]; rows = (len(part) + cols - 1) // cols
+        img = Image.new('RGB', (cols * (w + 4) + 4, rows * (h + lab + 4) + 4), (14, 14, 16)); dr = ImageDraw.Draw(img); ft = font(11)
+        for i, name in enumerate(part):
+            im = Image.open(os.path.join(d, name)).convert('RGB'); im.thumbnail((w, h)); x = 4 + (i % cols) * (w + 4); y = 4 + (i // cols) * (h + lab + 4)
+            img.paste(im, (x + (w - im.width) // 2, y)); sec = (n + i) * every; dr.text((x + 2, y + h), '%s  %d:%02d' % (key, sec // 60, sec % 60), fill=(235, 235, 235), font=ft)
+        img.save(os.path.join(OUT, 'frames_%s_%d.jpg' % (key, n // per + 1)), quality=78)
+    return len(fr)
+
 def frames():
-    """FRAMES is a list like mad@1:23,mech@4:05 . Each is saved at the film's full size as audit/steel/pick_<key>_<m>-<ss>.jpg."""
-    want = [x.strip() for x in os.environ.get('FRAMES', '').split(',') if x.strip()]
-    if not want: return
-    info = json.load(open(os.path.join(OUT, 'sheets.json'))); pick = json.load(open(os.path.join(OUT, 'films.json')))['picked']; out = []
+    """FRAMES holds lines of  archive-id|file name|key|m:ss,m:ss,...  (or the word sheet in place of the times).
+    Each time is saved as audit/steel/pick_<key>_<m>-<ss>.jpg, at most 1280 px wide."""
+    want = [x.strip() for x in os.environ.get('FRAMES', '').replace('\n', ';').split(';') if x.strip() and not x.strip().startswith('#')]
+    out = []
     for spec in want:
-        key, ts = spec.split('@'); meta = info.get(key)
-        if not meta: log('no film for', key); continue
-        item = next(i for i in pick[key] if i['id'] == meta['id']); f = next(x for x in item['files'] if x['name'] == meta['file'])
         try:
-            p = fetch(item, f); m, s = ts.split(':'); name = 'pick_%s_%s-%s.jpg' % (key, m, s)
-            subprocess.run([ffmpeg(), '-loglevel', 'error', '-y', '-ss', '%d' % (int(m) * 60 + int(float(s))), '-i', p, '-frames:v', '1', '-q:v', '2', os.path.join(OUT, name)], check=True)
-            im = Image.open(os.path.join(OUT, name)); out.append({'spec': spec, 'file': name, 'w': im.width, 'h': im.height, 'film': meta['title'], 'archive': 'https://archive.org/details/' + meta['id']})
-        except Exception as e: log('frame failed', spec, e)
+            ident, fname, key, times = [x.strip() for x in spec.split('|')]
+            p = fetch({'id': ident}, {'name': fname, 'size': 0})
+            if times == 'sheet': out.append({'key': key, 'sheet_frames': contact(p, key), 'archive': 'https://archive.org/details/' + ident}); continue
+            for ts in times.split(','):
+                m, sec = ts.strip().split(':'); name = 'pick_%s_%s-%s.jpg' % (key, m, sec.replace('.', '_'))
+                subprocess.run([ffmpeg(), '-loglevel', 'error', '-y', '-ss', '%.2f' % (int(m) * 60 + float(sec)), '-i', p, '-frames:v', '1', '-vf', 'scale=min(1280\\,iw):-2', '-q:v', '2', os.path.join(OUT, name)], check=True)
+                im = Image.open(os.path.join(OUT, name)); out.append({'key': key, 'at': ts.strip(), 'file': name, 'w': im.width, 'h': im.height, 'archive': 'https://archive.org/details/' + ident, 'source_file': fname})
+        except Exception as e: log('frame spec failed', spec, e); traceback.print_exc()
     save('picks.json', out)
+    P = [o for o in out if o.get('file')]; cols, w, h, lab = 5, 316, 237, 16; rows = (len(P) + cols - 1) // cols
+    if P:
+        img = Image.new('RGB', (cols * (w + 6) + 6, rows * (h + lab + 6) + 6), (14, 14, 16)); dr = ImageDraw.Draw(img); ft = font(12)
+        for i, o in enumerate(P):
+            im = Image.open(os.path.join(OUT, o['file'])).convert('RGB'); im.thumbnail((w, h)); x = 6 + (i % cols) * (w + 6); y = 6 + (i // cols) * (h + lab + 6)
+            img.paste(im, (x + (w - im.width) // 2, y)); dr.text((x + 2, y + h + 1), '%s %s  %dx%d' % (o['key'], o['at'], o['w'], o['h']), fill=(235, 235, 235), font=ft)
+        img.save(os.path.join(OUT, 'picks.jpg'), quality=84)
 
 STILLS = ['This looks like a job for Superman.jpg', 'Superman saves Lois.jpg', 'Superman saves Lois again.jpg', 'Superman escapes from Krypton.jpg', 'Superman destroys robots.jpg', 'Superman on the mechanical monster.jpg', 'Superman-mechanical-monster.jpg', 'The mechanical monsters.jpg', 'Mechanical monster.jpg', 'Clark in a phone booth.jpg', 'Title card from The Mechanical Monsters.jpg', 'Supermanshorttitle.PNG', 'Destructioninc.jpg', 'Destructioninc2.jpg', 'Japoteurs1.JPG', 'Showdown title screen.JPG', 'Policemen fire.jpg', 'Lois in danger.jpg']
 def stills():

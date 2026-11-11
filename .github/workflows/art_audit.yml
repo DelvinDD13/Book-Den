@@ -19,11 +19,13 @@ jobs:
           python-version: "3.12"
       - run: pip install pillow imageio-ffmpeg
       - run: |
-          if [ -s sync/art_frames.txt ]; then export FRAMES="$(tr '\n' ',' < sync/art_frames.txt)"; fi
+          if [ -s sync/art_frames.txt ]; then export FRAMES="$(grep -v '^#' sync/art_frames.txt | tr '\n' ';')"; fi
           python sync/art_audit.py
+      # candidates go to their own branch so the site itself stays small
       - run: |
           git config user.name "book-den-bot"
           git config user.email "book-den-bot@users.noreply.github.com"
-          git add audit
-          git diff --cached --quiet || git commit -m "Steel header art candidates (public-domain Fleischer Superman frames and stills)"
-          for i in 1 2 3 4; do git pull --rebase && git push && break; sleep 5; done
+          git checkout -B audit-art
+          git add -f audit/steel
+          git diff --cached --quiet || git commit -m "Steel header art candidates (public-domain Fleischer Superman frames)"
+          git push -f origin audit-art
