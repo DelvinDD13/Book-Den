@@ -784,6 +784,7 @@ def hunt2():
     save('hunt2.json', out); sheet(items, 'hunt2.jpg', cols=6, w=180, h=270, fit=True)
 
 
+OCR_UNTIL = [0]
 OWN_ART = {'Tress of the Emerald Sea: A Cosmere Novel', 'Yumi and the Nightmare Painter: A Cosmere Novel', 'The Fires of December'}
 STOPW = set('a an the of and to in on for with at by from or is it as be my your our their his her its into book books series part volume vol edition novel complete collection unabridged dramatized adaptation recording anniversary original audible'.split())
 GUIDEW = ['summary of', 'study guide', 'workbook', 'analysis of', 'conversation starters', 'trivia', 'quicklet', 'cliffsnotes', 'sparknotes', 'a guide to']
@@ -841,10 +842,10 @@ def coveraudit():
             r['w'], r['h'] = img.size
             if img.width < 300: r['flags'].append('small')
             if abs(img.width - img.height) <= img.width * 0.06: r['flags'].append('square')
-            if pytesseract:
+            if pytesseract and time.time() < OCR_UNTIL[0]:
                 try:
-                    g = img.convert('L'); k = max(1.0, 900.0 / g.height); g = g.resize((int(g.width * k), int(g.height * k)))
-                    txt = pytesseract.image_to_string(g, config='--psm 11') + ' ' + pytesseract.image_to_string(g, config='--psm 3')
+                    g = img.convert('L'); k = 760.0 / g.height; g = g.resize((max(1, int(g.width * k)), 760))
+                    txt = pytesseract.image_to_string(g, config='--psm 11', timeout=20)
                 except Exception as e: txt = ''; r['flags'].append('ocr-error')
                 n = norm(txt); words = set(n.replace("'", '').split()); r['ocr'] = ' '.join(n.split())[:160]
                 tw = twords(t); r['title_hit'] = round(sum(1 for w in tw if near(w, words)) / max(1, len(tw)), 2)
@@ -853,7 +854,9 @@ def coveraudit():
                 if any(g2 in n for g2 in GUIDEW): r['flags'].append('guide-words')
                 if len([w for w in words if w in FOREIGNW]) >= 2: r['flags'].append('foreign-words')
         else: r['flags'].append('no-picture')
+        if img is not None and pytesseract and r['title_hit'] is None and 'ocr-error' not in r['flags']: r['flags'].append('not-read')
         return t, au, r, img
+    OCR_UNTIL[0] = time.time() + 40 * 60   # reading words stops after 40 minutes; the sheets are still made for every cover
     res = []
     with ThreadPoolExecutor(6) as ex:
         for x in ex.map(one, books): res.append(x)

@@ -16,7 +16,7 @@ concurrency:
 jobs:
   audit:
     runs-on: ubuntu-latest
-    timeout-minutes: 50
+    timeout-minutes: 110
     env:
       DEN_STORE_URL: https://script.google.com/macros/s/AKfycbxhY9gpaLCuiZXMIJufA1-JoYVThIKfglXglisMiPKZMMHXj3RFHnMdxAgfuN1zcMEtuQ/exec
       DEN_KEY: w0fzVaKZmPNbUBMgLMSn5IDg
@@ -31,6 +31,7 @@ jobs:
       - name: passes
         env:
           TODO: ${{ github.event.inputs.todo }}
+          OMP_THREAD_LIMIT: '1'
         run: |
           git config user.name "book-den-bot"
           git config user.email "book-den-bot@users.noreply.github.com"

@@ -33,9 +33,15 @@ const store = fs.readFileSync('/home/claude/den/pt/store.json'); let pass = 0, f
   ok(await page.evaluate(() => !!document.querySelector('.l29-sec .l29-t')), 'card on Books'); ok(await page.evaluate(() => !document.querySelector('.l27-sec')), 'old companion card gone');
   await page.evaluate(() => openSheet(ALL_TITLES.find(t => /^The Way of Kings/.test(t)))); await page.waitForTimeout(900); ok(await page.evaluate(() => !!document.querySelector('.l29-sb')), 'button on the book sheet');
   await page.evaluate(() => document.querySelector('.l29-sb').click()); await page.waitForTimeout(400); ok(await page.evaluate(() => document.getElementById('l29').classList.contains('on') && /Stormlight/i.test(document.getElementById('l29').shadowRoot.querySelector('.bt').textContent)), 'button opens the series');
-  const B = await page.evaluate(() => L4.all().filter(b => b.lore).map(b => b.name + ':' + b.tier + ':' + b.v + '/' + b.th.join(','))); console.log(B.join(' | ')); ok(B.length === 4, 'four lore badges');
+  const B = await page.evaluate(() => L4.all().filter(b => b.lore).map(b => b.name + ':' + b.tier + ':' + b.v + '/' + b.th.join(','))); console.log(B.join(' | ')); ok(B.length === 5, 'five lore badges, one per book series');
   // unlock banner when a book is finished
   await page.evaluate(() => { L29.close(); L29.check(true); setOverride(ALL_TITLES.find(t => /^The Way of Kings/.test(t)), { status: 'read', finished: '2026-11-10' }); }); await page.waitForTimeout(1800);
   ok(await page.evaluate(() => { const b = document.getElementById('l29b'); return !!b && /Stormlight/.test(b.textContent) && /\+\d+/.test(b.textContent); }), 'lore banner after finishing'); console.log(await page.evaluate(() => (document.getElementById('l29b') || {}).textContent));
   await page.evaluate(() => L29.open('stormlight')); t = await R(); ok(/New · \d+/.test(t), 'New chip after unlock');
+  // the Empyrean: Fourth Wing open (finished), only the opening of Iron Flame (started), nothing from the rest of Iron Flame or Onyx Storm
+  const emp = await page.evaluate(async () => { L29.close(); L29.open('empyrean'); await new Promise(r => setTimeout(r, 500)); const root = document.getElementById('l29').shadowRoot; const all = []; const S = L29.by.empyrean;
+    for (const e of S.e) { L29.open('empyrean', e.id); await new Promise(r => setTimeout(r, 30)); all.push(root.innerHTML); } const st = L29.stats(S); return { html: all.join(' '), st, started: L29.started('if'), read: L29.read('fw') }; });
+  ok(emp.read && emp.started && /twenty-first birthday/.test(emp.html) && /lightning/.test(emp.html), 'Empyrean: Fourth Wing is open and the opening of Iron Flame shows once it is started');
+  ok(!/inntinnsic|dreamwalking|became venin|irid|First Six|gave her life|Wyverns are real|graduated as a lieutenant/.test(emp.html), 'Empyrean: nothing past the opening of Iron Flame is on the page');
+  ok(emp.st.lock && emp.st.lock.if > 0 && emp.st.lock.os > 0, 'Empyrean: the sealed count waits on Iron Flame and Onyx Storm: ' + JSON.stringify(emp.st.lock));
   console.log(pass + ' passed, ' + fail + ' failed', JSON.stringify(errs.slice(0, 5))); await br.close(); srv.close(); process.exit(fail ? 1 : 0); })();
