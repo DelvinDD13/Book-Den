@@ -99,7 +99,7 @@
     tier('track', 'Steel log', n => 'Track ' + pl(n, 'session', 'sessions') + ' set by set', tr, [1, 10, 25], n => pl(n, 'session', 'sessions'), ['bronze', 'pewter', 'gold']);
     tier('best', 'Bests', n => n + ' bests in the log', prs, [5, 25], n => n + ' bests', ['pewter', 'gold']);
     tier('quest', 'Quests', n => n + ' quests cleared', qn, [10, 50, 100], n => n + ' quests', ['bronze', 'pewter', 'gold']);
-    B.push({ id: 'push', kind: 'mark', name: 'Friendsgiving', lab: 'Push · Nov 27', sub: 'Milestones', c: METAL.atium, got: PUSH.books.every(b => isRead(b[0])), need: 'Finish all eight books of the push', big: '8' });
+    { const PB = pushB(); B.push({ id: 'push', kind: 'mark', name: 'Friendsgiving', lab: 'Push · Nov 27', sub: 'Milestones', c: METAL.atium, got: PB.every(b => isRead(b[0])), need: 'Finish all ' + (PB.length === 8 ? 'eight' : PB.length) + ' books of the push', big: String(PB.length) }); }
     const st = O('bmk'), E = st.e || {}, first = stampOf(st);
     B.forEach(b => { const real = b.got ? earnedOn(b) : null; b.at = real || (b.got && DAY.test(String(E[b.id] || '')) && E[b.id] !== first ? E[b.id] : null); }); return B; }
   // The first sync wrote that day on every bookmark it found. That day is when the app noticed them, not when they were earned,

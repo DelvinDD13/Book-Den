@@ -19,5 +19,10 @@ const store = fs.readFileSync(path.join(__dirname, 'store.json')); let pass = 0,
   ok(/Compensated Anarchist/.test(all) && /Agent Provocateur/.test(all) && /Princess Chandra/.test(all), 'with all eight read Carl\'s page carries every book');
   const ch = await R(() => { L29.open('dcc'); const r = document.getElementById('l29').shadowRoot; return r.querySelector('.scr').innerText; });
   ok(/Dungeon Crawler Carl/.test(ch), 'the encyclopedia opens');
+  // First Law (L50): the trilogy open once finished; Best Served Cold shows only its opening while in progress
+  const fl = await R(() => { const s = L29.by.firstlaw; const set = (rx, st) => ALL_TITLES.filter(t => rx.test(t)).forEach(t => setOverride(t, { status: st, finished: st === 'read' ? '2025-06-01' : null })); set(/^The Blade Itself/, 'read'); set(/^Before They Are Hanged/, 'read'); set(/^Last Argument of Kings/, 'read'); set(/^Best Served Cold/, 'currently-reading'); L29.flush(); const st = L29.stats(s); L29.open('firstlaw', 'seven'); const txt = document.getElementById('l29').shadowRoot.querySelector('.scr').innerText; L29.open('firstlaw', 'glokta'); const g = document.getElementById('l29').shadowRoot.querySelector('.scr').innerText; return { books: s.books.map(b => ALL_TITLES.filter(t => new RegExp(b.m, 'i').test(t)).length), lock: st.lock, txt, g }; });
+  ok(fl.books.every(n => n >= 1), 'each First Law book matches a title: ' + JSON.stringify(fl.books));
+  ok(/Arch Lector/.test(fl.g), 'the trilogy is open once it is finished');
+  ok(/Prince Ario stabs Benna/.test(fl.txt) && !/Mauthis|Count Foscar/.test(fl.txt) && fl.lock && fl.lock.bsc > 0, 'Best Served Cold shows its opening and keeps the rest sealed: ' + JSON.stringify(fl.lock));
   ok(!errs.length, 'no page errors: ' + errs.slice(0, 3).join(' | '));
   console.log(pass + ' passed, ' + fail + ' failed'); await br.close(); srv.close(); process.exit(fail ? 1 : 0); })();
