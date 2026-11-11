@@ -50,7 +50,22 @@ async function boot(port, opts) { const br = await chromium.launch(); const ctx 
   ok(!/demigod|Half-Blood/i.test(syn('The Throne of Fire')) && /Kane/.test(syn('The Throne of Fire')), 'The Throne of Fire is described as a Kane Chronicles book');
   ok(!/exile/i.test(syn('The Queen of Nothing')) && !/wards|allies/i.test(syn('Onyx Storm')), 'sequels say which book they are and no more');
   ok(!/One Ring/.test(syn('The Hobbit')) && /Smaug/.test(syn('The Hobbit')), 'The Hobbit has its own synopsis');
-  ok(SY.filter(x => !x.ok).length <= 3 && SY.some(x => !x.ok && /^A Parade of Horribles/.test(x.t)), 'only a synopsis that says where a series has got to can still fold: ' + SY.filter(x => !x.ok).map(x => x.t.slice(0, 24)).join('; '));
+  // a later book has its own synopsis, folded until the books before it are finished; no two different books share one
+  const seq = await R(() => { const wk = t => String(t).replace(/\([^)]*\)|\[[^\]]*\]/g, ' ').split(':')[0].toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim(); const by = {}; Object.keys(META).forEach(t => { const s = (META[t] || {}).synopsis; if (s) (by[s] = by[s] || new Set()).add(wk(t)); });
+    const shared = Object.keys(by).filter(s => by[s].size > 1).map(s => s.slice(0, 40)); const S = L39.SEQ || {}; const notok = Object.keys(META).filter(t => META[t].synopsis && !META[t].sok);
+    const stray = notok.filter(t => !S[t] && !/^A Parade of Horribles/.test(t)); const okSeq = Object.keys(S).filter(t => META[t].sok);
+    const leak = Object.keys(S).filter(t => { const st = getStatus(t); return st !== 'read' && st !== 'currently-reading' && L39.before(t).length && !L39.folds(t); });
+    return { shared, stray, okSeq, leak, n: Object.keys(S).length }; });
+  ok(seq.shared.length === 0, 'no two different books share a synopsis: ' + seq.shared.join(' | '));
+  ok(seq.n >= 100 && seq.stray.length === 0 && seq.okSeq.length === 0, 'every later book with its own synopsis folds behind the books before it, and nothing else does: ' + JSON.stringify(seq).slice(0, 300));
+  ok(seq.leak.length === 0, 'no later book shows its synopsis while an earlier one is unfinished: ' + seq.leak.join('; '));
+  ok(/Rhysand/.test(syn('A Court of Mist and Fury')) && !/wolf/.test(syn('A Court of Mist and Fury')), 'A Court of Mist and Fury has its own synopsis, not the first book\'s');
+  const fold3 = await R(async () => { const t = ALL_TITLES.find(x => /^A Court of Wings and Ruin/.test(x)); openSheet(t); await new Promise(r => setTimeout(r, 500)); const p = document.querySelector('#sheet .sheet-body p.syn'); const r = p ? [p.classList.contains('l39-fold'), p.textContent] : [null, '']; closeSheet(); return r; });
+  ok(fold3[0] === true && !/Spring Court/.test(fold3[1]) && /Mist and Fury/.test(fold3[1]), 'A Court of Wings and Ruin stays folded while A Court of Mist and Fury is unfinished: ' + fold3[1].slice(0, 120));
+  const fold4 = await R(async () => { const t = ALL_TITLES.find(x => /^A Court of Mist and Fury \(10th/.test(x)); setOverride(t, { status: 'read', finished: '2026-11-20' }); openSheet(ALL_TITLES.find(x => /^A Court of Wings and Ruin/.test(x))); await new Promise(r => setTimeout(r, 500)); const p = document.querySelector('#sheet .sheet-body p.syn'); const r = p ? [p.classList.contains('l39-fold'), p.textContent] : [null, '']; closeSheet(); setOverride(t, { status: 'currently-reading', finished: null }); return r; });
+  ok(fold4[0] === false && /Spring Court/.test(fold4[1]), 'once A Court of Mist and Fury is finished, the next synopsis opens: ' + fold4[1].slice(0, 80));
+  const fold5 = await R(async () => { const t = ALL_TITLES.find(x => /^Bloodmarked: The Legendborn/.test(x)); openSheet(t); await new Promise(r => setTimeout(r, 500)); const p = document.querySelector('#sheet .sheet-body p.syn'); const r = p ? p.classList.contains('l39-fold') : null; closeSheet(); return r; });
+  ok(fold5 === true, 'a sequel bought in two versions still folds');
   await R(() => { closeSheet(); openSheet('Warbreaker'); }); await page.waitForTimeout(600);
   ok(await R(() => { const p = document.querySelector('#sheet .sheet-body p.syn'); return !!p && !p.classList.contains('l39-fold') && /Hallandren/.test(p.textContent); }), 'a standalone shows its synopsis without a fold');
   await R(() => closeSheet());

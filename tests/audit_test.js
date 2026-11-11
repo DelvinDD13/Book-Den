@@ -54,7 +54,7 @@ const store = fs.readFileSync(path.join(__dirname, 'store.json')); let pass = 0,
   await page.evaluate(() => { closeSheet(); window.HG = ALL_TITLES.find(t => /^The Hunger of the Gods/.test(t)); window.SG = ALL_TITLES.find(t => /^The Shadow of the Gods/.test(t)); setOverride(SG, { status: 'currently-reading' }); openSheet(HG); }); await page.waitForTimeout(400);
   ok(await page.evaluate(() => { const p = document.querySelector('#sheet .sheet-body p.syn'); return !!p && !p.classList.contains('l39-fold') && /^Book 2 of the Bloodsworn Saga\.$/.test(p.textContent.trim()); }), 'a synopsis marked safe to show is not folded');
   await page.evaluate(() => { closeSheet(); const t = ALL_TITLES.find(t => /^Words of Radiance/.test(t)); openSheet(t); }); await page.waitForTimeout(400);
-  ok(await page.evaluate(() => { const p = document.querySelector('#sheet .sheet-body p.syn'); return !!p && !p.classList.contains('l39-fold') && /Roshar/.test(p.textContent); }), 'a synopsis shared by the whole series is left open');
+  ok(await page.evaluate(() => { const p = document.querySelector('#sheet .sheet-body p.syn'); return !!p && p.classList.contains('l39-fold') && !/Szeth|bodyguards/.test(p.textContent) && /Way of Kings/.test(p.textContent); }), 'Words of Radiance has its own synopsis, folded while The Way of Kings is unfinished');
   await page.evaluate(() => { closeSheet(); L39.before(D8).forEach(t => setOverride(t, { status: 'read' })); openSheet(D8); }); await page.waitForTimeout(400);
   ok(await page.evaluate(() => { const p = document.querySelector('#sheet .sheet-body p.syn'); return !!p && !p.classList.contains('l39-fold'); }), 'no fold once the earlier book is finished');
   await page.evaluate(() => closeSheet());
