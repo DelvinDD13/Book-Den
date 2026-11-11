@@ -1,0 +1,33 @@
+const { chromium } = require('playwright'); const http = require('http'), fs = require('fs'), path = require('path');
+const ROOT = '/home/claude/book-den'; const MIME = { '.html': 'text/html', '.js': 'application/javascript', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.woff2': 'font/woff2', '.gif': 'image/gif' };
+const srv = http.createServer((req, res) => { let p = decodeURIComponent(req.url.split('?')[0]); if (p === '/') p = '/index.html'; fs.readFile(path.join(ROOT, p), (e, d) => { if (e) { res.writeHead(404); return res.end(); } res.writeHead(200, { 'Content-Type': MIME[path.extname(p)] || 'application/octet-stream' }); res.end(d); }); });
+const store = fs.readFileSync('/home/claude/den/pt/store.json'); let pass = 0, fail = 0; const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } };
+(async () => { await new Promise(r => srv.listen(8794, r)); const br = await chromium.launch(); const ctx = await br.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+  await ctx.route(u => !/^http:\/\/localhost/.test(u.href), r => r.abort()); await ctx.route(/script\.google\.com/, r => r.fulfill({ status: 200, contentType: 'application/json', body: store }));
+  const page = await ctx.newPage(); const errs = []; page.on('pageerror', e => errs.push(String(e)));
+  await page.goto('http://localhost:8794/'); await page.waitForTimeout(6500);
+  ok(await page.evaluate(() => document.documentElement.classList.contains('th-night')), 'follows the series being read (ACOTAR in the test data)');
+  await page.evaluate(() => { const T = ALL_TITLES; setOverride(T.find(t => /A Court of Mist and Fury \(10th/.test(t)), { status: 'currently-reading' }); }); await page.waitForTimeout(40);
+  await page.evaluate(() => { const T = ALL_TITLES; setOverride(T.find(t => /^The Way of Kings/.test(t)), { status: 'currently-reading', tm: Date.now() + 5000 }); switchLib('life'); }); await page.waitForTimeout(1600);
+  ok(await page.evaluate(() => document.documentElement.classList.contains('th-storm')), 'follows the book read most recently (Stormlight)');
+  ok(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--d-acc').trim() === '#6fc3ff'), 'accent token re-pointed');
+  ok(await page.evaluate(() => !!document.querySelector('.l34-chip') && /Stormlight/.test(document.querySelector('.l34-chip').textContent)), 'chip names the theme');
+  ok(await page.evaluate(() => !!document.querySelector('#l34sky .l34-rig') && document.querySelectorAll('#l34sky .atmo i').length >= 2), 'sky and sprite are on the masthead');
+  ok(await page.evaluate(() => getComputedStyle(document.querySelector('header.hero .sky')).display === 'none'), 'old dragon strip hidden');
+  await page.evaluate(() => L34.set({ on: false })); await page.waitForTimeout(300);
+  ok(await page.evaluate(() => document.documentElement.classList.contains('th-den') && getComputedStyle(document.documentElement).getPropertyValue('--d-acc').trim() === '#ff6a2a'), 'themes off: original look');
+  await page.evaluate(() => L34.set({ on: true, mode: 'pick', pick: 'night', mascot: 'none' })); await page.waitForTimeout(400);
+  ok(await page.evaluate(() => document.documentElement.classList.contains('th-night') && !document.querySelector('#l34sky .l34-rig')), 'picked theme, no sprite');
+  for (const m of ['kelsier', 'hood', 'blade', 'dragon', 'brawler', 'ghoul', 'wizard', 'vulture']) { await page.evaluate(m => L34.set({ mascot: m }), m); await page.waitForTimeout(350); ok(await page.evaluate(() => document.querySelectorAll('#l34sky .l34-rig').length >= 1 && document.getAnimations().some(a => a.playState === 'running')), 'sprite runs: ' + m); }
+  // wall art
+  const n = await page.evaluate(async () => { const c = document.createElement('canvas'); c.width = 2400; c.height = 1200; const g = c.getContext('2d'); g.fillStyle = '#246'; g.fillRect(0, 0, 2400, 1200); const b = await new Promise(r => c.toBlob(r, 'image/png')); const f = new File([b], 'wall.png', { type: 'image/png' }); const k = await L34.artAdd('night', [f]); L34.mast(); return k; }); await page.waitForTimeout(600);
+  ok(n === 1, 'wall art stored'); ok(await page.evaluate(() => /^blob:/.test(document.querySelector('.b-mast img').getAttribute('src'))), 'wall art on the masthead');
+  ok(await page.evaluate(async () => { const A = await L34.artList(); const r = await fetch(A[0].url); const b = await r.blob(); const bm = await createImageBitmap(b); return bm.width === 1600 && b.type === 'image/jpeg'; }), 'resized to 1600 px JPEG');
+  await page.evaluate(async () => { const A = await L34.artList(); await L34.artDel(A[0].id); L34.mast(); }); await page.waitForTimeout(500);
+  ok(await page.evaluate(() => document.querySelector('.b-mast img').getAttribute('src') === 'icon-512.png' && document.querySelector('.b-mast').classList.contains('l34-nosrc')), 'removed: back to the theme sky');
+  await page.evaluate(() => document.querySelector('.l34-chip').click()); await page.waitForTimeout(500);
+  ok(await page.evaluate(() => { const r = document.getElementById('l34').shadowRoot; return r.querySelectorAll('.th').length === 5 && r.querySelectorAll('.spb').length === 10 && r.querySelectorAll('.blb').length === 12; }), 'Look sheet lists themes, sprites, blades');
+  await page.evaluate(() => { const r = document.getElementById('l34').shadowRoot; r.querySelector('.th[data-k=ash]').click(); }); await page.waitForTimeout(500);
+  ok(await page.evaluate(() => document.documentElement.classList.contains('th-ash') && L34.get().pick === 'ash'), 'tap a theme in the sheet');
+  await page.reload(); await page.waitForTimeout(700); ok(await page.evaluate(() => document.documentElement.classList.contains('th-ash')), 'theme is on before the library loads');
+  console.log(pass + ' passed, ' + fail + ' failed', JSON.stringify(errs.slice(0, 5))); await br.close(); srv.close(); process.exit(fail ? 1 : 0); })();
