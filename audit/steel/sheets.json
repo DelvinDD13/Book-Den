@@ -1,0 +1,38 @@
+{
+ "mad": {
+  "id": "superman_1941",
+  "file": "superman_1941_512kb.mp4",
+  "w": 320,
+  "h": 240,
+  "frames": 207,
+  "title": "Superman",
+  "licence": "http://creativecommons.org/licenses/publicdomain/"
+ },
+ "mech": {
+  "id": "superman_the_mechanical_monsters",
+  "file": "superman_the_mechanical_monsters_512kb.mp4",
+  "w": 320,
+  "h": 240,
+  "frames": 205,
+  "title": "Superman: The Mechanical Monsters",
+  "licence": ""
+ },
+ "bullet": {
+  "id": "superman_bulleteers",
+  "file": "bulleteers.mp4",
+  "w": 640,
+  "h": 480,
+  "frames": 158,
+  "title": "Superman - Bulleteers, The",
+  "licence": "http://creativecommons.org/publicdomain/zero/1.0/"
+ },
+ "billion": {
+  "id": "superman_billion_dollar_limited",
+  "file": "billion_dollar_limited.mp4",
+  "w": 640,
+  "h": 480,
+  "frames": 168,
+  "title": "Superman - Billion Dollar Limited",
+  "licence": "http://creativecommons.org/publicdomain/zero/1.0/"
+ }
+}
