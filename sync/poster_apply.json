@@ -480,9 +480,9 @@
   "page": "Sherlock Holmes: The Definitive Collection — Arthur Conan Doyle, Stephen Fry - introductions (B06WLMWF2S)"
  },
  "book:Percy Jackson and the Olympians: The Chalice of the Gods": {
-  "url": "https://m.media-amazon.com/images/I/91uJCLefU8L._SL1024_.jpg",
-  "from": "audible",
-  "page": "Percy Jackson and the Olympians: The Chalice of the Gods — Rick Riordan (B0CFRF7GVS)"
+  "url": "https://is1-ssl.mzstatic.com/image/thumb/Publication221/v4/bb/40/26/bb40261f-5f7e-6648-1deb-12cd0766a6aa/1056010000.jpg/1000x1500bb.jpg",
+  "from": "apple-ebook",
+  "page": "Percy Jackson and the Olympians: The Chalice of the Gods — Rick Riordan"
  },
  "book:Gild: The Plated Prisoner Series, Book 1": {
   "url": "https://m.media-amazon.com/images/I/91VR-War12L._SL1024_.jpg",
@@ -523,5 +523,20 @@
   "url": "https://m.media-amazon.com/images/I/81cmmqWJfUL._SL1024_.jpg",
   "from": "audible",
   "page": "The Claude Cowork Handbook (Revised & Expanded Spring 2026) — John Collins (B0GKH6LRGW)"
+ },
+ "book:Yellow face": {
+  "url": "https://is1-ssl.mzstatic.com/image/thumb/Publication211/v4/60/de/90/60de9088-f1d7-26f1-6b86-cf8c09732518/9780063250840.jpg/1000x1500bb.jpg",
+  "from": "apple-ebook",
+  "page": "Yellowface — R. F. Kuang"
+ },
+ "book:The Amber Spyglass": {
+  "url": "https://is1-ssl.mzstatic.com/image/thumb/Publication221/v4/06/08/a3/0608a363-5dc8-59b4-f6cf-bd2e972b9a54/9780375890031.d.jpg/1000x1500bb.jpg",
+  "from": "apple-ebook",
+  "page": "His Dark Materials: The Amber Spyglass (Book 3) — Philip Pullman"
+ },
+ "game:Pokémon Scarlet": {
+  "url": "https://assets.nintendo.com/image/upload/ar_2:3,c_pad,b_auto,w_600/store/software/switch/70010000053966/849c234de8df7265201d26d9d72f88eed3f32438d3dca12fc135beb4c3befc85",
+  "from": "nintendo",
+  "page": "Nintendo's store art for Pokémon Scarlet, whole picture on a 2:3 field"
  }
 }

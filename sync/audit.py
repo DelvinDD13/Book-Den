@@ -741,7 +741,7 @@ def hunt2():
     save('hunt2.json', out); sheet(items, 'hunt2.jpg', cols=6, w=180, h=270, fit=True)
 
 if __name__ == '__main__':
-    todo = sys.argv[1:] or ['unstray', 'apply', 'audible2', 'bookfix2']
+    todo = sys.argv[1:] or ['unstray', 'apply']   # unstray first, every run: no poster record may sit in a show: or game: row
     for name in todo:
         try: {'imdb': imdb, 'tvmaze': tvmaze, 'posters': posters, 'superman': superman, 'fix': fix, 'wikibox': wikibox, 'anime': anime, 'steam': steam, 'pkmn': pkmn, 'wikiraw': wikiraw, 'imdb2': imdb2, 'books': books, 'links': links, 'apply': apply, 'hunt': hunt, 'audible': audible, 'bookfix': bookfix, 'hunt2': hunt2, 'unstray': unstray, 'audible2': audible2, 'bookfix2': bookfix2}[name]()
         except Exception: log('FAILED', name); traceback.print_exc()
