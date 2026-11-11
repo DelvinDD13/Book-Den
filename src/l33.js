@@ -5,7 +5,7 @@
     src: [['ACOTAR Wiki', 'https://acourtofthornsandroses.fandom.com/wiki/A_Court_of_Thorns_and_Roses_Wiki']],
     books: [
       { k: 'acotar', t: 'A Court of Thorns and Roses', sp: 'Thorns and Roses', m: '^A Court of Thorns and Roses' },
-      { k: 'acomaf', t: 'A Court of Mist and Fury', m: '^A Court of Mist and Fury', dp: 1, raw: 1, parts: ['Ch 1–13 · The House of Beasts', 'Ch 14–28', 'Ch 29–42', 'Ch 43–54 · end of The House of Wind'] },
+      { k: 'acomaf', t: 'A Court of Mist and Fury', m: '^A Court of Mist and Fury', dp: 1, raw: 1, chs: 69, ch: [13, 28, 42, 54], parts: ['Ch 1–13 · The House of Beasts', 'Ch 14–28', 'Ch 29–42', 'Ch 43–54 · end of The House of Wind'] },
       { k: 'acowar', t: 'A Court of Wings and Ruin', m: '^A Court of Wings and Ruin' }, { k: 'acofas', t: 'A Court of Frost and Starlight', m: '^A Court of Frost and Starlight' },
       { k: 'acosf', t: 'A Court of Silver Flames', m: '^A Court of Silver Flames' }, { k: 'acosh', t: 'A Court of Splintered Harmony', m: '^A Court of Splintered Harmony' }],
     cats: { people: 'People', groups: 'Courts & Factions', powers: 'Powers & Magic', places: 'Places', lore: 'History & Lore' },

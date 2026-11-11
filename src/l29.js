@@ -74,7 +74,7 @@
   function onClick(e) { const el = e.target.closest('[data-a]'); if (!el) return; const a = el.dataset.a, d = el.dataset;
     if (a === 'close') return L29.close(); if (a === 'back') return back();
     if (a === 'series') return go({ v: 'series', s: d.k });
-    if (a === 'tab') { V.tab = d.k; V.q = ''; return render(); }
+    if (a === 'tab') { if (d.k === 'journal') { try { L35.journalSeries(V.s); } catch (x) {} return; } V.tab = d.k; V.q = ''; return render(); }
     if (a === 'cat') { V.cat = V.cat === d.k ? '' : d.k; return render(root.querySelector('.scr').scrollTop); }
     if (a === 'entry') return go({ v: 'entry', s: d.s || V.s, id: d.k, tab: V.tab });
     if (a === 'part') { L29.setPart(d.b, +d.n); render(root.querySelector('.scr').scrollTop); return; }
@@ -97,7 +97,7 @@
   function series(s) { const st = L29.stats(s); const nx = L29.next(s, st);
     const E = (s.e || []).filter(e => entryOpen(s, e)); const T = (s.trees || []).filter(t => ok(t.g || '')); const C = (s.charts || []).filter(c => ok(c.g || ''));
     const tabs = [['entries', 'Entries', E.length], ['trees', 'Family trees', T.length], ['charts', 'Charts', C.length], ['sealed', 'Sealed', st.n - st.u]];
-    if (!tabs.some(t => t[0] === V.tab)) V.tab = 'entries';
+    if (!tabs.some(t => t[0] === V.tab)) V.tab = 'entries'; if (window.L35) { let jn = 0; try { jn = L35.notes('jr:s:' + s.k).length; } catch (e) {} tabs.push(['journal', 'Journal', jn]); }
     let h = '<div class="hero">' + atmo(s) + '<div class="hc"><span class="k">' + esc(s.world) + ' · ' + esc(s.by) + '</span><h1>' + esc(s.n) + '</h1><p class="sub">' + esc(tx(s.about)) + '</p>' + shelf(s) + '<div class="lore"><span>Lore opened</span><b>' + st.u + ' / ' + st.n + '</b></div>' + pips(s, st) + (nx ? '<p class="nxt">' + ICON.lock + ' ' + (nx.reading ? 'Keep going in ' : 'Finish ') + '<b>' + esc(nx.b.t) + '</b> to open ' + nx.n + ' more.</p>' : '') + '</div></div>' + where(s) +
       '<div class="tabs">' + tabs.map(t => '<button data-a="tab" data-k="' + t[0] + '"' + (V.tab === t[0] ? ' class="on"' : '') + '>' + t[1] + '<small>' + t[2] + '</small></button>').join('') + '</div>';
     if (V.tab === 'entries') { const cats = Object.keys(s.cats).filter(c => E.some(e => e.c === c)); h += '<input class="q" data-a="q" type="search" placeholder="Search ' + esc(s.short) + '" value="' + esc(V.q) + '" autocomplete="off"><div class="chips">' + (NEW.size ? '<button data-a="cat" data-k="~new" class="hot' + (V.cat === '~new' ? ' on' : '') + '">New · ' + E.filter(e => isNew(s, e)).length + '</button>' : '') + cats.map(c => '<button data-a="cat" data-k="' + c + '"' + (V.cat === c ? ' class="on"' : '') + '>' + esc(s.cats[c]) + '</button>').join('') + '</div><div class="list">' + entryList(s) + '</div>'; }

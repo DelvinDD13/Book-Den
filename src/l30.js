@@ -4,7 +4,7 @@
     about: [['', "Roshar is a world of stone scoured by highstorms. The Knights Radiant who once defended it are remembered as traitors, and their Shardblades and Shardplate are now the prizes that wars are fought over."]],
     src: [['Coppermind', 'https://coppermind.net/wiki/The_Stormlight_Archive']],
     books: [
-      { k: 'wok', t: 'The Way of Kings', m: '^The Way of Kings', dp: 1, parts: ['Above Silence', 'The Illuminating Storms', 'Dying', "Storm's Illumination", 'The Silence Above'] },
+      { k: 'wok', t: 'The Way of Kings', m: '^The Way of Kings', dp: 1, chs: 75, ch: [11, 28, 51, 67, 75], parts: ['Above Silence', 'The Illuminating Storms', 'Dying', "Storm's Illumination", 'The Silence Above'] },
       { k: 'wor', t: 'Words of Radiance', m: '^Words of Radiance' },
       { k: 'edg', t: 'Edgedancer', m: '^Edgedancer' },
       { k: 'ob', t: 'Oathbringer', m: '^Oathbringer' },
