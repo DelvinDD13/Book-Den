@@ -3,8 +3,11 @@
   if (!window.L29) return;
   const gst = t => { try { const g = GAMES.find(x => x.t === t); return g ? gStatus(g) : null; } catch (e) { return null; } };
   const sst = t => { try { const s = SHOWS.find(x => x.t === t); return s ? sStatus(s) : null; } catch (e) { return null; } };
-  const game = (k, t, sp) => ({ k, t, sp, rf: () => gst(t) === 'finished', sf: () => gst(t) === 'playing' });
-  const show = (k, t, sp) => ({ k, t, sp, rf: () => sst(t) === 'watched', sf: () => sst(t) === 'watching' });
+  // the day it was marked finished or watched, for its Den bookmark
+  const gfin = t => { try { const g = GAMES.find(x => x.t === t); return g ? getOverride(gKey(g)).finished || null : null; } catch (e) { return null; } };
+  const sfin = t => { try { const s = SHOWS.find(x => x.t === t); return s ? getOverride(sKey(s)).finished || null : null; } catch (e) { return null; } };
+  const game = (k, t, sp) => ({ k, t, sp, rf: () => gst(t) === 'finished', sf: () => gst(t) === 'playing', rd: () => gfin(t) });
+  const show = (k, t, sp) => ({ k, t, sp, rf: () => sst(t) === 'watched', sf: () => sst(t) === 'watching', rd: () => sfin(t) });
   const list = L => L.length ? L.join(', ') : 'nothing';
   const WG = { on: 'Playing', on2: 'playing', none: 'Not played', item: 'game', further: 'play further', as: 'as you play on', first: 'Mark the game as Playing', den: 'Its entries open when it is marked as Playing in TV & Games.', mark: 'Everything here is open while you play.', rest: 'The rest opens when it is marked finished in TV & Games.' };
   const WS = { fin: 'Watch', fined: 'Watched', on: 'Watching', on2: 'watching', none: 'Not watched', item: 'show', further: 'watch further', as: 'as you watch on', first: 'Mark it as watched', den: 'Its entries open when it is marked as watched in TV & Games.', mark: 'What it reveals opens when you mark it watched.', rest: 'The rest opens when it is marked watched in TV & Games.' };

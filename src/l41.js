@@ -9,7 +9,10 @@
   const MINE = ['PS5', 'Switch 2', 'Switch'];                  // the platforms he plays on
   // the genre shelf a new book goes on: wherever the rest of its series, or its author, already sits
   function shelfFor(x) { try { const same = ALL_TITLES.find(t => ((typeof SERIES_OF !== 'undefined' && SERIES_OF[t]) || (META[t] || {}).series) === x.series && GENRE_OF[t]); if (same) return GENRE_OF[same]; const by = ALL_TITLES.find(t => (META[t] || {}).author === x.author && GENRE_OF[t]); if (by) return GENRE_OF[by]; } catch (e) {} return 'Fantasy — Epic Fantasy'; }
-  function inLibrary(kind, x) { try { if (recs()[(kind === 'books' ? 'b:' : 'g:') + x.title]) return true; if (kind === 'books') { const n = nrm(x.title); return ALL_TITLES.some(t => nrm(t) === n && META[t] && META[t].gr === false); } if (isFilm(x)) return SHOWS.some(s => nrm(s.t) === nrm(x.title)); return GAMES.some(g => nrm(g.t) === nrm(x.title)); } catch (e) { return false; } }
+  // a book is in the library when any copy of it is owned (Audible, Kindle, paper: anything but a Goodreads shelf row), or he has started or finished it
+  const ownedBook = t => { try { const m = META[t] || {}; if (m.gr !== true) return true; const st = getStatus(t); return st === 'read' || st === 'currently-reading'; } catch (e) { return false; } };
+  L41.ownedBook = ownedBook;
+  function inLibrary(kind, x) { try { if (recs()[(kind === 'books' ? 'b:' : 'g:') + x.title]) return true; if (kind === 'books') { const n = nrm(x.title); return ALL_TITLES.some(t => nrm(t) === n && ownedBook(t)); } if (isFilm(x)) return SHOWS.some(s => nrm(s.t) === nrm(x.title)); return GAMES.some(g => nrm(g.t) === nrm(x.title)); } catch (e) { return false; } }
   // put one record into the running library (no store writes here: this also runs on every open)
   function place(r) { try {
       if (r.kind === 'book') { if (window.L22 && L22.add) r.lib = L22.add({ t: r.t, a: r.a, s: r.s, g: r.g, aud: r.f === 'aud', how: 'Kindle or the shelf', syn: r.n, y: (r.d || '').slice(0, 4) }) || r.t; return; }
@@ -18,7 +21,8 @@
     } catch (e) { console.warn('l41 place', e); } }
   // the Upcoming rows only list what is not in the library yet
   let RAW = L19.data, VIEW = null, VKEY = '';
-  const view = () => { const k = JSON.stringify(Object.keys(recs())) + '|' + (typeof ALL_TITLES !== 'undefined' ? ALL_TITLES.length : 0) + '|' + (typeof GAMES !== 'undefined' ? GAMES.length : 0); if (VIEW && VKEY === k && VIEW.src === RAW) return VIEW.v; const v = Object.assign({}, RAW, { books: ((RAW || {}).books || []).filter(x => !inLibrary('books', x)), games: ((RAW || {}).games || []).filter(x => !inLibrary('games', x)) }); VIEW = { v, src: RAW }; VKEY = k; return v; };
+  const sig = () => { let n = 0; try { ALL_TITLES.forEach(t => { if (ownedBook(t)) n++; }); } catch (e) {} return n; };
+  const view = () => { const k = JSON.stringify(Object.keys(recs())) + '|' + (typeof ALL_TITLES !== 'undefined' ? ALL_TITLES.length : 0) + '|' + (typeof GAMES !== 'undefined' ? GAMES.length : 0) + '|' + sig(); if (VIEW && VKEY === k && VIEW.src === RAW) return VIEW.v; const v = Object.assign({}, RAW, { books: ((RAW || {}).books || []).filter(x => !inLibrary('books', x)), games: ((RAW || {}).games || []).filter(x => !inLibrary('games', x)) }); VIEW = { v, src: RAW }; VKEY = k; return v; };
   try { Object.defineProperty(L19, 'data', { configurable: true, get() { return RAW ? view() : RAW; }, set(v) { RAW = v; VIEW = null; } }); } catch (e) {}
   // everything pulled in earlier is rebuilt before the first screen is drawn
   const redraw = () => { try { VIEW = null; if (typeof memoClear === 'function') memoClear(); if (typeof currentLib !== 'undefined' && currentLib === 'books' && window.L15 && L15.placeBooks) { if (typeof rerender82 === 'function') rerender82(); else L15.placeBooks(); } else if (typeof currentLib !== 'undefined' && currentLib === 'screen') renderGamesLib(); } catch (e) {} };

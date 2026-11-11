@@ -76,7 +76,7 @@
       let msg = min ? fmtMin(min) + ' logged' : 'Saved'; try { const after = L29.stats(L29.by[L29.seriesFor(t)]).u; if (before != null && after > before) msg += ' · ' + (after - before) + ' lore opened'; } catch (x) {} try { toast(msg); } catch (x) {} try { document.dispatchEvent(new CustomEvent('l35log', { detail: { t, min } })); } catch (x) {} return; }
     if (a === 'addnote') { const ta = root.querySelector('[data-f=note]'); if (ta && ta.value.trim()) { L35.addNote(S.only, { tx: ta.value.trim(), k: S.kind, ch: O(S.only).ch || null }); drawJournal(); try { document.dispatchEvent(new CustomEvent('l35log', { detail: { t: S.only, note: 1 } })); } catch (x) {} } return; }
     if (a === 'jf') { S.filter = k === 'all' ? 'all' : 'book'; return drawJournal(); }
-    if (a === 'ok' || a === 'no') { L35.setNote(S.key, k, { ok: a === 'ok' }); drawJournal(); try { document.dispatchEvent(new CustomEvent('l35log', { detail: {} })); } catch (x) {} return; }
+    if (a === 'ok' || a === 'no') { L35.setNote(S.key, k, { ok: a === 'ok', okAt: Date.now() }); drawJournal(); try { document.dispatchEvent(new CustomEvent('l35log', { detail: {} })); } catch (x) {} return; }
     if (a === 'del') { L35.delNote(S.key, k); return drawJournal(); }
     if (a === 'copy') { const txt = '# ' + S.title + '\n\n' + L35.notes(S.key).reverse().map(n => '- ' + new Date(n.at).toISOString().slice(0, 10) + ' · ' + mT(n.t) + (n.ch ? ' ch ' + n.ch : '') + ' · ' + n.k + (n.ok === true ? ' (called it)' : n.ok === false ? ' (wrong)' : '') + '\n  ' + n.tx.replace(/\n/g, '\n  ')).join('\n'); try { navigator.clipboard.writeText(txt).then(() => { try { toast('Journal copied'); } catch (x) {} }); } catch (x) {} return; } }
 

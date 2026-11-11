@@ -66,6 +66,26 @@
   L37.cleared = () => +O('quests').n || 0;
 
   // ---------- bookmarks ----------
+  // The day each one was really earned, read from his own logs: a book's finish date, the session that crossed an hour mark,
+  // the nth reading day, journal entry, tracked Steel session, best or cleared quest. null when the logs cannot say.
+  const DAY = /^\d{4}-\d{2}-\d{2}$/;
+  const nth = (dates, n) => { const D = dates.filter(d => d && DAY.test(d)).sort(); return n >= 1 && D.length >= n ? D[n - 1] : null; };
+  // earliest finish of any copy, counting earlier reads of a book he is reading again
+  const finOf = rx => { try { const D = []; ALL_TITLES.filter(t => rx.test(t) && getStatus(t) === 'read').forEach(t => { const o = O(t); [o.finished].concat((o.reads || []).map(r => r && r.finished)).forEach(d => D.push(String(d || '').slice(0, 10))); }); return D.filter(d => DAY.test(d)).sort()[0] || null; } catch (e) { return null; } };
+  const notes = () => { const A = []; try { Object.keys(OVERRIDES).forEach(k => { if (k.indexOf('jr:') === 0) ((OVERRIDES[k] || {}).n || []).forEach(x => A.push(x)); }); } catch (e) {} return A; };
+  function earnedOn(b) { try {
+    if (b.kind === 'book') { const bk = L29.B[b.id.slice(3)]; if (!bk) return null; if (typeof bk.rd === 'function') { const d = String(bk.rd() || '').slice(0, 10); return DAY.test(d) ? d : null; } return bk.m ? finOf(new RegExp(bk.m, 'i')) : null; }
+    if (b.id === 'push') { const F = PUSH.books.map(p => finOf(p[0])); return F.every(Boolean) ? F.sort().pop() : null; }
+    if (b.id === 'theory') return nth(notes().filter(x => x.ok === true && x.okAt).map(x => iso(new Date(x.okAt))), 1);
+    const m = /^([a-z]+)(\d+)$/.exec(b.id); if (!m) return null; const kind = m[1], n = +m[2];
+    if (kind === 'clock') { const S = []; ALL_TITLES.forEach(t => (O(t).rs || []).forEach(x => S.push([String(x[0]), +x[1] || 0]))); S.sort((a, c) => a[0] < c[0] ? -1 : a[0] > c[0] ? 1 : 0); let sum = 0; for (const x of S) { sum += x[1]; if (sum >= n * 60) return x[0].slice(0, 10); } return null; }
+    if (kind === 'days') { const D = new Set(); ALL_TITLES.forEach(t => (O(t).rs || []).forEach(x => { if ((+x[1] || 0) >= 10) D.add(String(x[0]).slice(0, 10)); })); return nth([...D], n); }
+    if (kind === 'jot') return nth(notes().map(x => x.at ? iso(new Date(x.at)) : null), n);
+    if (kind === 'track') return nth(L36.days().filter(r => Object.keys(r.x).length >= 4).map(r => r.d), n);
+    if (kind === 'best') return nth(L36.prs(3650).map(r => r.d), n);
+    if (kind === 'quest') return nth(Object.values(O('quests').c || {}), n);
+  } catch (e) {} return null; }
+  L37.earnedOn = earnedOn;
   const METAL = { bronze: ['#b9793f', '#4f2e12'], pewter: ['#b8c0c8', '#434a52'], gold: ['#e8c24a', '#735408'], atium: ['#d9d6ff', '#44387f'] };
   L37.bookmarks = () => cached('marks', marks);
   function marks() { const B = []; let tm = 0, days = 0, nc = { n: 0, hit: 0 }, tr = 0, prs = 0; try { tm = L35.totalMinutes(); days = L35.days(); nc = L35.noteCount(); } catch (e) {} try { tr = L36.days().filter(r => Object.keys(r.x).length >= 4).length; prs = L36.prs(3650).length; } catch (e) {} const qn = L37.cleared();
@@ -79,8 +99,12 @@
     tier('best', 'Bests', n => n + ' bests in the log', prs, [5, 25], n => n + ' bests', ['pewter', 'gold']);
     tier('quest', 'Quests', n => n + ' quests cleared', qn, [10, 50, 100], n => n + ' quests', ['bronze', 'pewter', 'gold']);
     B.push({ id: 'push', kind: 'mark', name: 'Friendsgiving', lab: 'Push · Nov 27', sub: 'Milestones', c: METAL.atium, got: PUSH.books.every(b => isRead(b[0])), need: 'Finish all eight books of the push', big: '8' });
-    const E = O('bmk').e || {}; B.forEach(b => { b.at = E[b.id] || null; }); return B; }
-  L37.syncMarks = function (quiet) { const B = L37.bookmarks(); if (waiting()) return B; const st = O('bmk'); const e = Object.assign({}, st.e || {}); const news = []; B.forEach(b => { if (b.got && !e[b.id]) { e[b.id] = today(); news.push(b); } }); if (news.length) { try { setOverride('bmk', { e, init: 1 }); } catch (x) {} if (!quiet && st.init) { try { toast('Bookmark earned · ' + news[0].name + (news.length > 1 ? ' +' + (news.length - 1) : '')); } catch (x) {} } } else if (!st.init) { try { setOverride('bmk', { init: 1 }); } catch (x) {} } return B; };
+    const st = O('bmk'), E = st.e || {}, first = stampOf(st);
+    B.forEach(b => { const real = b.got ? earnedOn(b) : null; b.at = real || (b.got && DAY.test(String(E[b.id] || '')) && E[b.id] !== first ? E[b.id] : null); }); return B; }
+  // The first sync wrote that day on every bookmark it found. That day is when the app noticed them, not when they were earned,
+  // so it is kept as the stamp and never shown as a date. Older data has no stamp: its earliest date is the first sync.
+  function stampOf(st) { if (st.stamp) return st.stamp; if (!st.init) return null; return Object.values(st.e || {}).filter(d => DAY.test(String(d))).sort()[0] || null; }
+  L37.syncMarks = function (quiet) { const B = L37.bookmarks(); if (waiting()) return B; const st = O('bmk'); const e = Object.assign({}, st.e || {}); const news = []; const stamp = st.stamp || (st.init ? stampOf(st) || 'none' : today()); B.forEach(b => { if (b.got && !e[b.id]) { e[b.id] = earnedOn(b) || today(); news.push(b); } }); if (news.length) { try { setOverride('bmk', { e, init: 1, stamp }); } catch (x) {} if (!quiet && st.init) { try { toast('Bookmark earned · ' + news[0].name + (news.length > 1 ? ' +' + (news.length - 1) : '')); } catch (x) {} } } else if (!st.init || !st.stamp) { try { setOverride('bmk', { init: 1, stamp }); } catch (x) {} } return B; };
   // the one he keeps in the book he is reading: his pick, or the newest earned
   L37.inUse = function () { const B = L37.bookmarks().filter(b => b.got); const u = O('bmk').use; if (u === 'none' || !B.length) return null; return B.find(b => b.id === u) || B.slice().sort((a, b) => String(a.at || '').localeCompare(String(b.at || '')))[B.length - 1]; };
   L37.use = function (id) { const cur = L37.inUse(); try { setOverride('bmk', { use: cur && cur.id === id ? 'none' : id }); } catch (e) {} ver++; hang(); };
@@ -98,7 +122,7 @@
   let host, root, tab = 'all', view = 'log';
   function draw() { const body = root.querySelector('.body'); const keep = body.scrollTop;
     if (view === 'marks') { const B = L37.bookmarks(); const got = B.filter(b => b.got); const use = L37.inUse(); root.querySelector('.top b').textContent = 'Den bookmarks';
-      const cell = b => '<' + (b.got ? 'button data-a="use" data-k="' + esc(b.id) + '"' : 'div') + ' class="cell' + (use && use.id === b.id ? ' use' : '') + '">' + mark(b) + '<span>' + esc(b.name) + '</span><i>' + (use && use.id === b.id ? 'In your book' : b.got ? (b.at ? 'Earned ' + dOf(b.at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Earned') : esc(b.need)) + '</i></' + (b.got ? 'button' : 'div') + '>';
+      const cell = b => '<' + (b.got ? 'button data-a="use" data-k="' + esc(b.id) + '"' : 'div') + ' class="cell' + (use && use.id === b.id ? ' use' : '') + '">' + mark(b) + '<span>' + esc(b.name) + '</span><i>' + (use && use.id === b.id ? 'In your book' : b.got ? (b.at ? 'Earned ' + dOf(b.at).toLocaleDateString('en-US', String(b.at).slice(0, 4) === today().slice(0, 4) ? { month: 'short', day: 'numeric' } : { month: 'short', day: 'numeric', year: 'numeric' }) : 'Earned') : esc(b.need)) + '</i></' + (b.got ? 'button' : 'div') + '>';
       const grp = (name, L) => L.length ? '<h3>' + esc(name) + '<small>' + L.filter(b => b.got).length + ' / ' + L.length + '</small></h3><div class="grid">' + L.map(cell).join('') + '</div>' : '';
       const series = {}; B.filter(b => b.kind === 'book').forEach(b => { (series[b.sub] = series[b.sub] || []).push(b); }); body.innerHTML = '<p class="fine">' + got.length + ' of ' + B.length + ' earned. Each one comes from something you logged, and none can be lost. Tap one you have earned to keep it in the book you are reading.</p>' + Object.keys(series).map(k => grp(k, series[k])).join('') + grp('Milestones', B.filter(b => b.kind !== 'book')); body.scrollTop = keep; return; }
     const Q = L37.list(); root.querySelector('.top b').textContent = 'Quest log'; const L = Q.filter(q => tab === 'all' || q.p === tab); const sc = { today: 'Today', week: 'This week', line: 'Quest lines' }; const tg = L37.target(); const own = +O('quests').rt;

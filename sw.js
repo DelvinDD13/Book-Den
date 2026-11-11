@@ -1,8 +1,9 @@
 // Book Den service worker — the app opens from cache at once; a fresh copy is fetched behind it and used on the next open.
 // The save goes to the store live and is never cached here. Covers are cached by URL (capped).
-const C = 'den-202611110949';
+const C = 'den-202611111311';
 const COVERS = 'den-covers', MAXC = 1500;
-self.addEventListener('install', e => { e.waitUntil(caches.open(C).then(c => c.addAll(['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'])).then(() => self.skipWaiting())); });
+// the new build's page is fetched past the browser's own cache, so a new worker never installs with the old page in it
+self.addEventListener('install', e => { e.waitUntil(caches.open(C).then(c => c.addAll(['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'].map(u => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting())); });
 // Fonts and art do not change between builds, so they are carried into the new cache instead of being fetched again (and stay available offline).
 async function carry(ks) { try { const nc = await caches.open(C); for (const k of ks) { if (k === C || k === COVERS || !/^den-\d/.test(k)) continue; const oc = await caches.open(k); for (const r of await oc.keys()) { try { if (!/\/(fonts|art)\//.test(new URL(r.url).pathname) || await nc.match(r)) continue; const resp = await oc.match(r); if (resp) await nc.put(r, resp); } catch (x) {} } } } catch (x) {} return ks; }
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(carry).then(ks => Promise.all(ks.filter(k => k !== C && k !== COVERS).map(k => caches.delete(k))))
