@@ -467,6 +467,7 @@ def apply():
     here and measured, and only what loads is written. src is 'audit' so later cover jobs leave these rows alone."""
     AP = json.load(open(os.path.join(HERE, 'poster_apply.json'))); rows = {}; rep = {}; now = int(time.time() * 1000)
     for k, v in AP.items():
+        if v.get('done'): continue   # written by an earlier run
         u = v['url']
         try:
             b = wget(u) if 'wikimedia' in u else raw(u, 40); im = Image.open(io.BytesIO(b)); w, h = im.size
@@ -559,8 +560,95 @@ def hunt():
     except Exception as e: out.setdefault('game:Pokémon Scarlet', []).append({'label': 'nintendo', 'err': str(e)[:80]})
     save('hunt.json', out); sheet(items, 'hunt.jpg', cols=6, w=180, h=270, fit=True)
 
+# ---------------------------------------------------------------- fifth pass: his Audible titles against Audible's own catalogue
+def audible():
+    """Author, narrator, length and cover for every Audible title in the library, from Audible's public catalogue.
+    A match needs the same title (with or without its subtitle); a narrator or author the app already has breaks ties."""
+    L = json.load(open(os.path.join(HERE, 'audible_titles.json'))); out = {}; H = dict(UA, **{'Accept': 'application/json'})
+    def q(params):
+        u = 'https://api.audible.com/1.0/catalog/products?num_results=12&products_sort_by=Relevance&response_groups=contributors,product_desc,product_attrs,media,rating,series&image_sizes=500,1024&' + urllib.parse.urlencode(params)
+        for a in range(3):
+            try: return json.loads(urllib.request.urlopen(urllib.request.Request(u, headers=H), timeout=40).read().decode()).get('products') or []
+            except urllib.error.HTTPError as e:
+                if e.code in (429, 503): time.sleep(8 * (a + 1)); continue
+                raise
+        return []
+    def names(x): return [n.get('name', '') for n in (x or [])]
+    def brief(p):
+        return {'asin': p.get('asin'), 'title': p.get('title'), 'subtitle': p.get('subtitle'), 'authors': names(p.get('authors')), 'narrators': names(p.get('narrators')), 'min': p.get('runtime_length_min'), 'released': p.get('release_date'), 'lang': p.get('language'), 'fmt': p.get('format_type'), 'series': [[x.get('title'), x.get('sequence')] for x in (p.get('series') or [])], 'img': (p.get('product_images') or {}).get('1024') or (p.get('product_images') or {}).get('500'), 'ratings': ((p.get('rating') or {}).get('overall_distribution') or {}).get('num_ratings')}
+    def last(n): return norm(n).split(' ')[-1] if n else ''
+    n_ok = 0
+    for i, (t, author, narr, series, rt) in enumerate(L):
+        main = re.sub(r'\s*[\(\[][^\)\]]*[\)\]]\s*$', '', t).split(':')[0].strip()
+        try:
+            P = q({'title': main}) if not author else q({'title': main, 'author': author.split(',')[0].split('&')[0].strip()})
+            if not P and author: P = q({'title': main})
+            if not P: P = q({'keywords': t})
+        except Exception as e: out[t] = {'err': str(e)[:100]}; continue
+        nt = norm(t); C = []
+        for p in P:
+            if (p.get('language') or 'english') != 'english': continue
+            full = norm('%s %s' % (p.get('title') or '', p.get('subtitle') or '')); tt = norm(p.get('title') or '')
+            how = 'exact' if nt in (full, tt) else 'main' if norm(main) == tt else 'starts' if (nt.startswith(tt + ' ') or tt.startswith(norm(main) + ' ')) else None
+            if not how: continue
+            sc = {'exact': 30, 'main': 20, 'starts': 8}[how]
+            if author and any(last(a) and last(a) == last(author.split(',')[0].split('&')[0]) for a in names(p.get('authors'))): sc += 10
+            if narr and any(last(x) and last(x) in norm(narr) for x in names(p.get('narrators'))): sc += 12
+            sc += min(6, (((p.get('rating') or {}).get('overall_distribution') or {}).get('num_ratings') or 0) ** 0.5 / 40)
+            C.append((sc, how, p))
+        C.sort(key=lambda c: -c[0])
+        if C:
+            b = brief(C[0][2]); b['how'] = C[0][1]; b['score'] = round(C[0][0], 1); b['others'] = [[x[1], (x[2].get('title') or '')[:50], names(x[2].get('authors'))[:2], names(x[2].get('narrators'))[:2], x[2].get('runtime_length_min')] for x in C[1:4]]
+            out[t] = b; n_ok += 1
+        else: out[t] = {'miss': 1, 'saw': [[(p.get('title') or '')[:50], names(p.get('authors'))[:2]] for p in P[:4]]}
+        if i % 40 == 0: log('audible', i, n_ok)
+        time.sleep(0.25)
+    save('audible.json', out); log('audible matched', n_ok, 'of', len(L))
+
+BOOKFIX = [('The Games Gods Play', 'Abigail Owen'), ('Generations: A Memoir', 'Lucille Clifton'), ('The Midnight Library', 'Matt Haig'), ('Sherlock Holmes: The Definitive Collection', 'Arthur Conan Doyle'), ('The Daily Stoic: 366 Meditations on Wisdom, Perseverance, and the Art of Living', 'Ryan Holiday'), ('Percy Jackson and the Olympians: The Chalice of the Gods', 'Rick Riordan'), ('Gild: The Plated Prisoner Series, Book 1', 'Raven Kennedy'), ('Gleam: The Plated Prisoner Series, Book 3', 'Raven Kennedy'), ('Glow: The Plated Prisoner Series, Book 4', 'Raven Kennedy'), ('Goldfinch: The Plated Prisoner Series, Book 6', 'Raven Kennedy'), ('The Poison Daughter', 'Sheila Masterson'), ('Arcanum Unbounded: The Cosmere Collection', 'Brandon Sanderson'), ('Air Awakens: The Complete Series', 'Elise Kova'), ('Reminders of Him', 'Colleen Hoover'), ('Yellow face', 'R. F. Kuang'), ('The Keeper Chronicles: The Complete Trilogy', 'JA Andrews'), ('Return to Honor', ''), ('The Titan’s Curse', 'Rick Riordan'), ('Sixth of the Dusk', 'Brandon Sanderson'), ('Giovanni’s Room', 'James Baldwin'), ('I Am a Cat', 'Soseki Natsume'), ('The Sundering', 'John Gwynne'), ('Legends of Sleeping Dragons', ''), ('The Amber Spyglass', 'Philip Pullman')]
+def bookfix():
+    """Cover candidates for the books whose stored cover is the wrong book, a foreign edition, or missing. Candidates only."""
+    out = {}; items = []
+    for t, a in BOOKFIX:
+        main = re.sub(r'\s*[\(\[][^\)\]]*[\)\]]\s*$', '', t).split(':')[0].strip(); out[t] = []
+        for media, entity, key in (('ebook', 'ebook', 'trackName'), ('audiobook', 'audiobook', 'collectionName')):
+            try:
+                d = get('https://itunes.apple.com/search?country=us&lang=en_us&limit=10&media=%s&entity=%s&term=%s' % (media, entity, urllib.parse.quote((main + ' ' + a).strip())), 30)
+                for m in d.get('results', [])[:6]:
+                    nm = m.get(key) or ''; art = m.get('artworkUrl100')
+                    if not art or not norm(nm).startswith(norm(main)[:12]): continue
+                    if a and norm(a).split(' ')[-1] not in norm(m.get('artistName') or ''): continue
+                    u = re.sub(r'/[0-9]+x[0-9]+[a-z]*(-[0-9]+)?\.(jpg|png|webp)$', '/600x900bb.jpg', art)
+                    out[t].append({'src': 'apple-' + media, 'name': nm, 'by': m.get('artistName'), 'url': u}); items.append(('%s | %s %s' % (t[:20], media[:5], (m.get('artistName') or '')[:14]), u))
+            except Exception as e: out[t].append({'src': media, 'err': str(e)[:80]})
+            time.sleep(3.2)
+        while len(items) % 8: items.append(('', ''))
+    save('bookfix.json', out); sheet(items, 'bookfix.jpg', cols=8, w=140, h=210, fit=True)
+
+def hunt2():
+    """Pokemon Scarlet's own box art from IGDB's public page (its og:image is the cover)."""
+    out = {}; items = []
+    BR = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15', 'Accept-Language': 'en-US,en;q=0.9', 'Accept': 'text/html,application/xhtml+xml'}
+    for slug in ['pokemon-scarlet', 'pokemon-scarlet-and-violet']:
+        try:
+            html = urllib.request.urlopen(urllib.request.Request('https://www.igdb.com/games/' + slug, headers=BR), timeout=40).read().decode('utf-8', 'ignore')
+            og = re.findall(r'property="og:image" content="([^"]+)"', html) + re.findall(r'(https://images\.igdb\.com/igdb/image/upload/t_cover_big[^"\\ ]+)', html)
+            out[slug] = {'og': og[:4], 'title': (re.findall(r'<title>([^<]+)', html) or [''])[0][:80]}
+            for u in og[:2]:
+                u2 = re.sub(r'/t_[a-z0-9_]+/', '/t_cover_big_2x/', u if u.startswith('http') else 'https:' + u)
+                try: im = Image.open(io.BytesIO(urllib.request.urlopen(urllib.request.Request(u2, headers=BR), timeout=40).read())); out[slug].setdefault('imgs', []).append([u2, im.width, im.height]); items.append(('igdb ' + slug[:22], u2))
+                except Exception as e: out[slug].setdefault('imgs', []).append([u2, 'ERR ' + str(e)[:60]])
+        except Exception as e: out[slug] = {'err': str(e)[:100]}
+        time.sleep(1)
+    # Nintendo's own key art, padded to a book-cover shape by its image service
+    for nm, tr in [('nintendo pad', 'ar_2:3,c_pad,b_auto,w_600'), ('nintendo fill east', 'ar_2:3,c_fill,g_east,w_600'), ('nintendo fill auto', 'ar_2:3,c_fill,g_auto,w_600')]:
+        u = 'https://assets.nintendo.com/image/upload/%s/store/software/switch/70010000053966/849c234de8df7265201d26d9d72f88eed3f32438d3dca12fc135beb4c3befc85' % tr
+        try: im = Image.open(io.BytesIO(urllib.request.urlopen(urllib.request.Request(u, headers=BR), timeout=40).read())); out[nm] = [u, im.width, im.height]; items.append((nm, u))
+        except Exception as e: out[nm] = [u, 'ERR ' + str(e)[:60]]
+    save('hunt2.json', out); sheet(items, 'hunt2.jpg', cols=6, w=180, h=270, fit=True)
+
 if __name__ == '__main__':
-    todo = sys.argv[1:] or ['apply', 'hunt']
+    todo = sys.argv[1:] or ['apply', 'hunt2', 'audible', 'bookfix']
     for name in todo:
-        try: {'imdb': imdb, 'tvmaze': tvmaze, 'posters': posters, 'superman': superman, 'fix': fix, 'wikibox': wikibox, 'anime': anime, 'steam': steam, 'pkmn': pkmn, 'wikiraw': wikiraw, 'imdb2': imdb2, 'books': books, 'links': links, 'apply': apply, 'hunt': hunt}[name]()
+        try: {'imdb': imdb, 'tvmaze': tvmaze, 'posters': posters, 'superman': superman, 'fix': fix, 'wikibox': wikibox, 'anime': anime, 'steam': steam, 'pkmn': pkmn, 'wikiraw': wikiraw, 'imdb2': imdb2, 'books': books, 'links': links, 'apply': apply, 'hunt': hunt, 'audible': audible, 'bookfix': bookfix, 'hunt2': hunt2}[name]()
         except Exception: log('FAILED', name); traceback.print_exc()
