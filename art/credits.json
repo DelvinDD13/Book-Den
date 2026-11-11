@@ -47,7 +47,7 @@
  {
   "id": "dore-leviathan",
   "title": "Destruction of Leviathan (1865)",
-  "artist": "Gustave Dor\u00e9",
+  "artist": "Gustave Doré",
   "license": "Public domain",
   "page": "https://commons.wikimedia.org/wiki/File:Destruction_of_Leviathan.png",
   "w": 1267,
@@ -56,7 +56,7 @@
  {
   "id": "dore-lucifer",
   "title": "Lucifer, King of Hell (Inferno XXXIV)",
-  "artist": "Gustave Dor\u00e9",
+  "artist": "Gustave Doré",
   "license": "Public domain",
   "page": "https://commons.wikimedia.org/wiki/File:DVinfernoLuciferKingOfHell_m.jpg",
   "w": 1600,
@@ -65,7 +65,7 @@
  {
   "id": "dore-dragon-divider",
   "title": "Dragon page column separator (1883)",
-  "artist": "Gustave Dor\u00e9",
+  "artist": "Gustave Doré",
   "license": "Public domain",
   "page": "https://commons.wikimedia.org/wiki/File:Gustave_Dor%C3%A9_-_dragon_page_column_separator.jpg",
   "w": 654,
@@ -232,5 +232,14 @@
   "artist": "delapouite (game-icons.net)",
   "license": "CC BY 3.0",
   "page": "https://game-icons.net/1x1/delapouite/joystick.html"
+ },
+ {
+  "id": "fleischer-superman-title",
+  "title": "Superman (1941), title card",
+  "artist": "Fleischer Studios, released by Paramount",
+  "license": "Public domain",
+  "page": "https://commons.wikimedia.org/wiki/File:Supermanshorttitle.PNG",
+  "w": 1280,
+  "h": 934
  }
 ]

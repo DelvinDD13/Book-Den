@@ -553,5 +553,15 @@
   "url": "https://m.media-amazon.com/images/I/91WXH4YydbL._SL1024_.jpg",
   "from": "audible",
   "note": "his Audible edition; the old picture was Larger Than Life, a different book"
+ },
+ "book:A Shadow in the Ember": {
+  "url": "https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/b7/2f/6a/b72f6abc-967e-7ccb-5c6e-3bd9eafa8e87/rm_image.jpg/600x900bb.jpg",
+  "from": "apple-audiobook",
+  "note": "English audiobook cover; the old picture was the Italian edition"
+ },
+ "book:Ariel": {
+  "url": "https://is1-ssl.mzstatic.com/image/thumb/Publication128/v4/8f/5c/6d/8f5c6d3f-531f-9027-c7b7-d1d551430184/9780062669445_marketingimage.jpg/600x900bb.jpg",
+  "from": "apple-ebook",
+  "note": "Ariel: The Restored Edition (Harper); the old picture was a Dutch edition"
  }
 }
