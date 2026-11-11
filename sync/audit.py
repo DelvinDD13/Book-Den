@@ -691,11 +691,13 @@ def summaries():
                 raise
         return {}
     def tidy(x): return html.unescape(re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', ' ', x or ''))).strip()
-    def brief(p): return {'asin': p.get('asin'), 'title': p.get('title'), 'subtitle': p.get('subtitle'), 'authors': [n.get('name', '') for n in (p.get('authors') or [])], 'series': [[x.get('title'), x.get('sequence')] for x in (p.get('series') or [])], 'released': p.get('release_date'), 'sum': tidy(p.get('publisher_summary'))[:1100]}
-    RG = 'response_groups=product_desc,contributors,series,product_attrs'
+    def brief(p): return {'asin': p.get('asin'), 'title': p.get('title'), 'subtitle': p.get('subtitle'), 'authors': [n.get('name', '') for n in (p.get('authors') or [])], 'series': [[x.get('title'), x.get('sequence')] for x in (p.get('series') or [])], 'released': p.get('release_date'), 'sum': tidy(p.get('publisher_summary') or p.get('merchandising_summary') or p.get('extended_product_description'))[:1100]}
+    RG = 'response_groups=product_desc,product_extended_attrs,contributors,series,product_attrs'; keys = {}
     for i, (t, asin, author) in enumerate(L):
         try:
-            if asin: out[t] = brief(call('https://api.audible.com/1.0/catalog/products/%s?%s' % (asin, RG)).get('product') or {})
+            if asin:
+                pr = call('https://api.audible.com/1.0/catalog/products/%s?%s' % (asin, RG)).get('product') or {}; out[t] = brief(pr)
+                for k in pr: keys[k] = keys.get(k, 0) + 1
             else:
                 main = re.sub(r'\s*[\(\[][^\)\]]*[\)\]]\s*$', '', t).split(':')[0].strip(); a1 = author.split(',')[0].split('&')[0].strip() if author else ''
                 P = call('https://api.audible.com/1.0/catalog/products?num_results=8&products_sort_by=Relevance&%s&%s' % (RG, urllib.parse.urlencode({'title': main, 'author': a1} if a1 else {'title': main}))).get('products') or []
@@ -704,7 +706,7 @@ def summaries():
         except Exception as e: out[t] = {'err': str(e)[:100]}
         if i % 50 == 0: log('summaries', i)
         time.sleep(0.2)
-    save('summaries.json', out); log('summaries', len(out), 'with text', sum(1 for v in out.values() if v.get('sum')))
+    out['__fields'] = keys; save('summaries.json', out); log('summaries', len(out), 'with text', sum(1 for v in out.values() if isinstance(v, dict) and v.get('sum')), 'fields', sorted(keys))
 
 BOOKFIX = [('The Games Gods Play', 'Abigail Owen'), ('Generations: A Memoir', 'Lucille Clifton'), ('The Midnight Library', 'Matt Haig'), ('Sherlock Holmes: The Definitive Collection', 'Arthur Conan Doyle'), ('The Daily Stoic: 366 Meditations on Wisdom, Perseverance, and the Art of Living', 'Ryan Holiday'), ('Percy Jackson and the Olympians: The Chalice of the Gods', 'Rick Riordan'), ('Gild: The Plated Prisoner Series, Book 1', 'Raven Kennedy'), ('Gleam: The Plated Prisoner Series, Book 3', 'Raven Kennedy'), ('Glow: The Plated Prisoner Series, Book 4', 'Raven Kennedy'), ('Goldfinch: The Plated Prisoner Series, Book 6', 'Raven Kennedy'), ('The Poison Daughter', 'Sheila Masterson'), ('Arcanum Unbounded: The Cosmere Collection', 'Brandon Sanderson'), ('Air Awakens: The Complete Series', 'Elise Kova'), ('Reminders of Him', 'Colleen Hoover'), ('Yellow face', 'R. F. Kuang'), ('The Keeper Chronicles: The Complete Trilogy', 'JA Andrews'), ('Return to Honor', ''), ('The Titan’s Curse', 'Rick Riordan'), ('Sixth of the Dusk', 'Brandon Sanderson'), ('Giovanni’s Room', 'James Baldwin'), ('I Am a Cat', 'Soseki Natsume'), ('The Sundering', 'John Gwynne'), ('Legends of Sleeping Dragons', ''), ('The Amber Spyglass', 'Philip Pullman')]
 def bookfix():
