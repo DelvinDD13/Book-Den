@@ -678,6 +678,34 @@ def audible(src='audible_titles.json', dst='audible.json'):
     save(dst, out); log('audible matched', n_ok, 'of', len(L), '->', dst)
 def audible2(): audible('audible_titles2.json', 'audible2.json')
 
+def summaries():
+    """The publisher's own summary for each title in sync/summary_titles.json ([title, ASIN or null, author]), from Audible's
+    public catalogue. Used to check the app's one-line synopses against what the book says it is. Nothing is written."""
+    import html
+    L = json.load(open(os.path.join(HERE, 'summary_titles.json'))); out = {}; H = dict(UA, **{'Accept': 'application/json'})
+    def call(u):
+        for n in range(3):
+            try: return json.loads(urllib.request.urlopen(urllib.request.Request(u, headers=H), timeout=40).read().decode())
+            except urllib.error.HTTPError as e:
+                if e.code in (429, 503): time.sleep(8 * (n + 1)); continue
+                raise
+        return {}
+    def tidy(x): return html.unescape(re.sub(r'\s+', ' ', re.sub(r'<[^>]+>', ' ', x or ''))).strip()
+    def brief(p): return {'asin': p.get('asin'), 'title': p.get('title'), 'subtitle': p.get('subtitle'), 'authors': [n.get('name', '') for n in (p.get('authors') or [])], 'series': [[x.get('title'), x.get('sequence')] for x in (p.get('series') or [])], 'released': p.get('release_date'), 'sum': tidy(p.get('publisher_summary'))[:1100]}
+    RG = 'response_groups=product_desc,contributors,series,product_attrs'
+    for i, (t, asin, author) in enumerate(L):
+        try:
+            if asin: out[t] = brief(call('https://api.audible.com/1.0/catalog/products/%s?%s' % (asin, RG)).get('product') or {})
+            else:
+                main = re.sub(r'\s*[\(\[][^\)\]]*[\)\]]\s*$', '', t).split(':')[0].strip(); a1 = author.split(',')[0].split('&')[0].strip() if author else ''
+                P = call('https://api.audible.com/1.0/catalog/products?num_results=8&products_sort_by=Relevance&%s&%s' % (RG, urllib.parse.urlencode({'title': main, 'author': a1} if a1 else {'title': main}))).get('products') or []
+                ok = [p for p in P if (p.get('language') or 'english') == 'english' and norm(p.get('title') or '') == norm(main)]
+                out[t] = dict(brief(ok[0]), how='searched') if ok else {'miss': 1, 'saw': [(p.get('title') or '')[:50] for p in P[:4]]}
+        except Exception as e: out[t] = {'err': str(e)[:100]}
+        if i % 50 == 0: log('summaries', i)
+        time.sleep(0.2)
+    save('summaries.json', out); log('summaries', len(out), 'with text', sum(1 for v in out.values() if v.get('sum')))
+
 BOOKFIX = [('The Games Gods Play', 'Abigail Owen'), ('Generations: A Memoir', 'Lucille Clifton'), ('The Midnight Library', 'Matt Haig'), ('Sherlock Holmes: The Definitive Collection', 'Arthur Conan Doyle'), ('The Daily Stoic: 366 Meditations on Wisdom, Perseverance, and the Art of Living', 'Ryan Holiday'), ('Percy Jackson and the Olympians: The Chalice of the Gods', 'Rick Riordan'), ('Gild: The Plated Prisoner Series, Book 1', 'Raven Kennedy'), ('Gleam: The Plated Prisoner Series, Book 3', 'Raven Kennedy'), ('Glow: The Plated Prisoner Series, Book 4', 'Raven Kennedy'), ('Goldfinch: The Plated Prisoner Series, Book 6', 'Raven Kennedy'), ('The Poison Daughter', 'Sheila Masterson'), ('Arcanum Unbounded: The Cosmere Collection', 'Brandon Sanderson'), ('Air Awakens: The Complete Series', 'Elise Kova'), ('Reminders of Him', 'Colleen Hoover'), ('Yellow face', 'R. F. Kuang'), ('The Keeper Chronicles: The Complete Trilogy', 'JA Andrews'), ('Return to Honor', ''), ('The Titan’s Curse', 'Rick Riordan'), ('Sixth of the Dusk', 'Brandon Sanderson'), ('Giovanni’s Room', 'James Baldwin'), ('I Am a Cat', 'Soseki Natsume'), ('The Sundering', 'John Gwynne'), ('Legends of Sleeping Dragons', ''), ('The Amber Spyglass', 'Philip Pullman')]
 def bookfix():
     """Cover candidates for the books whose stored cover is the wrong book, a foreign edition, or missing. Candidates only."""
@@ -741,7 +769,7 @@ def hunt2():
     save('hunt2.json', out); sheet(items, 'hunt2.jpg', cols=6, w=180, h=270, fit=True)
 
 if __name__ == '__main__':
-    todo = sys.argv[1:] or ['unstray', 'apply']   # unstray first, every run: no poster record may sit in a show: or game: row
+    todo = sys.argv[1:] or ['unstray', 'apply', 'summaries']   # unstray first, every run: no poster record may sit in a show: or game: row
     for name in todo:
-        try: {'imdb': imdb, 'tvmaze': tvmaze, 'posters': posters, 'superman': superman, 'fix': fix, 'wikibox': wikibox, 'anime': anime, 'steam': steam, 'pkmn': pkmn, 'wikiraw': wikiraw, 'imdb2': imdb2, 'books': books, 'links': links, 'apply': apply, 'hunt': hunt, 'audible': audible, 'bookfix': bookfix, 'hunt2': hunt2, 'unstray': unstray, 'audible2': audible2, 'bookfix2': bookfix2}[name]()
+        try: {'imdb': imdb, 'tvmaze': tvmaze, 'posters': posters, 'superman': superman, 'fix': fix, 'wikibox': wikibox, 'anime': anime, 'steam': steam, 'pkmn': pkmn, 'wikiraw': wikiraw, 'imdb2': imdb2, 'books': books, 'links': links, 'apply': apply, 'hunt': hunt, 'audible': audible, 'bookfix': bookfix, 'hunt2': hunt2, 'unstray': unstray, 'audible2': audible2, 'bookfix2': bookfix2, 'summaries': summaries}[name]()
         except Exception: log('FAILED', name); traceback.print_exc()
