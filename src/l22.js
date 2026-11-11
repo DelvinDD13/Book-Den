@@ -32,6 +32,12 @@
   function shelve(t, genre) { const L = VIEWS.genre[genre] = VIEWS.genre[genre] || []; if (!L.some(b => b.title === t)) { L.push({ title: t }); L.sort((a, b) => a.title.localeCompare(b.title)); } if (!ORDERS.genre.includes(genre)) ORDERS.genre.push(genre); if (!ALL_TITLES.includes(t)) ALL_TITLES.push(t); if (!GENRE_OF[t]) GENRE_OF[t] = genre; }
   function own(t) { const m = META[t] = META[t] || {}; m.gr = false; if (!ALL_TITLES.includes(t)) ALL_TITLES.push(t); return m; }
   L22.owned = () => ALL_TITLES.filter(t => !(META[t] || {}).gr);
+  // a title bought later (from Upcoming) joins the shelves the same way an Audible addition does
+  L22.add = function (e) { try { if (typeof GR === 'undefined' || !e || !e.t) return null; const n = nt(e.t); const have = ALL_TITLES.find(x => nt(x) === n) || (typeof GR_BY_NORM !== 'undefined' && GR_BY_NORM[n]);
+      if (have && META[have]) { const m = own(have); if (e.aud) { m.aud = true; delete m.how; } else if (!m.aud && !m.how) m.how = e.how || 'Kindle or the shelf'; if (!m.author && e.a) m.author = e.a; if (e.s && !m.series) { m.series = e.s; m.num = e.n || ''; } place(have, e.s || m.series); return have; }
+      const g = { title: e.t, author: e.a || '', pages: '', year: e.y || '', gr: '', norm: n, st: 'to-read', o: {}, genre: e.g, series: e.s || '', num: e.n || '' }; GR.push(g);
+      META[g.title] = Object.assign(META[g.title] || {}, { author: g.author, year: g.year, gr: false, aud: !!e.aud, ku: false, series: g.series, num: g.num }); if (!e.aud) META[g.title].how = e.how || 'Kindle or the shelf'; if (e.syn && !META[g.title].synopsis) META[g.title].synopsis = e.syn; if (!META[g.title].status) META[g.title].status = 'to-read';
+      if (typeof GR_BY_NORM !== 'undefined' && !GR_BY_NORM[g.norm]) GR_BY_NORM[g.norm] = g.title; shelve(g.title, g.genre); place(g.title, g.series); return g.title; } catch (x) { console.warn('l22 add', x); return null; } };
   L22.isAud = t => { const m = META[t] || {}; return !m.gr && !m.within && !m.how; };
   // 1) the shelves: every Audible title is an owned, first-class title — on the status tabs, in the shelves and counts, in its genre and series, and no longer "Goodreads"
   (function () { try { if (typeof GR === 'undefined') return; const have = new Set(GR.map(g => g.norm).concat(ALL_TITLES.map(nt)));
