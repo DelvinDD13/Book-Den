@@ -8,7 +8,7 @@ from PIL import Image, ImageDraw, ImageFont
 
 HERE = os.path.dirname(os.path.abspath(__file__)); OUT = os.path.join(HERE, '..', 'audit'); os.makedirs(OUT, exist_ok=True)
 STORE = os.environ.get('DEN_STORE_URL', ''); KEY = os.environ.get('DEN_KEY', '')
-UA = {'User-Agent': 'BookDenAudit/1.0 (personal library app; github.com/DelvinDD13/Book-Den)'}
+UA = {'User-Agent': 'BookDenAudit/1.1 (personal library app; https://github.com/DelvinDD13/Book-Den; contact via repository issues)'}
 def log(*a): print(*a, flush=True)
 def raw(url, timeout=60):
     return urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=timeout).read()
@@ -163,8 +163,93 @@ def superman():
     save('superman.json', {'kept': keep[:24], 'all': [{'title': m['title'], 'license': m['license']} for m in meta]}); log('superman stills', len(keep), 'of', len(meta))
     sheet([((m.get('file') or '') + ' ' + m['title'][5:], m.get('thumb') or m.get('url')) for m in keep[:24]], 'superman.jpg', cols=4, w=260, h=195, fit=True)
 
+
+def wget(url, tries=4):
+    """Wikimedia asks for a contact in the User-Agent and paces image traffic; back off when it says so."""
+    for i in range(tries):
+        try: time.sleep(1.6); return raw(url, 40)
+        except Exception as e:
+            if '429' in str(e) and i < tries - 1: time.sleep(20 * (i + 1)); continue
+            raise
+def wiki_image(title, size=600):
+    d = get('https://en.wikipedia.org/w/api.php?action=query&format=json&redirects=1&titles=%s&prop=pageimages&piprop=thumbnail|original|name&pithumbsize=%d&pilicense=any' % (urllib.parse.quote(title), size), 30)
+    for p in (d.get('query') or {}).get('pages', {}).values():
+        t = p.get('thumbnail') or {}; o = p.get('original') or {}
+        if t.get('source') or o.get('source'): return {'page': p.get('title'), 'url': (t.get('source') or o.get('source')), 'orig': o.get('source'), 'w': t.get('width') or o.get('width'), 'h': t.get('height') or o.get('height')}
+    return {'page': None}
+def fix():
+    """Candidates for every wrong or missing poster: the named Wikipedia article's own image, or MyAnimeList's poster by id.
+    Nothing is written to the store here; the sheets are for checking by eye first."""
+    F = json.load(open(os.path.join(HERE, 'poster_fix.json'))); out = {}; items = []
+    for k, title in F['wiki'].items():
+        try: r = wiki_image(title); r['src'] = 'wikipedia'; r['want'] = title
+        except Exception as e: r = {'err': str(e)[:80], 'want': title}
+        out[k] = r; time.sleep(0.3)
+    for k, mid in F['mal'].items():
+        try:
+            a = get('https://api.jikan.moe/v4/anime/%d' % mid, 30).get('data') or {}; im = (a.get('images') or {}).get('jpg', {})
+            out[k] = {'page': a.get('title'), 'en': a.get('title_english'), 'type': a.get('type'), 'year': (a.get('aired') or {}).get('from', '')[:4], 'eps': a.get('episodes'), 'url': im.get('large_image_url') or im.get('image_url'), 'src': 'jikan', 'want': mid}
+        except Exception as e: out[k] = {'err': str(e)[:80], 'want': mid}
+        time.sleep(1.2)
+    L = {}
+    for k, pages in F['list'].items():
+        L[k] = []
+        for pg in pages:
+            try:
+                d = get('https://en.wikipedia.org/w/api.php?action=query&format=json&redirects=1&titles=%s&generator=images&gimlimit=40&prop=imageinfo&iiprop=url|size|mime&iiurlwidth=500' % urllib.parse.quote(pg), 30)
+                for p in (d.get('query') or {}).get('pages', {}).values():
+                    ii = (p.get('imageinfo') or [{}])[0]
+                    if ii.get('mime') in ('image/jpeg', 'image/png') and (ii.get('width') or 0) >= 200: L[k].append({'page': pg, 'file': p.get('title'), 'url': ii.get('thumburl') or ii.get('url'), 'orig': ii.get('url'), 'w': ii.get('width'), 'h': ii.get('height')})
+            except Exception as e: L[k].append({'page': pg, 'err': str(e)[:80]})
+            time.sleep(0.4)
+    save('fix.json', {'one': out, 'list': L})
+    def tile(label, url):
+        if not url: return (label, '')
+        return (label, url)
+    def fsheet(items, name, cols=6, w=150, h=225):
+        rows = (len(items) + cols - 1) // cols; lab = 34; img = Image.new('RGB', (cols * (w + 8) + 8, rows * (h + lab + 8) + 8), (18, 18, 20)); d = ImageDraw.Draw(img); f = font(11)
+        for i, (label, url) in enumerate(items):
+            x = 8 + (i % cols) * (w + 8); y = 8 + (i // cols) * (h + lab + 8)
+            if url:
+                try:
+                    b = wget(url) if 'wikimedia' in url else raw(url, 30); im = Image.open(io.BytesIO(b)).convert('RGB'); im.thumbnail((w, h)); img.paste(im, (x + (w - im.width) // 2, y + (h - im.height) // 2))
+                except Exception as e: d.text((x + 4, y + 4), 'ERR ' + str(e)[:40], fill=(255, 90, 90), font=f)
+            else: d.rectangle([x, y, x + w, y + h], outline=(120, 60, 60)); d.text((x + 4, y + 4), 'NO IMAGE', fill=(255, 90, 90), font=f)
+            d.text((x, y + h + 3), label[:25], fill=(240, 240, 240), font=f); d.text((x, y + h + 17), label[25:50], fill=(240, 240, 240), font=f)
+        img.save(os.path.join(OUT, name), quality=82); log('sheet', name, len(items))
+    one = [(k.split(':', 1)[1], (v or {}).get('url') or '') for k, v in out.items()]
+    for n in range(0, len(one), 36): fsheet(one[n:n + 36], 'fix_%02d.jpg' % (n // 36 + 1))
+    G = []
+    for k, files in L.items():
+        G.append(('== ' + k.split(':', 1)[1], ''))
+        for x in files[:11]: G.append(((x.get('file') or x.get('err') or '')[5:], x.get('url') or ''))
+        while len(G) % 6: G.append(('', ''))
+    fsheet(G, 'fix_games.jpg', cols=6, w=170, h=220)
+
+def wikibox():
+    """Seasons, episodes and air dates from each show's Wikipedia infobox (TV shows and cartoons only)."""
+    out = {}
+    for t, k in SHOWS:
+        if k not in ('tv', 'cartoon'): continue
+        q = clean_show(t)
+        try:
+            d = get('https://en.wikipedia.org/w/api.php?action=query&format=json&list=search&srlimit=4&srsearch=%s' % urllib.parse.quote(q + ' TV series'), 30)
+            hits = [h['title'] for h in (d.get('query') or {}).get('search', [])]
+            pick = next((h for h in hits if norm(re.sub(r'\s*\([^)]*\)$', '', h)) == norm(q)), hits[0] if hits else None)
+            if not pick: out[t] = {'err': 'no article'}; continue
+            w = get('https://en.wikipedia.org/w/api.php?action=parse&format=json&prop=wikitext&section=0&redirects=1&page=%s' % urllib.parse.quote(pick), 30)
+            tx = ((w.get('parse') or {}).get('wikitext') or {}).get('*', '')
+            def f(name):
+                m = re.search(r'\|\s*' + name + r'\s*=\s*([^\n|]*)', tx); return re.sub(r'<[^>]+>|\{\{[^}]*\}\}|\[\[|\]\]', '', m.group(1)).strip()[:60] if m else None
+            def dt(name):
+                m = re.search(r'\|\s*' + name + r'\s*=\s*\{\{[^|}]*\|(?:df=\w+\|)?(\d{4})\|(\d{1,2})\|(\d{1,2})', tx); return '%s-%02d-%02d' % (m.group(1), int(m.group(2)), int(m.group(3))) if m else (f(name) or None)
+            out[t] = {'page': pick, 'seasons': f('num_seasons') or f('num_series'), 'eps': f('num_episodes'), 'first': dt('first_aired'), 'last': dt('last_aired'), 'genre': f('genre'), 'hits': hits[:3]}
+        except Exception as e: out[t] = {'err': str(e)[:80]}
+        time.sleep(0.35)
+    save('wikibox.json', out); log('wikibox', len(out))
+
 if __name__ == '__main__':
-    todo = sys.argv[1:] or ['superman', 'posters', 'tvmaze', 'imdb']
+    todo = sys.argv[1:] or ['fix', 'wikibox']
     for name in todo:
-        try: {'imdb': imdb, 'tvmaze': tvmaze, 'posters': posters, 'superman': superman}[name]()
+        try: {'imdb': imdb, 'tvmaze': tvmaze, 'posters': posters, 'superman': superman, 'fix': fix, 'wikibox': wikibox}[name]()
         except Exception: log('FAILED', name); traceback.print_exc()
