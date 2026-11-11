@@ -1,11 +1,11 @@
 // ===== L31: Encyclopedia data — Mistborn (Era One, Secret History, Era Two). A bare key = that book finished.
 (function () { if (!window.L29) return;
-  L29.add({ k: 'mistborn', n: 'Mistborn', short: 'Mistborn', world: 'Scadrial', by: 'Brandon Sanderson', acc: '#c9a66b', hue: ['#3a2f22', '#100c08'], badge: 'Keeper of Terris',
+  L29.add({ k: 'mistborn', n: 'Mistborn', short: 'Mistborn', world: 'Scadrial', by: 'Brandon Sanderson', skin: 'ash', spines: ['#6f757d', '#51657a', '#8a6f4a', '#6b4a2e', '#7a2f2f', '#3f5f73', '#4c4a5c', '#2f6a5f'], acc: '#c9a66b', hue: ['#3a2f22', '#100c08'], badge: 'Keeper of Terris',
     about: [['', "Ash falls from a red sky, mists come every night, and an immortal emperor has ruled for a thousand years. A crew of thieves with powers drawn from swallowed metal sets out to rob him and bring him down."], ['aol', 'Three hundred years later the same world has railways, guns and electric light, and the old heroes are its religions.']],
     src: [['Coppermind', 'https://coppermind.net/wiki/Mistborn_(series)']],
     books: [
       { k: 'tfe', t: 'The Final Empire', m: 'Final Empire' }, { k: 'woa', t: 'The Well of Ascension', m: '^The Well of Ascension' }, { k: 'hoa', t: 'The Hero of Ages', m: '^The Hero of Ages' },
-      { k: 'aol', t: 'The Alloy of Law', m: '^The Alloy of Law' }, { k: 'sos', t: 'Shadows of Self', m: '^Shadows of Self' }, { k: 'bom', t: 'The Bands of Mourning', m: '^The Bands of Mourning' },
+      { k: 'aol', t: 'The Alloy of Law', m: '^The Alloy of Law' }, { k: 'sos', t: 'Shadows of Self', m: '^Shadows of Self' }, { k: 'bom', t: 'The Bands of Mourning', sp: 'Bands of Mourning', m: '^The Bands of Mourning' },
       { k: 'sh', t: 'Secret History', m: '^(Mistborn: )?Secret History' }, { k: 'tlm', t: 'The Lost Metal', m: '^The Lost Metal' }],
     cats: { people: 'People', groups: 'Houses & Factions', powers: 'Powers & Magic', places: 'Places', lore: 'History & Lore', things: 'Creatures & Things' },
     e: [

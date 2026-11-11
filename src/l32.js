@@ -1,6 +1,6 @@
 // ===== L32: Encyclopedia data — Throne of Glass. A bare key = that book finished.
 (function () { if (!window.L29) return;
-  L29.add({ k: 'tog', n: 'Throne of Glass', short: 'Throne of Glass', world: 'Erilea', by: 'Sarah J. Maas', acc: '#7fb898', hue: ['#1f3a2c', '#0a140f'], badge: 'Reader of Wyrdmarks',
+  L29.add({ k: 'tog', n: 'Throne of Glass', short: 'Throne of Glass', world: 'Erilea', by: 'Sarah J. Maas', skin: 'glass', spines: ['#8a5a2a', '#356aa0', '#a12f3a', '#2f8a5a', '#c0762a', '#5a4a9a', '#2a8a8a', '#8f8a7e'], acc: '#7fb898', hue: ['#1f3a2c', '#0a140f'], badge: 'Reader of Wyrdmarks',
     about: [['', "Magic vanished from the continent of Erilea ten years ago, and the King of Adarlan has conquered most of it since. A teenage assassin is pulled out of a slave camp to fight for the title of King's Champion."]],
     src: [['Throne of Glass Wiki', 'https://throneofglass.fandom.com/wiki/Throne_of_Glass_Wiki']],
     books: [{ k: 'tab', t: "The Assassin's Blade", m: "Assassin's Blade" }, { k: 'tog', t: 'Throne of Glass', m: '^Throne of Glass' }, { k: 'com', t: 'Crown of Midnight', m: '^Crown of Midnight' }, { k: 'hof', t: 'Heir of Fire', m: '^Heir of Fire' },

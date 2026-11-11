@@ -1,6 +1,6 @@
 // ===== L30: Encyclopedia data — The Stormlight Archive. Gates: wok:N = through Part N of The Way of Kings; a bare key = that book finished.
 (function () { if (!window.L29) return;
-  L29.add({ k: 'stormlight', n: 'The Stormlight Archive', short: 'Stormlight', world: 'Roshar', by: 'Brandon Sanderson', acc: '#7fb8db', hue: ['#1d3a52', '#0a141d'], badge: 'Scholar of the Palanaeum',
+  L29.add({ k: 'stormlight', n: 'The Stormlight Archive', short: 'Stormlight', world: 'Roshar', by: 'Brandon Sanderson', skin: 'storm', spines: ['#2f5d8f', '#a13a2e', '#3f7a55', '#b08a3e', '#2f7f86', '#5b4a8c', '#c26a2e'], acc: '#7fb8db', hue: ['#1d3a52', '#0a141d'], badge: 'Scholar of the Palanaeum',
     about: [['', "Roshar is a world of stone scoured by highstorms. The Knights Radiant who once defended it are remembered as traitors, and their Shardblades and Shardplate are now the prizes that wars are fought over."]],
     src: [['Coppermind', 'https://coppermind.net/wiki/The_Stormlight_Archive']],
     books: [

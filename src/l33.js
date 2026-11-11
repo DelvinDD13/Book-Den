@@ -1,10 +1,10 @@
 // ===== L33: Encyclopedia data — A Court of Thorns and Roses. acomaf:N = through checkpoint N of A Court of Mist and Fury; a bare key = that book finished.
 (function () { if (!window.L29) return;
-  L29.add({ k: 'acotar', n: 'A Court of Thorns and Roses', short: 'ACOTAR', world: 'Prythian', by: 'Sarah J. Maas', acc: '#d98aa0', hue: ['#4a2230', '#160a0e'], badge: "The Suriel's Confidant",
+  L29.add({ k: 'acotar', n: 'A Court of Thorns and Roses', short: 'ACOTAR', world: 'Prythian', by: 'Sarah J. Maas', skin: 'night', spines: ['#b3272d', '#1c8a7a', '#c9972a', '#5f9bc4', '#d9622b', '#6a4fa0'], acc: '#d98aa0', hue: ['#4a2230', '#160a0e'], badge: "The Suriel's Confidant",
     about: [['', "A wall divides the mortal lands from Prythian, the island of the faeries and their seven courts. A huntress kills a wolf in the woods, and the wolf was a faerie."]],
     src: [['ACOTAR Wiki', 'https://acourtofthornsandroses.fandom.com/wiki/A_Court_of_Thorns_and_Roses_Wiki']],
     books: [
-      { k: 'acotar', t: 'A Court of Thorns and Roses', m: '^A Court of Thorns and Roses' },
+      { k: 'acotar', t: 'A Court of Thorns and Roses', sp: 'Thorns and Roses', m: '^A Court of Thorns and Roses' },
       { k: 'acomaf', t: 'A Court of Mist and Fury', m: '^A Court of Mist and Fury', dp: 1, raw: 1, parts: ['Ch 1–13 · The House of Beasts', 'Ch 14–28', 'Ch 29–42', 'Ch 43–54 · end of The House of Wind'] },
       { k: 'acowar', t: 'A Court of Wings and Ruin', m: '^A Court of Wings and Ruin' }, { k: 'acofas', t: 'A Court of Frost and Starlight', m: '^A Court of Frost and Starlight' },
       { k: 'acosf', t: 'A Court of Silver Flames', m: '^A Court of Silver Flames' }, { k: 'acosh', t: 'A Court of Splintered Harmony', m: '^A Court of Splintered Harmony' }],
