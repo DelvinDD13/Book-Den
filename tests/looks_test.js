@@ -60,6 +60,6 @@ const store = fs.readFileSync(path.join(__dirname, 'store.json')); let pass = 0,
   ok(s && /Final Empire/.test(s[0]) && !s[1], 'the banner shows the new line: ' + JSON.stringify(s));
   s = await R(() => { const t = L4.all().filter(b => b.lore || b.id === 'hathsin').map(b => b.desc).join(' | '); return [/sealed lore|quarter of its|fell in a single week/.test(t), t.slice(0, 120)]; }); ok(!s[0], 'the lore and Hathsin badge texts are plain: ' + s[1]);
   // ---- the drawn rain and stars are gone ----
-  s = await R(() => [L29.ATMO.storm, L29.ATMO.night, document.querySelectorAll('.a-rain,.a-stars,.a-fall,.a-flash').length]); ok(s[0] === '' && s[1] === '' && s[2] === 0, 'no drawn rain or stars anywhere: ' + s);
+  s = await R(() => [L29.ATMO.storm, L29.ATMO.night, document.querySelectorAll('.a-rain,.a-stars,.a-fall,.a-flash').length]); ok(!/a-rain|a-stars|a-fall|a-flash|a-moon/.test(s[0]) && (s[0] === '' || /l53-cx/.test(s[0])) && s[1] === '' && s[2] === 0, 'no drawn rain or stars anywhere (Stormlight shows its cover painting): ' + String(s[0]).slice(0, 40) + ' ' + s.slice(1));
   ok(!errs.length, 'no page errors: ' + errs.slice(0, 3).join(' | '));
   console.log(pass + ' passed, ' + fail + ' failed'); await br.close(); srv.close(); process.exit(fail ? 1 : 0); })();

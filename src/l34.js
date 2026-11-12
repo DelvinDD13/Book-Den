@@ -11,13 +11,13 @@
   // ---------- themes: the app's own tokens, re-pointed ----------
   const TH = {
     den: { n: 'Book Den', sub: 'The original', masc: 'kelsier', sw: ['#0f0f11', '#ff6a2a', '#ffb089'] },
-    storm: { n: 'Stormlight', sub: 'Storm blue, Cinzel, rain', s: 'stormlight', masc: 'blade', sky: 'storm', sw: ['#0a1220', '#6fc3ff', '#dcb663'],
+    storm: { n: 'Stormlight', sub: 'Cover painting, lightning, Cinzel', s: 'stormlight', masc: 'none', sky: 'storm', sw: ['#120f1a', '#efb058', '#cc5f3f'],
       css: '--d-bg:#0a1220;--d-bg2:#0f1a2c;--d-bg3:#18273d;--d-ink:#eaf2fb;--d-mute:#93a6bf;--d-line:rgba(150,195,255,.2);--d-acc:#6fc3ff;--d-acc2:#dcb663;--b-disp:"Den Cinzel","Bebas Neue",Impact,sans-serif;--th-glow:rgba(111,195,255,.42);--th-sky:radial-gradient(95% 75% at 88% 0%,rgba(74,146,228,.5),transparent 62%),linear-gradient(180deg,#12294a 0%,#0a1220 92%)' },
-    ash: { n: 'Mistborn', sub: 'Ash, red sun, mist', s: 'mistborn', masc: 'kelsier', sky: 'ash', sw: ['#0d0b0a', '#e0683a', '#c9a66b'],
+    ash: { n: 'Mistborn', sub: 'Cover painting, mist, red sun', s: 'mistborn', masc: 'none', sky: 'ash', sw: ['#14111d', '#f79353', '#f5ba70'],
       css: '--d-bg:#0d0b0a;--d-bg2:#161210;--d-bg3:#231c18;--d-ink:#efe6da;--d-mute:#a39686;--d-line:rgba(239,220,190,.16);--d-acc:#e0683a;--d-acc2:#c9a66b;--b-disp:"Den Fell","Bebas Neue",Impact,sans-serif;--th-glow:rgba(224,104,58,.42);--th-sky:linear-gradient(180deg,#2e1711 0%,#170f0c 55%,#0d0b0a 94%)' },
-    night: { n: 'ACOTAR', sub: 'Night sky, Starfall, Cormorant', s: 'acotar', masc: 'none', sky: 'night', sw: ['#0c0a16', '#e9a3b8', '#dcc09a'],
+    night: { n: 'ACOTAR', sub: 'Night sky, Cormorant', s: 'acotar', masc: 'none', sky: 'night', sw: ['#0c0a16', '#e9a3b8', '#dcc09a'],
       css: '--d-bg:#0c0a16;--d-bg2:#141127;--d-bg3:#201a38;--d-ink:#f4eef7;--d-mute:#aa9fbb;--d-line:rgba(220,190,255,.18);--d-acc:#e9a3b8;--d-acc2:#dcc09a;--b-disp:"Den Cormorant","Bebas Neue",Impact,sans-serif;--th-glow:rgba(233,163,184,.42);--th-sky:radial-gradient(80% 45% at 25% 100%,rgba(233,163,184,.22),transparent 70%),linear-gradient(180deg,#1f174d 0%,#130f2c 55%,#0c0a16 94%)' },
-    glass: { n: 'Throne of Glass', sub: 'Terrasen green, glass, gold', s: 'tog', masc: 'dragon', sky: 'glass', sw: ['#09100c', '#7fd6a6', '#d8b45a'],
+    glass: { n: 'Throne of Glass', sub: 'Cover painting, firelight, Marcellus', s: 'tog', masc: 'none', sky: 'glass', sw: ['#0b0708', '#d23a55', '#1690be'],
       css: '--d-bg:#09100c;--d-bg2:#101a14;--d-bg3:#19271f;--d-ink:#eef5ef;--d-mute:#96aa9d;--d-line:rgba(190,235,208,.18);--d-acc:#7fd6a6;--d-acc2:#d8b45a;--b-disp:"Den Marcellus","Bebas Neue",Impact,sans-serif;--th-glow:rgba(127,214,166,.4);--th-sky:linear-gradient(180deg,#133325 0%,#0c1711 60%,#09100c 94%)' }
   };
   L34.TH = TH;
@@ -102,11 +102,12 @@
     if (!sky) { sky = document.createElement('div'); sky.id = 'l34sky'; sky.innerHTML = '<div class="atmo" aria-hidden="true"></div><div class="l34-m" aria-hidden="true"></div>'; hero.insertBefore(sky, hero.querySelector('.d-head')); lastKey = ''; }
     else if (sky.parentNode !== hero) { hero.insertBefore(sky, hero.querySelector('.d-head')); lastKey = ''; }
     sky.style.display = ''; const m = L34.mascot(); const key = th + '|' + m + '|' + (window.innerWidth || 0) + '|' + bladeSrc(); const mast = hero.querySelector('.b-mast'); const img = mast && mast.querySelector('img');
-    if (key !== lastKey) { lastKey = key; sky.className = T.sky ? 'sk-' + T.sky : ''; sky.querySelector('.atmo').innerHTML = (T.sky && window.L29 && L29.ATMO && L29.ATMO[T.sky] || '').replace('<i class="a-moon"></i>', ''); const box = sky.querySelector('.l34-m'); if (m) requestAnimationFrame(() => { try { run(box, m); } catch (e) { console.warn('l34 run', e); } }); else { ANI.forEach(a => { try { a.cancel(); } catch (e) {} }); ANI = []; box.innerHTML = ''; } }
-    // the masthead picture: his wall art for this theme, else the theme's sky, else his own panel
+    if (key !== lastKey) { lastKey = key; sky.className = T.sky ? 'sk-' + T.sky : ''; sky.querySelector('.atmo').innerHTML = (window.L53 && L53.SC[th]) ? '' : (T.sky && window.L29 && L29.ATMO && L29.ATMO[T.sky] || '').replace('<i class="a-moon"></i>', ''); const box = sky.querySelector('.l34-m'); if (m) requestAnimationFrame(() => { try { run(box, m); } catch (e) { console.warn('l34 run', e); } }); else { ANI.forEach(a => { try { a.cancel(); } catch (e) {} }); ANI = []; box.innerHTML = ''; } }
+    // the masthead picture: his wall art for this theme, else the series scene (L53), else the theme's sky, else his own panel
     if (mast && img) L34.artList().then(A => { const mine = A.filter(a => a.th === th), any = A.filter(a => a.th === 'any'), pool = mine.length ? mine : any; const day = Math.floor(Date.now() / 864e5);
-      if (pool.length) { const a = pool[day % pool.length]; if (img.getAttribute('src') !== a.url) img.setAttribute('src', a.url); img.style.objectPosition = '50% 30%'; mast.classList.remove('l34-nosrc'); mast.classList.add('l34-art'); }
-      else { if (img.getAttribute('src') !== ICON) img.setAttribute('src', ICON); img.style.objectPosition = ''; mast.classList.remove('l34-art'); mast.classList.toggle('l34-nosrc', th !== 'den' && !L.keepArt); } }); };
+      if (pool.length) { const a = pool[day % pool.length]; if (img.getAttribute('src') !== a.url) img.setAttribute('src', a.url); img.style.objectPosition = '50% 30%'; mast.classList.remove('l34-nosrc'); mast.classList.add('l34-art'); if (window.L53) L53.clear(mast); }
+      else if (window.L53 && L53.SC[th] && !L.keepArt && L53.paint(mast, th, true)) mast.classList.remove('l34-nosrc', 'l34-art');
+      else { if (window.L53) L53.clear(mast); if (img.getAttribute('src') !== ICON) img.setAttribute('src', ICON); img.style.objectPosition = ''; mast.classList.remove('l34-art'); mast.classList.toggle('l34-nosrc', th !== 'den' && !L.keepArt); } }); };
   // the theme chip under the title, and the masthead kept in step with every header redraw
   (function () { if (!window.L11 || !L11.head) return; const _h = L11.head; L11.head = function () { const r = _h.apply(this, arguments); try { const hero = document.querySelector('header.hero'); const d = hero && hero.querySelector('.d-head'); if (d && hero.classList.contains('b-home') && !d.querySelector('.l34-chip')) { const th = L34.current(); d.insertAdjacentHTML('beforeend', '<button class="l34-chip" data-l34="open">Look · ' + esc((TH[th] || TH.den).n) + '</button>'); } L34.mast(); } catch (e) { console.warn('l34 head', e); } return r; }; })();
   (function () { let t = 0; const later = () => { clearTimeout(t); t = setTimeout(() => { const before = document.documentElement.className; L34.apply(); if (document.documentElement.className !== before) { try { L11.head(); } catch (e) {} } }, 700); };
