@@ -871,6 +871,27 @@ def eras2():
             dr.text((x, y + h + 3), (m['file'] + ' ' + (m['license'] or '?'))[:34], fill=(255, 210, 120), font=f); dr.text((x, y + h + 17), m['title'][5:36], fill=(240, 240, 240), font=f)
         img.save(os.path.join(OUT, 'eras2_%d.jpg' % (k // 30 + 1)), quality=85)
 
+ERAS3 = ['File:Superman logo 1938.png', 'File:Superman logo 1941-43.png', 'File:Superman logo 1944.png', 'File:Superman black logo 2001-03.png', 'File:Superman logo 2011-16.png', 'File:Superman (2025) logo 2.png', 'File:Superman 2025 logo.png',
+         'File:Credits for DC, Siegel & Shuster.jpg', 'File:Batman (20th Century Fox Television) red text logo.svg', 'File:Batman symbol.svg', 'File:BATMAN 1989.png', 'File:Batman 1989 Logo.png', 'File:Batman- The Animated Series logo.png',
+         'File:Batman Begins logo.png', 'File:Batman logo (solid black silhouette).svg', 'File:Batman - Arkham Asylum logo.jpg', 'File:Batman - Arkham City logo.png', 'File:The Batman 2022 film logo.png']
+def eras3():
+    """The era emblems and titles chosen for the Steel looks, one named file at a time, at 1200 px (SVGs rendered by Commons)."""
+    d = os.path.join(OUT, 'eras3'); os.makedirs(d, exist_ok=True); out = []
+    for i, t in enumerate(ERAS3):
+        try:
+            time.sleep(2.0)
+            r = get('https://commons.wikimedia.org/w/api.php?action=query&format=json&titles=%s&prop=imageinfo&iiprop=url|size|extmetadata|mime&iiurlwidth=1200' % urllib.parse.quote(t), 40)
+            pg = list((r.get('query') or {}).get('pages', {}).values())[0]; ii = (pg.get('imageinfo') or [{}])[0]; em = ii.get('extmetadata') or {}
+            lic = (em.get('LicenseShortName') or {}).get('value') or ''; use = re.sub('<[^>]+>', '', (em.get('UsageTerms') or {}).get('value') or '')
+            m = {'title': t, 'page': ii.get('descriptionurl'), 'w': ii.get('width'), 'h': ii.get('height'), 'mime': ii.get('mime'), 'license': lic, 'usage': use, 'artist': re.sub('<[^>]+>', '', (em.get('Artist') or {}).get('value') or '')[:120]}
+            if not re.search(r'public domain|^pd|cc0|cc[ -]by(?![ -]nc)', lic + ' ' + use, re.I): m['skip'] = 'licence'; out.append(m); continue
+            src = ii.get('thumburl') if (ii.get('mime') == 'image/svg+xml' or (ii.get('width') or 0) > 1200) else ii.get('url')
+            b = wget(src); im = Image.open(io.BytesIO(b)); fn = 'x%02d%s' % (i, '.jpg' if im.mode == 'RGB' and ii.get('mime') == 'image/jpeg' else '.png')
+            (im.convert('RGB').save(os.path.join(d, fn), quality=92) if fn.endswith('.jpg') else im.save(os.path.join(d, fn))); m['file'] = fn; m['got'] = list(im.size); m['mode'] = im.mode
+        except Exception as e: m = {'title': t, 'err': str(e)[:90]}
+        out.append(m)
+    save('eras3.json', out); log('eras3', len([m for m in out if m.get('file')]), 'of', len(ERAS3))
+
 def hunt2():
     """Pokemon Scarlet's own box art from IGDB's public page (its og:image is the cover)."""
     out = {}; items = []
@@ -1002,5 +1023,5 @@ if __name__ == '__main__':
     todo = sys.argv[1:] or ['unstray', 'apply', 'live']   # unstray first, every run: no poster record may sit in a show: or game: row
     if todo[0] != 'unstray': todo = ['unstray'] + [x for x in todo if x != 'unstray']
     for name in todo:
-        try: {'imdb': imdb, 'tvmaze': tvmaze, 'posters': posters, 'superman': superman, 'fix': fix, 'wikibox': wikibox, 'anime': anime, 'steam': steam, 'pkmn': pkmn, 'wikiraw': wikiraw, 'bookfix3': bookfix3, 'superman2': superman2, 'eras': eras, 'eras2': eras2, 'imdb2': imdb2, 'books': books, 'links': links, 'apply': apply, 'hunt': hunt, 'audible': audible, 'bookfix': bookfix, 'hunt2': hunt2, 'unstray': unstray, 'audible2': audible2, 'bookfix2': bookfix2, 'summaries': summaries, 'live': live, 'coveraudit': coveraudit}[name]()
+        try: {'imdb': imdb, 'tvmaze': tvmaze, 'posters': posters, 'superman': superman, 'fix': fix, 'wikibox': wikibox, 'anime': anime, 'steam': steam, 'pkmn': pkmn, 'wikiraw': wikiraw, 'bookfix3': bookfix3, 'superman2': superman2, 'eras': eras, 'eras2': eras2, 'eras3': eras3, 'imdb2': imdb2, 'books': books, 'links': links, 'apply': apply, 'hunt': hunt, 'audible': audible, 'bookfix': bookfix, 'hunt2': hunt2, 'unstray': unstray, 'audible2': audible2, 'bookfix2': bookfix2, 'summaries': summaries, 'live': live, 'coveraudit': coveraudit}[name]()
         except Exception: log('FAILED', name); traceback.print_exc()
