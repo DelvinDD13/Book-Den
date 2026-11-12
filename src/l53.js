@@ -143,7 +143,7 @@
     R('.l53-fan.n1 .c0', 'right:8%;transform:rotate(2deg)'),
     R('.l53-fan.n2 .c0', 'right:34%;transform:rotate(-5deg)'), R('.l53-fan.n2 .c1', 'right:2%;transform:rotate(4deg)'),
     R('.l53-fan.n3 .c0', 'right:46%;transform:rotate(-7deg)'), R('.l53-fan.n3 .c1', 'right:22%;transform:rotate(1deg)'), R('.l53-fan.n3 .c2', 'right:0;transform:rotate(7deg)'),
-    R('.l53-c', 'position:absolute;right:12px;top:calc(env(safe-area-inset-top) + 8px);font:500 9px/1.2 Barlow,sans-serif;letter-spacing:.02em;color:rgba(255,255,255,.75);text-shadow:0 1px 2px rgba(0,0,0,.8);max-width:60%;text-align:right;z-index:4'),
+    R('.l53-c', 'position:absolute;right:12px;top:calc(env(safe-area-inset-top) + 8px);font:500 9px/1.2 Barlow,sans-serif;letter-spacing:.02em;color:rgba(255,255,255,.38);text-shadow:0 1px 2px rgba(0,0,0,.45);max-width:60%;text-align:right;z-index:4'),
     '@media (prefers-reduced-motion:reduce){' + R('.l53-sky,.l53-drift,.l53-bob,.l53-push,.l53-glow,.b-mast.l53-storm,.b-mast.l53-storm .l53-box,.b-mast.l53-storm:after', 'animation:none!important') + '}'
   ].join('');
   const kf = '@keyframes l53sky{from{transform:translate3d(-6.5%,.5%,0) scale(1.1)}to{transform:translate3d(6.5%,-1.5%,0) scale(1.1)}}' +
