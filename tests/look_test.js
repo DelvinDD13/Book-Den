@@ -12,7 +12,7 @@ const store = fs.readFileSync('/home/claude/den/pt/store.json'); let pass = 0, f
   ok(await page.evaluate(() => document.documentElement.classList.contains('th-storm')), 'follows the book read most recently (Stormlight)');
   ok(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--d-acc').trim() === '#6fc3ff'), 'accent token re-pointed');
   ok(await page.evaluate(() => !!document.querySelector('.l34-chip') && /Stormlight/.test(document.querySelector('.l34-chip').textContent)), 'chip names the theme');
-  ok(await page.evaluate(() => !!document.querySelector('#l34sky .l34-rig') && document.querySelectorAll('#l34sky .atmo i').length >= 2), 'sky and sprite are on the masthead');
+  ok(await page.evaluate(() => !!document.querySelector('#l34sky .l34-rig') && document.querySelectorAll('#l34sky .atmo .a-rain, #l34sky .atmo .a-stars, #l34sky .atmo .a-flash').length === 0), 'sprite is on the masthead and the drawn rain is gone (Nov 11: it looked fake)');
   ok(await page.evaluate(() => getComputedStyle(document.querySelector('header.hero .sky')).display === 'none'), 'old dragon strip hidden');
   await page.evaluate(() => L34.set({ on: false })); await page.waitForTimeout(300);
   ok(await page.evaluate(() => document.documentElement.classList.contains('th-den') && getComputedStyle(document.documentElement).getPropertyValue('--d-acc').trim() === '#ff6a2a'), 'themes off: original look');

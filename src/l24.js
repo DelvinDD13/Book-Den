@@ -11,7 +11,7 @@
       localStorage.setItem(KEY, '1'); try { L4.clear(); } catch (e) {} } catch (e) { console.warn('l24 apply', e); } };
   const items = c => { const L = TRIO.map(t => find(c, t)).filter(Boolean); return L.every(b => b.read) ? L.map(b => ({ t: b.t, k: 'book', d: b.fin || (b.t === 'The Hero of Ages' ? '2026-11-08' : null), b })) : []; };
   const cand = c => TRIO.map(t => find(c, t)).filter(b => b && !b.read).map(b => ({ t: b.t, k: 'book', d: null, b }));
-  const DEF = { cat: 'books', id: 'hathsin', name: 'Survivor of Hathsin', sub: 'Mistborn · Nov 2026', desc: 'Mistborn sat stalled for almost two years, then the rest of the trilogy fell in a single week', th: [3], icon: 'hathsin', hue: ['#3a2a1a', '#0f0b07'], single: 'gold', fmt: v => String(v), items, cand };
+  const DEF = { cat: 'books', id: 'hathsin', name: 'Survivor of Hathsin', sub: 'Mistborn · Nov 2026', desc: 'Finish The Final Empire, The Well of Ascension and The Hero of Ages', th: [3], icon: 'hathsin', hue: ['#3a2a1a', '#0f0b07'], single: 'gold', fmt: v => String(v), items, cand };
   (function () { try { if (!window.L4 || !L4.defs) return; if (!L4.defs.some(d => d.id === DEF.id)) L4.defs.push(DEF); L4.clear(); } catch (e) { console.warn('l24 badge', e); } })();
   (function () { const I = typeof L4_ICONS !== 'undefined' ? L4_ICONS : window.L4_ICONS; if (!I) return;
     I.hathsin = '<image href="art/kelsier.png" x="8" y="6" width="84" height="88" preserveAspectRatio="xMidYMid meet" clip-path="url(#l20face)" style="image-rendering:pixelated"/>'; })();
