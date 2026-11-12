@@ -1,6 +1,6 @@
 // Book Den service worker — the app opens from cache at once; a fresh copy is fetched behind it and used on the next open.
 // The save goes to the store live and is never cached here. Covers are cached by URL (capped).
-const C = 'den-202611112154';
+const C = 'den-202611112218';
 const COVERS = 'den-covers', MAXC = 1500;
 // the new build's page is fetched past the browser's own cache, so a new worker never installs with the old page in it
 self.addEventListener('install', e => { e.waitUntil(caches.open(C).then(c => c.addAll(['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'].map(u => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting())); });

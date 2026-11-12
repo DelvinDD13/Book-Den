@@ -18,7 +18,7 @@ const store = fs.readFileSync('/home/claude/den/pt/store.json'); let pass = 0, f
   ok(await page.evaluate(() => document.documentElement.classList.contains('th-den') && getComputedStyle(document.documentElement).getPropertyValue('--d-acc').trim() === '#ff6a2a'), 'themes off: original look');
   await page.evaluate(() => L34.set({ on: true, mode: 'pick', pick: 'night', mascot: 'none' })); await page.waitForTimeout(400);
   ok(await page.evaluate(() => document.documentElement.classList.contains('th-night') && !document.querySelector('#l34sky .l34-rig')), 'picked theme, no sprite');
-  for (const m of ['kelsier', 'hood', 'blade', 'dragon', 'brawler', 'ghoul', 'wizard', 'vulture']) { await page.evaluate(m => L34.set({ mascot: m }), m); await page.waitForTimeout(350); ok(await page.evaluate(() => document.querySelectorAll('#l34sky .l34-rig').length >= 1 && document.getAnimations().some(a => a.playState === 'running')), 'sprite runs: ' + m); }
+  for (const m of ['kelsier', 'hood', 'blade', 'dragon']) { await page.evaluate(m => L34.set({ mascot: m }), m); await page.waitForTimeout(350); ok(await page.evaluate(() => document.querySelectorAll('#l34sky .l34-rig').length >= 1 && document.getAnimations().some(a => a.playState === 'running')), 'sprite runs: ' + m); }
   // wall art
   const n = await page.evaluate(async () => { const c = document.createElement('canvas'); c.width = 2400; c.height = 1200; const g = c.getContext('2d'); g.fillStyle = '#246'; g.fillRect(0, 0, 2400, 1200); const b = await new Promise(r => c.toBlob(r, 'image/png')); const f = new File([b], 'wall.png', { type: 'image/png' }); const k = await L34.artAdd('night', [f]); L34.mast(); return k; }); await page.waitForTimeout(600);
   ok(n === 1, 'wall art stored'); ok(await page.evaluate(() => /^blob:/.test(document.querySelector('.b-mast img').getAttribute('src'))), 'wall art on the masthead');
@@ -26,7 +26,7 @@ const store = fs.readFileSync('/home/claude/den/pt/store.json'); let pass = 0, f
   await page.evaluate(async () => { const A = await L34.artList(); await L34.artDel(A[0].id); L34.mast(); }); await page.waitForTimeout(500);
   ok(await page.evaluate(() => document.querySelector('.b-mast img').getAttribute('src') === 'icon-512.png' && document.querySelector('.b-mast').classList.contains('l34-nosrc')), 'removed: back to the theme sky');
   await page.evaluate(() => document.querySelector('.l34-chip').click()); await page.waitForTimeout(500);
-  ok(await page.evaluate(() => { const r = document.getElementById('l34').shadowRoot; return r.querySelectorAll('.th').length === 5 && r.querySelectorAll('.spb').length === 10 && r.querySelectorAll('.blb').length === 12; }), 'Look sheet lists themes, sprites, blades');
+  ok(await page.evaluate(() => { const r = document.getElementById('l34').shadowRoot; return r.querySelectorAll('.th').length === 5 && r.querySelectorAll('.spb').length === 6 && r.querySelectorAll('.blb').length === 12; }), 'Look sheet lists themes, the four sprites from his series, blades');
   await page.evaluate(() => { const r = document.getElementById('l34').shadowRoot; r.querySelector('.th[data-k=ash]').click(); }); await page.waitForTimeout(500);
   ok(await page.evaluate(() => document.documentElement.classList.contains('th-ash') && L34.get().pick === 'ash'), 'tap a theme in the sheet');
   await page.reload(); await page.waitForTimeout(700); ok(await page.evaluate(() => document.documentElement.classList.contains('th-ash')), 'theme is on before the library loads');
