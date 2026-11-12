@@ -930,6 +930,21 @@ def themes():
             dr.text((x, y + h + 3), (m['id'] + ' ' + (m['license'] or '?'))[:38], fill=(255, 210, 120), font=f); dr.text((x, y + h + 17), m['title'][5:43], fill=(240, 240, 240), font=f)
         img.save(os.path.join(OUT, 'themes_%s.jpg' % g), quality=82)
 
+BIGCOV = ['The Way of Kings: Book One of the Stormlight Archive', 'Words of Radiance: Book Two of the Stormlight Archive', 'Oathbringer: Book Three of the Stormlight Archive', 'Rhythm of War', 'Wind and Truth',
+          'Mistborn: The Final Empire', 'The Well of Ascension', 'The Hero of Ages', 'Throne of Glass: Throne of Glass, Book 1', 'Crown of Midnight: Throne of Glass, Book 2', 'Heir of Fire: Throne of Glass, Book 3',
+          'Queen of Shadows', 'Empire of Storms', 'Tower of Dawn', 'Kingdom of Ash', 'Dungeon Crawler Carl', 'The Blade Itself']
+def bigcov():
+    """The stored covers of the series above at full size (Apple's image server sizes on request), for the theme mocks. Read-only."""
+    d = os.path.join(OUT, 'bigcov'); os.makedirs(d, exist_ok=True); cur = (get(STORE + '?key=' + urllib.parse.quote(KEY), 120).get('v') or {}); out = []
+    for i, t in enumerate(BIGCOV):
+        try: u = json.loads(cur['cv:' + t]['j']).get('url') or ''
+        except Exception: out.append({'t': t, 'err': 'no cover row'}); continue
+        big = re.sub(r'/\d+x\d+(?:bb|sr|cc)?\.(?:jpg|jpeg|png|webp)$', '/1400x2100bb.jpg', u.split('?')[0]) if 'mzstatic' in u else u
+        try:
+            time.sleep(0.6); b = raw(big, 40); im = Image.open(io.BytesIO(b)).convert('RGB'); fn = 'c%02d.jpg' % i; im.save(os.path.join(d, fn), quality=90); out.append({'t': t, 'file': fn, 'size': list(im.size)})
+        except Exception as e: out.append({'t': t, 'err': str(e)[:80]})
+    save('bigcov.json', out); log('bigcov', len([o for o in out if o.get('file')]), 'of', len(BIGCOV))
+
 def hunt2():
     """Pokemon Scarlet's own box art from IGDB's public page (its og:image is the cover)."""
     out = {}; items = []
@@ -1061,5 +1076,5 @@ if __name__ == '__main__':
     todo = sys.argv[1:] or ['unstray', 'apply', 'live']   # unstray first, every run: no poster record may sit in a show: or game: row
     if todo[0] != 'unstray': todo = ['unstray'] + [x for x in todo if x != 'unstray']
     for name in todo:
-        try: {'imdb': imdb, 'tvmaze': tvmaze, 'posters': posters, 'superman': superman, 'fix': fix, 'wikibox': wikibox, 'anime': anime, 'steam': steam, 'pkmn': pkmn, 'wikiraw': wikiraw, 'bookfix3': bookfix3, 'superman2': superman2, 'eras': eras, 'eras2': eras2, 'eras3': eras3, 'themes': themes, 'imdb2': imdb2, 'books': books, 'links': links, 'apply': apply, 'hunt': hunt, 'audible': audible, 'bookfix': bookfix, 'hunt2': hunt2, 'unstray': unstray, 'audible2': audible2, 'bookfix2': bookfix2, 'summaries': summaries, 'live': live, 'coveraudit': coveraudit}[name]()
+        try: {'imdb': imdb, 'tvmaze': tvmaze, 'posters': posters, 'superman': superman, 'fix': fix, 'wikibox': wikibox, 'anime': anime, 'steam': steam, 'pkmn': pkmn, 'wikiraw': wikiraw, 'bookfix3': bookfix3, 'superman2': superman2, 'eras': eras, 'eras2': eras2, 'eras3': eras3, 'themes': themes, 'bigcov': bigcov, 'imdb2': imdb2, 'books': books, 'links': links, 'apply': apply, 'hunt': hunt, 'audible': audible, 'bookfix': bookfix, 'hunt2': hunt2, 'unstray': unstray, 'audible2': audible2, 'bookfix2': bookfix2, 'summaries': summaries, 'live': live, 'coveraudit': coveraudit}[name]()
         except Exception: log('FAILED', name); traceback.print_exc()
