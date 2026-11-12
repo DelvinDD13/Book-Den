@@ -892,6 +892,44 @@ def eras3():
         out.append(m)
     save('eras3.json', out); log('eras3', len([m for m in out if m.get('file')]), 'of', len(ERAS3))
 
+THEME_Q = [('storm', 'NOAA lightning'), ('storm', 'lightning thunderstorm night'), ('storm', 'shelf cloud storm'), ('storm', 'NOAA wall cloud'),
+           ('ash', 'volcanic ash fall USGS'), ('ash', 'ash plume eruption USGS'), ('ash', 'red sun smoke sky'),
+           ('mist', 'fog at night street lamp'), ('mist', 'night mist forest'),
+           ('night', 'Milky Way National Park Service'), ('night', 'night sky stars mountains NPS'),
+           ('fire', 'flames fire close up'), ('fire', 'bonfire flames night')]
+def themes():
+    """Real pictures for the series themes (lightning for Stormlight, ash and mist for Mistborn, a night sky for ACOTAR,
+    fire for Throne of Glass): Commons files under public domain, CC0, CC BY or CC BY-SA, laid out on sheets. Nothing is written to the store."""
+    d = os.path.join(OUT, 'themes'); os.makedirs(d, exist_ok=True); out = []; seen = set()
+    for qi, (g, q) in enumerate(THEME_Q):
+        try:
+            time.sleep(1.2)
+            r = get('https://commons.wikimedia.org/w/api.php?action=query&format=json&generator=search&gsrnamespace=6&gsrlimit=16&gsrsearch=%s&prop=imageinfo&iiprop=url|size|extmetadata|mime&iiurlwidth=900' % urllib.parse.quote(q + ' filetype:bitmap'), 40)
+        except Exception as e: log('themes search', q, e); continue
+        n = 0
+        for p in sorted((r.get('query') or {}).get('pages', {}).values(), key=lambda p: p.get('index', 0)):
+            ii = (p.get('imageinfo') or [{}])[0]; t = p.get('title', '')
+            if t in seen or ii.get('mime') not in ('image/jpeg', 'image/png') or (ii.get('width') or 0) < 1200: continue
+            seen.add(t); em = ii.get('extmetadata') or {}
+            lic = (em.get('LicenseShortName') or {}).get('value') or ''; use = re.sub('<[^>]+>', '', (em.get('UsageTerms') or {}).get('value') or '')
+            if not re.search(r'public domain|^pd|cc0|cc[ -]by(?![ -]nc)', lic + ' ' + use, re.I): continue
+            m = {'g': g, 'q': q, 'id': '%s%d.%d' % (g, qi, n), 'title': t, 'page': ii.get('descriptionurl'), 'url': ii.get('url'), 'thumb': ii.get('thumburl'), 'w': ii.get('width'), 'h': ii.get('height'), 'license': lic,
+                 'artist': re.sub('<[^>]+>', '', (em.get('Artist') or {}).get('value') or '')[:120], 'desc': re.sub('<[^>]+>', '', (em.get('ImageDescription') or {}).get('value') or '')[:200]}
+            try:
+                b = wget(m['thumb'] or m['url']); im = Image.open(io.BytesIO(b)).convert('RGB'); fn = m['id'] + '.jpg'; im.save(os.path.join(d, fn), quality=84); m['file'] = fn
+            except Exception as e: m['err'] = str(e)[:90]
+            out.append(m); n += 1
+            if n >= 8: break
+    save('themes.json', out); log('themes', len([m for m in out if m.get('file')]), 'pictures')
+    for g in sorted(set(m['g'] for m in out)):
+        got = [m for m in out if m.get('file') and m['g'] == g]; cols, w, h = 4, 230, 150
+        if not got: continue
+        rows = (len(got) + cols - 1) // cols; img = Image.new('RGB', (cols * (w + 8) + 8, rows * (h + 40) + 8), (18, 18, 20)); dr = ImageDraw.Draw(img); f = font(11)
+        for i, m in enumerate(got):
+            x = 8 + (i % cols) * (w + 8); y = 8 + (i // cols) * (h + 40); im = Image.open(os.path.join(d, m['file'])); im.thumbnail((w, h)); img.paste(im, (x + (w - im.width) // 2, y))
+            dr.text((x, y + h + 3), (m['id'] + ' ' + (m['license'] or '?'))[:38], fill=(255, 210, 120), font=f); dr.text((x, y + h + 17), m['title'][5:43], fill=(240, 240, 240), font=f)
+        img.save(os.path.join(OUT, 'themes_%s.jpg' % g), quality=82)
+
 def hunt2():
     """Pokemon Scarlet's own box art from IGDB's public page (its og:image is the cover)."""
     out = {}; items = []
@@ -1023,5 +1061,5 @@ if __name__ == '__main__':
     todo = sys.argv[1:] or ['unstray', 'apply', 'live']   # unstray first, every run: no poster record may sit in a show: or game: row
     if todo[0] != 'unstray': todo = ['unstray'] + [x for x in todo if x != 'unstray']
     for name in todo:
-        try: {'imdb': imdb, 'tvmaze': tvmaze, 'posters': posters, 'superman': superman, 'fix': fix, 'wikibox': wikibox, 'anime': anime, 'steam': steam, 'pkmn': pkmn, 'wikiraw': wikiraw, 'bookfix3': bookfix3, 'superman2': superman2, 'eras': eras, 'eras2': eras2, 'eras3': eras3, 'imdb2': imdb2, 'books': books, 'links': links, 'apply': apply, 'hunt': hunt, 'audible': audible, 'bookfix': bookfix, 'hunt2': hunt2, 'unstray': unstray, 'audible2': audible2, 'bookfix2': bookfix2, 'summaries': summaries, 'live': live, 'coveraudit': coveraudit}[name]()
+        try: {'imdb': imdb, 'tvmaze': tvmaze, 'posters': posters, 'superman': superman, 'fix': fix, 'wikibox': wikibox, 'anime': anime, 'steam': steam, 'pkmn': pkmn, 'wikiraw': wikiraw, 'bookfix3': bookfix3, 'superman2': superman2, 'eras': eras, 'eras2': eras2, 'eras3': eras3, 'themes': themes, 'imdb2': imdb2, 'books': books, 'links': links, 'apply': apply, 'hunt': hunt, 'audible': audible, 'bookfix': bookfix, 'hunt2': hunt2, 'unstray': unstray, 'audible2': audible2, 'bookfix2': bookfix2, 'summaries': summaries, 'live': live, 'coveraudit': coveraudit}[name]()
         except Exception: log('FAILED', name); traceback.print_exc()
