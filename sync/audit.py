@@ -790,6 +790,41 @@ def superman2():
         x = 8 + (i % cols) * (w + 8); y = 8 + (i // cols) * (h + 30); im = Image.open(os.path.join(d, m['file'])); im.thumbnail((w, h)); img.paste(im, (x + (w - im.width) // 2, y)); dr.text((x, y + h + 4), (m['file'] + ' ' + m['title'][5:45])[:56], fill=(240, 240, 240), font=f)
     img.save(os.path.join(OUT, 'superman2.jpg'), quality=85)
 
+ERAS = [('sm', 'Superman costume museum'), ('sm', 'Superman costume exhibition'), ('sm', 'Christopher Reeve Superman costume'), ('sm', 'Superman Returns costume'), ('sm', 'Man of Steel costume'), ('sm', 'Superman suit display'), ('sm', 'Superman logo'), ('sm', 'Superman emblem'), ('sm', 'Superman statue'), ('sm', 'Superman 2025'), ('sm', 'Smallville Superman'), ('sm', 'Famous Studios Superman'), ('sm', 'Superman cosplay'),
+        ('bat', 'Batmobile 1966'), ('bat', 'Batmobile 1989'), ('bat', 'Tumbler Batmobile'), ('bat', 'Batmobile 2022'), ('bat', 'Batman costume exhibition'), ('bat', 'Batsuit'), ('bat', 'Batman logo'), ('bat', 'Bat-Signal'), ('bat', 'Batman 1943 serial'), ('bat', 'Batman statue'), ('bat', 'Batman cosplay')]
+def eras():
+    """Openly licensed pictures for the Steel era looks and a Batman look: Commons files found by search, kept only when Commons
+    records public domain, CC0, CC BY or CC BY-SA. Contact sheets for choosing by eye; nothing is written to the store."""
+    d = os.path.join(OUT, 'eras'); os.makedirs(d, exist_ok=True); out = []; seen = set()
+    for qi, (g, q) in enumerate(ERAS):
+        try:
+            time.sleep(1.2)
+            r = get('https://commons.wikimedia.org/w/api.php?action=query&format=json&generator=search&gsrnamespace=6&gsrlimit=14&gsrsearch=%s&prop=imageinfo&iiprop=url|size|extmetadata|mime&iiurlwidth=700' % urllib.parse.quote(q), 40)
+        except Exception as e: log('eras search', q, e); continue
+        n = 0
+        for p in sorted((r.get('query') or {}).get('pages', {}).values(), key=lambda p: p.get('index', 0)):
+            ii = (p.get('imageinfo') or [{}])[0]; t = p.get('title', '')
+            if t in seen or ii.get('mime') not in ('image/jpeg', 'image/png'): continue
+            seen.add(t); em = ii.get('extmetadata') or {}
+            lic = (em.get('LicenseShortName') or {}).get('value') or ''; use = re.sub('<[^>]+>', '', (em.get('UsageTerms') or {}).get('value') or '')
+            m = {'g': g, 'q': q, 'id': '%s%d.%d' % (g[0], qi, n), 'title': t, 'page': ii.get('descriptionurl'), 'url': ii.get('url'), 'thumb': ii.get('thumburl'), 'w': ii.get('width'), 'h': ii.get('height'), 'license': lic, 'usage': use,
+                 'artist': re.sub('<[^>]+>', '', (em.get('Artist') or {}).get('value') or '')[:120], 'date': re.sub('<[^>]+>', '', (em.get('DateTimeOriginal') or {}).get('value') or '')[:40], 'desc': re.sub('<[^>]+>', '', (em.get('ImageDescription') or {}).get('value') or '')[:240]}
+            if not re.search(r'public domain|^pd|cc0|cc[ -]by(?![ -]nc)', lic + ' ' + use, re.I) or re.search(r'fair use|non-free', lic + ' ' + use, re.I): m['skip'] = 'licence'; out.append(m); continue
+            try:
+                b = wget(m['thumb'] or m['url']); im = Image.open(io.BytesIO(b)).convert('RGB'); fn = m['id'] + '.jpg'; im.save(os.path.join(d, fn), quality=86); m['file'] = fn; m['got'] = list(im.size)
+            except Exception as e: m['err'] = str(e)[:90]
+            out.append(m); n += 1
+            if n >= 10: break
+    save('eras.json', out); log('eras', len([m for m in out if m.get('file')]), 'pictures of', len(out))
+    for g in ('sm', 'bat'):
+        got = [m for m in out if m.get('file') and m['g'] == g]; cols, w, h = 4, 230, 172
+        for k in range(0, len(got), 24):
+            part = got[k:k + 24]; rows = (len(part) + cols - 1) // cols; img = Image.new('RGB', (cols * (w + 8) + 8, rows * (h + 40) + 8), (18, 18, 20)); dr = ImageDraw.Draw(img); f = font(11)
+            for i, m in enumerate(part):
+                x = 8 + (i % cols) * (w + 8); y = 8 + (i // cols) * (h + 40); im = Image.open(os.path.join(d, m['file'])); im.thumbnail((w, h)); img.paste(im, (x + (w - im.width) // 2, y))
+                dr.text((x, y + h + 3), (m['id'] + ' ' + (m['license'] or '?'))[:38], fill=(255, 210, 120), font=f); dr.text((x, y + h + 17), m['title'][5:43], fill=(240, 240, 240), font=f)
+            img.save(os.path.join(OUT, 'eras_%s_%d.jpg' % (g, k // 24 + 1)), quality=82)
+
 def hunt2():
     """Pokemon Scarlet's own box art from IGDB's public page (its og:image is the cover)."""
     out = {}; items = []
@@ -921,5 +956,5 @@ if __name__ == '__main__':
     todo = sys.argv[1:] or ['unstray', 'apply', 'live']   # unstray first, every run: no poster record may sit in a show: or game: row
     if todo[0] != 'unstray': todo = ['unstray'] + [x for x in todo if x != 'unstray']
     for name in todo:
-        try: {'imdb': imdb, 'tvmaze': tvmaze, 'posters': posters, 'superman': superman, 'fix': fix, 'wikibox': wikibox, 'anime': anime, 'steam': steam, 'pkmn': pkmn, 'wikiraw': wikiraw, 'bookfix3': bookfix3, 'superman2': superman2, 'imdb2': imdb2, 'books': books, 'links': links, 'apply': apply, 'hunt': hunt, 'audible': audible, 'bookfix': bookfix, 'hunt2': hunt2, 'unstray': unstray, 'audible2': audible2, 'bookfix2': bookfix2, 'summaries': summaries, 'live': live, 'coveraudit': coveraudit}[name]()
+        try: {'imdb': imdb, 'tvmaze': tvmaze, 'posters': posters, 'superman': superman, 'fix': fix, 'wikibox': wikibox, 'anime': anime, 'steam': steam, 'pkmn': pkmn, 'wikiraw': wikiraw, 'bookfix3': bookfix3, 'superman2': superman2, 'eras': eras, 'imdb2': imdb2, 'books': books, 'links': links, 'apply': apply, 'hunt': hunt, 'audible': audible, 'bookfix': bookfix, 'hunt2': hunt2, 'unstray': unstray, 'audible2': audible2, 'bookfix2': bookfix2, 'summaries': summaries, 'live': live, 'coveraudit': coveraudit}[name]()
         except Exception: log('FAILED', name); traceback.print_exc()
