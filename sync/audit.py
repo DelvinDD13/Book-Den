@@ -825,6 +825,52 @@ def eras():
                 dr.text((x, y + h + 3), (m['id'] + ' ' + (m['license'] or '?'))[:38], fill=(255, 210, 120), font=f); dr.text((x, y + h + 17), m['title'][5:43], fill=(240, 240, 240), font=f)
             img.save(os.path.join(OUT, 'eras_%s_%d.jpg' % (g, k // 24 + 1)), quality=82)
 
+ERAS2_CATS = ['Category:Superman logos', 'Category:Superman symbols', 'Category:Batman logos', 'Category:Bat-Signal', 'Category:Batman symbols']
+ERAS2_Q = ['Superman logo 19', 'Superman logo 20', 'Superman shield logo', 'Batman logo 19', 'Batman logo 20', 'Batman emblem', 'bat symbol Batman']
+def eras2():
+    """Era logos for the Steel looks: Commons category listings and searches, public domain / CC0 / CC BY / CC BY-SA only."""
+    d = os.path.join(OUT, 'eras2'); os.makedirs(d, exist_ok=True); titles = []; out = []
+    for c in ERAS2_CATS:
+        try:
+            time.sleep(1.0); r = get('https://commons.wikimedia.org/w/api.php?action=query&format=json&list=categorymembers&cmtype=file|subcat&cmlimit=80&cmtitle=%s' % urllib.parse.quote(c), 40)
+            mem = (r.get('query') or {}).get('categorymembers', []); log('cat', c, len(mem))
+            for x in mem:
+                if x.get('ns') == 6: titles.append(x['title'])
+                elif x.get('ns') == 14:
+                    time.sleep(1.0); r2 = get('https://commons.wikimedia.org/w/api.php?action=query&format=json&list=categorymembers&cmtype=file&cmlimit=40&cmtitle=%s' % urllib.parse.quote(x['title']), 40)
+                    titles += [y['title'] for y in (r2.get('query') or {}).get('categorymembers', [])]
+        except Exception as e: log('cat', c, e)
+    for q in ERAS2_Q:
+        try:
+            time.sleep(1.0); r = get('https://commons.wikimedia.org/w/api.php?action=query&format=json&list=search&srnamespace=6&srlimit=25&srsearch=%s' % urllib.parse.quote(q), 40)
+            titles += [x['title'] for x in (r.get('query') or {}).get('search', [])]
+        except Exception as e: log('search', q, e)
+    seen = set(); titles = [t for t in titles if not (t in seen or seen.add(t))]; log('eras2 titles', len(titles))
+    for i in range(0, len(titles), 40):
+        part = titles[i:i + 40]
+        try:
+            time.sleep(1.2); r = get('https://commons.wikimedia.org/w/api.php?action=query&format=json&titles=%s&prop=imageinfo&iiprop=url|size|extmetadata|mime&iiurlwidth=500' % urllib.parse.quote('|'.join(part)), 60)
+        except Exception as e: log('eras2 info', e); continue
+        for p in (r.get('query') or {}).get('pages', {}).values():
+            ii = (p.get('imageinfo') or [{}])[0]; em = ii.get('extmetadata') or {}; t = p.get('title', '')
+            lic = (em.get('LicenseShortName') or {}).get('value') or ''; use = re.sub('<[^>]+>', '', (em.get('UsageTerms') or {}).get('value') or '')
+            m = {'title': t, 'page': ii.get('descriptionurl'), 'url': ii.get('url'), 'thumb': ii.get('thumburl'), 'w': ii.get('width'), 'h': ii.get('height'), 'mime': ii.get('mime'), 'license': lic, 'usage': use, 'artist': re.sub('<[^>]+>', '', (em.get('Artist') or {}).get('value') or '')[:120], 'date': re.sub('<[^>]+>', '', (em.get('DateTimeOriginal') or {}).get('value') or '')[:40], 'desc': re.sub('<[^>]+>', '', (em.get('ImageDescription') or {}).get('value') or '')[:240]}
+            if ii.get('mime') not in ('image/jpeg', 'image/png', 'image/svg+xml') or not re.search(r'public domain|^pd|cc0|cc[ -]by(?![ -]nc)', lic + ' ' + use, re.I): m['skip'] = 1; out.append(m); continue
+            out.append(m)
+    keep = [m for m in out if not m.get('skip')]
+    for i, m in enumerate(keep[:90]):
+        try:
+            b = wget(m['thumb'] or m['url']); im = Image.open(io.BytesIO(b)); fn = 'g%02d.png' % i; im.save(os.path.join(d, fn)); m['file'] = fn
+        except Exception as e: m['err'] = str(e)[:80]
+    save('eras2.json', out); log('eras2', len([m for m in keep if m.get('file')]), 'of', len(out))
+    got = [m for m in keep if m.get('file')]; cols, w, h = 5, 180, 140
+    for k in range(0, len(got), 30):
+        part = got[k:k + 30]; rows = (len(part) + cols - 1) // cols; img = Image.new('RGB', (cols * (w + 8) + 8, rows * (h + 40) + 8), (60, 60, 66)); dr = ImageDraw.Draw(img); f = font(11)
+        for i, m in enumerate(part):
+            x = 8 + (i % cols) * (w + 8); y = 8 + (i // cols) * (h + 40); im = Image.open(os.path.join(d, m['file'])).convert('RGBA'); im.thumbnail((w, h)); img.paste(im, (x + (w - im.width) // 2, y), im)
+            dr.text((x, y + h + 3), (m['file'] + ' ' + (m['license'] or '?'))[:34], fill=(255, 210, 120), font=f); dr.text((x, y + h + 17), m['title'][5:36], fill=(240, 240, 240), font=f)
+        img.save(os.path.join(OUT, 'eras2_%d.jpg' % (k // 30 + 1)), quality=85)
+
 def hunt2():
     """Pokemon Scarlet's own box art from IGDB's public page (its og:image is the cover)."""
     out = {}; items = []
@@ -956,5 +1002,5 @@ if __name__ == '__main__':
     todo = sys.argv[1:] or ['unstray', 'apply', 'live']   # unstray first, every run: no poster record may sit in a show: or game: row
     if todo[0] != 'unstray': todo = ['unstray'] + [x for x in todo if x != 'unstray']
     for name in todo:
-        try: {'imdb': imdb, 'tvmaze': tvmaze, 'posters': posters, 'superman': superman, 'fix': fix, 'wikibox': wikibox, 'anime': anime, 'steam': steam, 'pkmn': pkmn, 'wikiraw': wikiraw, 'bookfix3': bookfix3, 'superman2': superman2, 'eras': eras, 'imdb2': imdb2, 'books': books, 'links': links, 'apply': apply, 'hunt': hunt, 'audible': audible, 'bookfix': bookfix, 'hunt2': hunt2, 'unstray': unstray, 'audible2': audible2, 'bookfix2': bookfix2, 'summaries': summaries, 'live': live, 'coveraudit': coveraudit}[name]()
+        try: {'imdb': imdb, 'tvmaze': tvmaze, 'posters': posters, 'superman': superman, 'fix': fix, 'wikibox': wikibox, 'anime': anime, 'steam': steam, 'pkmn': pkmn, 'wikiraw': wikiraw, 'bookfix3': bookfix3, 'superman2': superman2, 'eras': eras, 'eras2': eras2, 'imdb2': imdb2, 'books': books, 'links': links, 'apply': apply, 'hunt': hunt, 'audible': audible, 'bookfix': bookfix, 'hunt2': hunt2, 'unstray': unstray, 'audible2': audible2, 'bookfix2': bookfix2, 'summaries': summaries, 'live': live, 'coveraudit': coveraudit}[name]()
         except Exception: log('FAILED', name); traceback.print_exc()
