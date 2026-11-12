@@ -8,15 +8,15 @@ const store = fs.readFileSync(path.join(__dirname, 'store.json')); let pass = 0,
   await ctx.route(u => !/^http:\/\/localhost/.test(u.href), r => r.abort()); await ctx.route(/script\.google\.com/, r => r.fulfill({ status: 200, contentType: 'application/json', body: store }));
   // first pass: which bookmarks the test data has earned, so the store can carry the Nov 11 first-sync stamp like his phone does
   const p0 = await ctx.newPage(); await p0.goto('http://localhost:8816/'); await p0.waitForTimeout(6000);
-  const got0 = await p0.evaluate(() => L37.bookmarks().filter(b => b.got).map(b => b.id)); await p0.close();
-  const S = JSON.parse(store); const e0 = {}; got0.forEach(id => { e0[id] = '2026-11-11'; }); const bj = { u: Date.now() - 3600e3, e: e0, init: 1 }; S.v.bmk = { u: bj.u, j: JSON.stringify(bj) };
+  const got0 = await p0.evaluate(() => L37.bookmarks().filter(b => b.got).map(b => b.id)); const FS = await p0.evaluate(() => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }); await p0.close();   // the first-sync day is the day the test runs
+  const S = JSON.parse(store); const e0 = {}; got0.forEach(id => { e0[id] = FS; }); const bj = { u: Date.now() - 3600e3, e: e0, init: 1 }; S.v.bmk = { u: bj.u, j: JSON.stringify(bj) };
   const store2 = JSON.stringify(S); await ctx.unroute(/script\.google\.com/); await ctx.route(/script\.google\.com/, r => r.fulfill({ status: 200, contentType: 'application/json', body: store2 }));
   const page = await ctx.newPage(); const errs = []; page.on('pageerror', e => errs.push(String(e)));
   await page.goto('http://localhost:8816/'); await page.waitForTimeout(7000); const R = (f, a) => page.evaluate(f, a);
-  const st0 = await R(() => ({ stamp: (getOverride('bmk') || {}).stamp, n: Object.keys((getOverride('bmk') || {}).e || {}).length, nov: L37.bookmarks().filter(b => b.got && b.at === '2026-11-11').map(b => [b.id, L37.earnedOn(b)]) }));
+  const st0 = await R(fs => ({ stamp: (getOverride('bmk') || {}).stamp, n: Object.keys((getOverride('bmk') || {}).e || {}).length, nov: L37.bookmarks().filter(b => b.got && b.at === fs).map(b => [b.id, L37.earnedOn(b)]) }), FS);
   ok(got0.length > 5 && st0.n >= got0.length, 'the test store carries the first-sync dates: ' + got0.length);
-  ok(st0.stamp === '2026-11-11', 'the first-sync day is kept as the stamp: ' + st0.stamp);
-  ok(st0.nov.every(x => x[1] === '2026-11-11'), 'no bookmark shows the first-sync day unless the logs say so: ' + JSON.stringify(st0.nov));
+  ok(st0.stamp === FS, 'the first-sync day is kept as the stamp: ' + st0.stamp + ' want ' + FS);
+  ok(st0.nov.every(x => x[1] === FS), 'no bookmark shows the first-sync day unless the logs say so: ' + JSON.stringify(st0.nov));
 
   // ---------- 1. bookmark dates ----------
   // a finished series book: its bookmark is dated by the earliest finish date of that book
@@ -25,8 +25,8 @@ const store = fs.readFileSync(path.join(__dirname, 'store.json')); let pass = 0,
   // timer hours: the session that crossed the hour
   const clock = await R(() => { const t = ALL_TITLES.find(x => /^The Way of Kings/.test(x)); const old = (getOverride(t).rs || []); setOverride(t, { rs: [['2026-09-01T08:00', 40, 2, null], ['2026-09-03T21:10', 30, 2, null]].concat(old) }); L29.flush(); const S = []; ALL_TITLES.forEach(x => (getOverride(x).rs || []).forEach(r => S.push([String(r[0]), +r[1] || 0]))); S.sort((a, b) => a[0] < b[0] ? -1 : 1); let s = 0, want = null; for (const r of S) { s += r[1]; if (s >= 60) { want = r[0].slice(0, 10); break; } } const m = L37.bookmarks().find(b => b.id === 'clock1'); return { want, at: m.at, got: m.got }; });
   ok(clock.got && clock.at === clock.want && clock.want === '2026-09-03', 'the first timer hour is dated by the session that crossed it: ' + JSON.stringify(clock));
-  const keep = await R(() => { L37.syncMarks(true); return { stamp: getOverride('bmk').stamp, nov: L37.bookmarks().filter(b => b.got && b.at === '2026-11-11').map(b => [b.id, L37.earnedOn(b)]) }; });
-  ok(keep.stamp === '2026-11-11' && keep.nov.every(x => x[1] === '2026-11-11'), 'a new bookmark with an earlier date does not uncover the first-sync day: ' + JSON.stringify(keep));
+  const keep = await R(fs => { L37.syncMarks(true); return { stamp: getOverride('bmk').stamp, nov: L37.bookmarks().filter(b => b.got && b.at === fs).map(b => [b.id, L37.earnedOn(b)]) }; }, FS);
+  ok(keep.stamp === FS && keep.nov.every(x => x[1] === FS), 'a new bookmark with an earlier date does not uncover the first-sync day: ' + JSON.stringify(keep));
   // a journal entry and a called theory
   const jot = await R(() => { const t = ALL_TITLES.find(x => /^The Way of Kings/.test(x)); const key = L35.keyFor(t); const at = new Date('2026-08-15T10:00:00').getTime(); setOverride(key, { n: [{ id: 'a1', at, t, k: 'theory', tx: 'Kaladin', ok: true, okAt: new Date('2026-10-20T09:00:00').getTime() }].concat(getOverride(key).n || []) }); const B = L37.bookmarks(); return { jot: B.find(b => b.id === 'jot1').at, th: B.find(b => b.id === 'theory').at }; });
   ok(jot.jot === '2026-08-15' && jot.th === '2026-10-20', 'the journal and theory bookmarks are dated by the entry and the day it was called: ' + JSON.stringify(jot));

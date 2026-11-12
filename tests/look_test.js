@@ -26,7 +26,7 @@ const store = fs.readFileSync('/home/claude/den/pt/store.json'); let pass = 0, f
   await page.evaluate(async () => { const A = await L34.artList(); await L34.artDel(A[0].id); L34.mast(); }); await page.waitForTimeout(500);
   ok(await page.evaluate(() => document.querySelector('.b-mast img').getAttribute('src') === 'icon-512.png' && document.querySelector('.b-mast').classList.contains('l34-nosrc')), 'removed: back to the theme sky');
   await page.evaluate(() => document.querySelector('.l34-chip').click()); await page.waitForTimeout(500);
-  ok(await page.evaluate(() => { const r = document.getElementById('l34').shadowRoot; return r.querySelectorAll('.th').length === 5 && r.querySelectorAll('.spb').length === 6 && r.querySelectorAll('.blb').length === 12; }), 'Look sheet lists themes, the four sprites from his series, blades');
+  ok(await page.evaluate(() => { const r = document.getElementById('l34').shadowRoot; return r.querySelectorAll('.th').length === 6 && r.querySelectorAll('.spb').length === 6 && r.querySelectorAll('.blb').length === 12; }), 'Look sheet lists themes, the four sprites from his series, blades');
   await page.evaluate(() => { const r = document.getElementById('l34').shadowRoot; r.querySelector('.th[data-k=ash]').click(); }); await page.waitForTimeout(500);
   ok(await page.evaluate(() => document.documentElement.classList.contains('th-ash') && L34.get().pick === 'ash'), 'tap a theme in the sheet');
   await page.reload(); await page.waitForTimeout(700); ok(await page.evaluate(() => document.documentElement.classList.contains('th-ash')), 'theme is on before the library loads');

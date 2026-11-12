@@ -90,7 +90,7 @@
   const fan = C => { if (!C.length) return ''; let f = C.findIndex(c => c.on); if (f < 0) f = C.map(c => c.rd).lastIndexOf(true); if (f < 0) f = Math.floor(C.length / 2);
     return '<div class="l53-fan n' + C.length + '">' + C.map((c, i) => '<img class="c c' + i + (i === f ? ' on' : '') + '" src="' + E(c.u) + '" alt="" style="z-index:' + (3 - Math.abs(i - f)) + '">').join('') + '</div>'; };
   // take a scene off a masthead (Home keeps its own picture underneath, so it simply shows again)
-  function clear(m) { if (!m) return; m.querySelectorAll(':scope > .l53-wrap, :scope > .l53-c, :scope > .l53-fan').forEach(x => x.remove()); m.classList.remove('l53', 'l53-storm'); delete m.dataset.l53; }
+  function clear(m) { if (!m) return; m.querySelectorAll(':scope > .l53-wrap, :scope > .l53-c, :scope > .l53-fan').forEach(x => x.remove()); m.classList.remove('l53', 'l53-storm', 'l53-boom'); delete m.dataset.l53; }
   L53.clear = clear;
   // paint one masthead; true when the scene is on it
   function paint(m, th, home) { try { const S = SC[th]; if (!m || !S) { clear(m); return false; } const p = L53.pick(th); if (!p) { clear(m); return false; }
@@ -107,14 +107,46 @@
   L53.paint = paint;
   // the Books masthead under a scene look; under any other look the tab's own montage comes back
   function tab() { try { if (typeof currentLib === 'undefined' || currentLib !== 'books' || !window.L34) return; const m = document.querySelector('header.hero .b-mast'); if (!m) return;
-      const th = L34.current(); if (SC[th] && paint(m, th, false)) return;
+      const th = L34.current(); if (SC[th] && paint(m, th, false)) return; const A = sceneArt(th); if (A && paintArt(m, th, A, false)) return;
       if (m.dataset.l53) { clear(m); delete m.dataset.k; try { L11.head(); } catch (e) {} } } catch (e) { console.warn('l53 tab', e); } }
   L53.tab = tab;
+  // ---------- his own pictures as scenes (ACOTAR, Dungeon Crawler Carl), from a pictures file made for him; they stay on the phone ----------
+  // sc: c = the part of the picture shown (left, top, right, bottom), ar = that part's shape, m = pan (the masthead travels down
+  // the picture from p[0] to p[1] of the way) or push, z = zoom, fx = boom (an explosion flash that shakes the masthead), night
+  // (darkness breathing in from the edges) or glow, o = where the light or explosion sits (fractions of the part shown), g = its colour
+  let ART = [];
+  const DAYN = () => Math.floor(Date.now() / 864e5);
+  function todays(th) { const mine = ART.filter(a => a.th === th), any = ART.filter(a => a.th === 'any'), pool = mine.length ? mine : any; return pool.length ? pool[DAYN() % pool.length] : null; }
+  function sceneArt(th) { const a = todays(th); return a && a.sc && a.sc.ar ? a : null; }
+  L53.sceneArt = sceneArt;
+  const SUB = { night: ['Night sky, Cormorant', 'Your pictures, darkness, Cormorant'], pixel: ['Pink and gold, Bungee', 'Your pictures, explosions, Bungee'] };
+  L53.setArt = function (A) { const id = () => { try { return (sceneArt(L34.current()) || {}).id || 0; } catch (e) { return 0; } }; const before = id(); ART = A || [];
+    try { Object.keys(SUB).forEach(th => { if (L34.TH[th]) L34.TH[th].sub = SUB[th][ART.some(a => a.th === th && a.sc) ? 1 : 0]; }); } catch (e) {} if (id() !== before) setTimeout(() => { try { L34.mast(); } catch (e) {} tab(); }, 0); };
+  const px = n => Math.round(n * 10) / 10 + 'px';
+  function artBox(a, W, H, blur) { const sc = a.sc, C = sc.c || [0, 0, 1, 1], ar = +sc.ar || 1, z = blur ? 1.15 : (+sc.z || 1.05); let bw = W * z, bh = bw / ar, pan = sc.m === 'pan' && !blur;
+      if (bh < H * z) { bh = H * z; bw = bh * ar; pan = false; } const w = C[2] - C[0], h = C[3] - C[1], o = sc.o, fx = blur ? '' : sc.fx;
+      const im = '<img src="' + E(a.url) + '" alt="" draggable="false" style="position:absolute;display:block;max-width:none;max-height:none;object-fit:fill;filter:none;opacity:1;margin:0;width:' + pc(100 / w) + ';height:' + pc(100 / h) + ';left:' + pc(-100 * C[0] / w) + ';top:' + pc(-100 * C[1] / h) + '">';
+      const lit = o && (fx === 'boom' || fx === 'glow' || fx === 'night') ? '<i class="' + (fx === 'boom' ? 'l53-bf' : 'l53-g') + '" style="left:' + pc(100 * o[0]) + ';top:' + pc(100 * o[1]) + (sc.g ? ';--g:' + E(sc.g) : '') + '"></i>' : '';
+      const top = pan ? 0 : (H - bh) / 2;
+      return { html: '<div class="l53-box" style="position:absolute;overflow:hidden;width:' + px(bw) + ';height:' + px(bh) + ';left:' + px((W - bw) / 2) + ';top:' + px(top) + '">' + im + lit + '</div>', pan: pan ? [-(bh - H) * ((sc.p || [0, 1])[0]), -(bh - H) * ((sc.p || [0, 1])[1])] : null }; }
+  // paint one of his pictures on a masthead (Home: moving, with its light; Books: blurred under the series' covers)
+  function paintArt(m, th, a, home) { if (home === undefined) home = true; try { const W = m.clientWidth || window.innerWidth, H = m.clientHeight || 280; if (!a || !a.sc || !W || !H) { clear(m); return false; }
+      const C = home ? [] : L53.covers((TH34(th) || {}).s || ''); const key = 'art:' + th + ':' + a.id + ':' + W + 'x' + H + ':' + (home ? 'home' : 'tab:' + C.map(c => c.k).join('.'));
+      if (m.dataset.l53 === key && m.querySelector(':scope > .l53-wrap')) return true;
+      clear(m); if (!home) m.innerHTML = ''; m.dataset.l53 = key; m.classList.add('l53'); m.classList.toggle('l53-boom', home && a.sc.fx === 'boom');
+      const B2 = artBox(a, W, H, !home); const w = document.createElement('div'); w.className = 'l53-wrap ready'; w.setAttribute('aria-hidden', 'true');
+      w.innerHTML = '<div class="l53-L ' + (home ? (B2.pan ? 'l53-pan' : 'l53-push') : 'l53-blur') + '">' + B2.html + '</div>' + (home && a.sc.fx === 'night' ? '<i class="l53-dark"></i>' : ''); m.appendChild(w);
+      if (!home && C.length) m.insertAdjacentHTML('beforeend', fan(C));
+      if (home && B2.pan && !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) { try { w.querySelector('.l53-pan').animate([{ transform: 'translate3d(0,' + px(B2.pan[0]) + ',0)' }, { transform: 'translate3d(0,' + px(B2.pan[1]) + ',0)' }], { duration: Math.max(9000, Math.abs(B2.pan[1] - B2.pan[0]) * 55), iterations: Infinity, direction: 'alternate', easing: 'ease-in-out' }); } catch (e) {} }
+      else if (B2.pan) { const p = w.querySelector('.l53-pan'); if (p) p.style.transform = 'translate3d(0,' + px(B2.pan[0]) + ',0)'; }
+      return true; } catch (e) { console.warn('l53 art', e); clear(m); return false; } }
+  const TH34 = th => window.L34 && L34.TH && L34.TH[th];
+  L53.paintArt = paintArt;
   // no pixel sprites (the blade, Kelsier, the dragon) over the paintings, whatever mascot is chosen
-  (function () { if (!window.L34 || !L34.mascot) return; const _m = L34.mascot; L34.mascot = function () { try { if (SC[L34.current()]) return null; } catch (e) {} return _m.apply(this, arguments); }; })();
+  (function () { if (!window.L34 || !L34.mascot) return; const _m = L34.mascot; L34.mascot = function () { try { const th = L34.current(); if (SC[th] || sceneArt(th)) return null; } catch (e) {} return _m.apply(this, arguments); }; })();
   (function () { if (typeof switchLib === 'function') { const _s = switchLib; switchLib = function () { const r = _s.apply(this, arguments); setTimeout(tab, 30); return r; }; }
     if (window.L34 && L34.apply) { const _a = L34.apply; L34.apply = function () { const r = _a.apply(this, arguments); setTimeout(tab, 30); return r; }; } })();
-  try { const hd = document.querySelector('header.hero'); if (hd) new MutationObserver(() => { if (typeof currentLib !== 'undefined' && currentLib === 'books') { const m = hd.querySelector('.b-mast'); if (m && !m.dataset.l53 && window.L34 && SC[L34.current()]) tab(); } }).observe(hd, { childList: true }); } catch (e) {}
+  try { const hd = document.querySelector('header.hero'); if (hd) new MutationObserver(() => { if (typeof currentLib !== 'undefined' && currentLib === 'books') { const m = hd.querySelector('.b-mast'); if (m && !m.dataset.l53 && window.L34 && (SC[L34.current()] || sceneArt(L34.current()))) tab(); } }).observe(hd, { childList: true }); } catch (e) {}
   // each scene look takes its colours from the painting (Steel keeps its own era colours)
   const lift = (h, f) => { const n = parseInt(h.slice(1), 16); const c = [n >> 16, (n >> 8) & 255, n & 255].map(x => Math.min(255, Math.round(x + (255 - x) * f))); return '#' + c.map(x => x.toString(16).padStart(2, '0')).join(''); };
   (function () { const st = document.createElement('style'); st.id = 'l53col'; st.textContent = Object.keys(SC).map(th => { const v = SC[th].v; return 'html.l34.th-' + th + ':not(.l51-on){--d-acc:' + v[0] + ';--d-acc2:' + v[1] + ';--d-bg:' + v[2] + ';--d-bg2:' + lift(v[2], 0.035) + ';--d-bg3:' + lift(v[2], 0.09) + ';--th-sky:' + v[2] + '}html.l34.th-' + th + ':not(.l51-on) body.den{background:' + v[2] + '}'; }).join(''); document.head.appendChild(st); })();
@@ -144,7 +176,12 @@
     R('.l53-fan.n2 .c0', 'right:34%;transform:rotate(-5deg)'), R('.l53-fan.n2 .c1', 'right:2%;transform:rotate(4deg)'),
     R('.l53-fan.n3 .c0', 'right:46%;transform:rotate(-7deg)'), R('.l53-fan.n3 .c1', 'right:22%;transform:rotate(1deg)'), R('.l53-fan.n3 .c2', 'right:0;transform:rotate(7deg)'),
     R('.l53-c', 'position:absolute;right:12px;top:calc(env(safe-area-inset-top) + 8px);font:500 9px/1.2 Barlow,sans-serif;letter-spacing:.02em;color:rgba(255,255,255,.38);text-shadow:0 1px 2px rgba(0,0,0,.45);max-width:60%;text-align:right;z-index:4'),
-    '@media (prefers-reduced-motion:reduce){' + R('.l53-sky,.l53-drift,.l53-bob,.l53-push,.l53-glow,.b-mast.l53-storm,.b-mast.l53-storm .l53-box,.b-mast.l53-storm:after', 'animation:none!important') + '}'
+    R('.l53-g', 'position:absolute;width:70%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(closest-side,var(--g,#ffd58a),transparent);mix-blend-mode:screen;opacity:.55;pointer-events:none;animation:l53g 3.2s ease-in-out infinite alternate'),
+    R('.l53-bf', 'position:absolute;width:150%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(closest-side,rgba(255,250,230,.92),rgba(255,190,90,.75) 22%,rgba(255,110,40,.4) 48%,rgba(255,80,30,0) 72%);mix-blend-mode:screen;opacity:0;pointer-events:none;animation:l53bf 6s linear infinite'),
+    R('.b-mast.l53-boom', 'animation:l53shake 6s linear infinite'),
+    R('.b-mast.l53-boom .l53-box', 'animation:l53boomlit 6s linear infinite'),
+    R('.l53-dark', 'position:absolute;inset:0;display:block;pointer-events:none;background:radial-gradient(120% 95% at 50% 45%,rgba(6,3,14,0) 38%,rgba(6,3,14,.8) 100%);animation:l53dark 7s ease-in-out infinite alternate'),
+    '@media (prefers-reduced-motion:reduce){' + R('.l53-sky,.l53-drift,.l53-bob,.l53-push,.l53-glow,.b-mast.l53-storm,.b-mast.l53-storm .l53-box,.b-mast.l53-storm:after,.l53-g,.l53-bf,.b-mast.l53-boom,.b-mast.l53-boom .l53-box,.l53-dark', 'animation:none!important') + '}'
   ].join('');
   const kf = '@keyframes l53sky{from{transform:translate3d(-6.5%,.5%,0) scale(1.1)}to{transform:translate3d(6.5%,-1.5%,0) scale(1.1)}}' +
     '@keyframes l53drift{from{transform:scale(1.16) translate3d(-6.5%,1.5%,0)}to{transform:scale(1.16) translate3d(6.5%,-2%,0)}}' +
@@ -153,13 +190,23 @@
     '@keyframes l53glow{0%{opacity:.35}20%{opacity:.8}35%{opacity:.5}55%{opacity:.95}70%{opacity:.45}100%{opacity:.85}}' +
     '@keyframes l53flash{0%,55%,100%{opacity:0}56%{opacity:.95}57%{opacity:.15}59%{opacity:.85}61%{opacity:.1}64%{opacity:.6}68%{opacity:0}}' +
     '@keyframes l53lit{0%,55%,100%{filter:brightness(1)}56%{filter:brightness(2) contrast(1.15) saturate(.7)}57%{filter:brightness(1.1)}59%{filter:brightness(1.8) saturate(.75)}61%{filter:brightness(1.05)}64%{filter:brightness(1.4)}68%{filter:brightness(1)}}' +
+    '@keyframes l53g{from{opacity:.35}to{opacity:.8}}' +
+    '@keyframes l53bf{0%,58%,100%{opacity:0}60%{opacity:1}62%{opacity:.55}64%{opacity:.9}70%{opacity:.35}80%{opacity:0}}' +
+    '@keyframes l53boomlit{0%,58%,100%{filter:brightness(1)}60%{filter:brightness(1.5) saturate(1.15)}64%{filter:brightness(1.3)}72%{filter:brightness(1.08)}80%{filter:brightness(1)}}' +
+    '@keyframes l53shake{0%,59%,100%{transform:none}60%{transform:translate3d(-7px,3px,0) rotate(-.6deg)}61%{transform:translate3d(6px,-4px,0) rotate(.5deg)}62%{transform:translate3d(-5px,2px,0)}63.5%{transform:translate3d(4px,-1px,0)}65%{transform:translate3d(-2px,1px,0)}67%{transform:none}}' +
+    '@keyframes l53dark{from{opacity:.3}to{opacity:.95}}' +
     '@keyframes l53thunder{0%,58%,100%{transform:none}59%{transform:translate3d(-4px,2px,0)}60%{transform:translate3d(4px,-2px,0)}61%{transform:translate3d(-3px,1px,0)}62%{transform:translate3d(2px,0,0)}63%{transform:none}}';
   try { const st = document.createElement('style'); st.id = 'l53css'; st.textContent = css + kf; document.head.appendChild(st); } catch (e) {}
   // the series' encyclopedia shows the same painting behind its title (inline styles: it lives in its own shadow root)
   function codex(th) { const p = L53.pick(th); if (!p) return ''; const F = 'linear-gradient(#000 55%,transparent)';
     return '<div class="l53-cx" style="position:absolute;left:0;right:0;top:0;height:min(100%,360px);overflow:hidden;container-type:size;-webkit-mask-image:' + F + ';mask-image:' + F + '">' + box(p) + '<div style="position:absolute;inset:0;background:rgba(0,0,0,.42)"></div></div>'; }
   L53.codex = codex;
-  (function () { if (!window.L29 || !L29.ATMO) return; const A = L29.ATMO; Object.keys(SC).forEach(th => { const old = A[th] || ''; try { Object.defineProperty(A, th, { configurable: true, enumerable: true, get() { return codex(th) || old; } }); } catch (e) {} }); })();
+  function codexArt(th) { const a = sceneArt(th); if (!a) return ''; const sc = a.sc, C = sc.c || [0, 0, 1, 1], ar = +sc.ar || 1, w = C[2] - C[0], h = C[3] - C[1], F = 'linear-gradient(#000 55%,transparent)';
+    return '<div class="l53-cx" style="position:absolute;left:0;right:0;top:0;height:min(100%,360px);overflow:hidden;container-type:size;-webkit-mask-image:' + F + ';mask-image:' + F + '"><div style="position:absolute;overflow:hidden;aspect-ratio:' + ar + ';width:100%;width:max(100cqw,calc(100cqh * ' + ar + '));left:50%;top:0;transform:translateX(-50%)"><img src="' + E(a.url) + '" alt="" draggable="false" style="position:absolute;display:block;max-width:none;max-height:none;object-fit:fill;margin:0;width:' + pc(100 / w) + ';height:' + pc(100 / h) + ';left:' + pc(-100 * C[0] / w) + ';top:' + pc(-100 * C[1] / h) + '"></div><div style="position:absolute;inset:0;background:rgba(0,0,0,.42)"></div></div>'; }
+  L53.ATMO0 = window.L29 && L29.ATMO ? Object.assign({}, L29.ATMO) : null;
+  (function () { if (!window.L29 || !L29.ATMO) return; const A = L29.ATMO; Object.keys(SC).forEach(th => { const old = A[th] || ''; try { Object.defineProperty(A, th, { configurable: true, enumerable: true, get() { return codex(th) || old; } }); } catch (e) {} });
+    ['night', 'pixel'].forEach(th => { const old = A[th] || ''; try { Object.defineProperty(A, th, { configurable: true, enumerable: true, get() { return codexArt(th) || old; } }); } catch (e) {} }); })();
+  try { if (window.L34 && L34.artList) L34.artList().then(A => L53.setArt(A)); } catch (e) {}
   // Home's masthead is painted from the look's own masthead step; run it once more now that the scenes are here
   setTimeout(() => { try { if (window.L34 && SC[L34.current()]) L34.mast(); } catch (e) {} tab(); }, 800);
 })();
