@@ -960,6 +960,10 @@ def scenefp():
         out.append({'i': i, 'h': fnv(n), 'mz': 'mzstatic' in u})
     save('scenefp.json', out); log('scenefp', len([o for o in out if o.get('h')]), 'of 9')
 
+def narrfill():
+    """Narrators from Audible's public catalogue for finished audiobooks that have none on record (read-only)."""
+    audible('narrfill_titles.json', 'narrfill.json')
+
 def hunt2():
     """Pokemon Scarlet's own box art from IGDB's public page (its og:image is the cover)."""
     out = {}; items = []
@@ -1091,5 +1095,5 @@ if __name__ == '__main__':
     todo = sys.argv[1:] or ['unstray', 'apply', 'live']   # unstray first, every run: no poster record may sit in a show: or game: row
     if todo[0] != 'unstray': todo = ['unstray'] + [x for x in todo if x != 'unstray']
     for name in todo:
-        try: {'imdb': imdb, 'tvmaze': tvmaze, 'posters': posters, 'superman': superman, 'fix': fix, 'wikibox': wikibox, 'anime': anime, 'steam': steam, 'pkmn': pkmn, 'wikiraw': wikiraw, 'bookfix3': bookfix3, 'superman2': superman2, 'eras': eras, 'eras2': eras2, 'eras3': eras3, 'themes': themes, 'bigcov': bigcov, 'scenefp': scenefp, 'imdb2': imdb2, 'books': books, 'links': links, 'apply': apply, 'hunt': hunt, 'audible': audible, 'bookfix': bookfix, 'hunt2': hunt2, 'unstray': unstray, 'audible2': audible2, 'bookfix2': bookfix2, 'summaries': summaries, 'live': live, 'coveraudit': coveraudit}[name]()
+        try: {'imdb': imdb, 'tvmaze': tvmaze, 'posters': posters, 'superman': superman, 'fix': fix, 'wikibox': wikibox, 'anime': anime, 'steam': steam, 'pkmn': pkmn, 'wikiraw': wikiraw, 'bookfix3': bookfix3, 'superman2': superman2, 'eras': eras, 'eras2': eras2, 'eras3': eras3, 'themes': themes, 'bigcov': bigcov, 'scenefp': scenefp, 'narrfill': narrfill, 'imdb2': imdb2, 'books': books, 'links': links, 'apply': apply, 'hunt': hunt, 'audible': audible, 'bookfix': bookfix, 'hunt2': hunt2, 'unstray': unstray, 'audible2': audible2, 'bookfix2': bookfix2, 'summaries': summaries, 'live': live, 'coveraudit': coveraudit}[name]()
         except Exception: log('FAILED', name); traceback.print_exc()
