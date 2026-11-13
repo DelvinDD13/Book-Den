@@ -1,6 +1,6 @@
 // Book Den service worker — the app opens from cache at once; a fresh copy is fetched behind it and used on the next open.
 // The save goes to the store live and is never cached here. Covers are cached by URL (capped).
-const C = 'den-202611120710';
+const C = 'den-202611122358';
 const COVERS = 'den-covers', MAXC = 1500;
 // the new build's page is fetched past the browser's own cache, so a new worker never installs with the old page in it
 self.addEventListener('install', e => { e.waitUntil(caches.open(C).then(c => c.addAll(['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'].map(u => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting())); });
@@ -10,6 +10,7 @@ self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(carry).t
   .then(() => caches.open(COVERS)).then(c => c.keys().then(ks => Promise.all(ks.slice(0, Math.max(0, ks.length - MAXC)).map(k => c.delete(k))))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', e => {
   const u = new URL(e.request.url); if (e.request.method !== 'GET') return;
+  if (u.origin === location.origin && /\/art\/pack\.bin$/.test(u.pathname)) return;   // his locked pictures: fetched once, kept in IndexedDB, never cached here
   if (u.origin !== location.origin && (e.request.destination === 'image' || /(^|\.)mzstatic\.com$|^covers\.openlibrary\.org$|^cdn\.myanimelist\.net$|^static\.tvmaze\.com$|^upload\.wikimedia\.org$|^books\.google\.com$/.test(u.hostname))) { e.respondWith(caches.open(COVERS).then(c => c.match(u.href).then(hit => hit || fetch(e.request).then(r => { try { if (r.ok || r.type === 'opaque') { const cp = r.clone(); c.put(u.href, cp).catch(() => {}); } } catch (x) {} return r; }))).catch(() => fetch(e.request))); return; }
   if (u.origin !== location.origin) return;
   if (/\/upcoming\.json$/.test(u.pathname)) { e.respondWith(fetch(e.request).then(r => { if (r.ok) caches.open(C).then(c => c.put('./upcoming.json', r.clone())); return r; }).catch(() => caches.match('./upcoming.json'))); return; }
