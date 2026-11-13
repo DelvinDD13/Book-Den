@@ -1,0 +1,19 @@
+{
+ "checked": 86,
+ "absent": 1,
+ "ours": 0,
+ "already_blank": 85,
+ "not_ours": 0,
+ "not_ours_fields": [],
+ "ours_written_between": null,
+ "other_show_game_rows": 1,
+ "other_fields": {
+  "finished": 1,
+  "status": 1,
+  "u": 1,
+  "myRating": 1
+ },
+ "store_rows": 1376,
+ "wrote": 0,
+ "blank_now": 0
+}
