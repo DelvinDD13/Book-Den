@@ -44,7 +44,7 @@
     if (added) { try { L4.clear(); } catch (e) {} } }
   // the first session after narrator badges arrive on this phone: what he has already earned (including whatever the store
   // brings in while the app opens) is filled in from his history with one note, not a banner each
-  function prefill() { if (!firstRun || Date.now() > quietUntil || !ready()) return; try { const st = L4.state(); if (!st.init) return; const e = Object.assign({}, st.e || {}); let n = 0;
+  function prefill() { if (!firstRun || Date.now() > quietUntil || !ready() || (window.L54 && L54.linkOnly)) return; try { const st = L4.state(); if (!st.init) return; const e = Object.assign({}, st.e || {}); let n = 0;
       _all.call(L4).forEach(b => { if (!(b.narr || b.id === 'favnarr' || b.id === 'narrheard') || !b.tier) return; if (e[b.id] && e[b.id].t >= b.tier) return; e[b.id] = { t: b.tier, at: today(), bf: 1 }; n++; });
       if (!n) return; quietN += n; setOverride('badges', Object.assign({}, st, { e })); try { localStorage.setItem(INIT, today()); } catch (x) {}
       if (!noted) { noted = true; setTimeout(() => { try { toast(quietN + ' narrator badges added from your listening'); } catch (x) {} }, 2500); } } catch (x) { console.warn('l55', x); } }
