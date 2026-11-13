@@ -16,6 +16,12 @@ const BIG = path.join(ROOT, 'audit/bigcov'); const PNG = Buffer.from('iVBORw0KGg
     await ctx.route(/script\.google\.com/, r => r.fulfill({ status: 200, contentType: 'application/json', body: store })); return ctx; };
   const ctx = await mk(); const page = await ctx.newPage(); const errs = []; page.on('pageerror', e => errs.push(String(e))); page.on('console', m => { if (m.type() === 'warning' && /l53/.test(m.text())) errs.push(m.text()); });
   await page.goto('http://localhost:8861/'); await page.waitForTimeout(6500); const R = (f, a) => page.evaluate(f, a);
+  // nothing big on screen keeps brightening or dimming fast, and nothing shakes (in a repeating animation, a change of a tenth or
+  // more in under half a second counts; a one-time fade such as a badge banner coming in is not a flash)
+  const NOFLASH = () => { const vw = innerWidth * innerHeight, bad = []; document.getAnimations().forEach(a => { const ef = a.effect; if (!ef || !ef.getKeyframes || !ef.target) return; const r = ef.target.getBoundingClientRect(); if (r.width * r.height < 0.1 * vw) return;
+      const T = ef.getComputedTiming(); if (!(T.iterations > 1)) return; const dur = +T.duration || 0, K = ef.getKeyframes(); const val = k => { const f = String(k.filter || ''), m = f.match(/brightness\(([\d.]+)\)/); return { o: k.opacity != null && k.opacity !== '' ? +k.opacity : null, b: m ? +m[1] : null }; };
+      for (let i = 1; i < K.length; i++) { const A0 = val(K[i - 1]), A1 = val(K[i]), dt = (K[i].computedOffset - K[i - 1].computedOffset) * dur; ['o', 'b'].forEach(p => { if (A0[p] != null && A1[p] != null && Math.abs(A1[p] - A0[p]) >= 0.1 && dt < 500) bad.push((a.animationName || 'anim') + ' ' + p + ' ' + A0[p] + '>' + A1[p] + ' in ' + Math.round(dt) + 'ms'); }); } });
+    const m = document.querySelector('header.hero .b-mast'); return { bad, shake: m ? getComputedStyle(m).animationName : 'none', n: document.getAnimations().length }; };
   // pictures for review: every animation in the header held at one moment (ms into its cycle)
   const shot = async (n, ms) => { if (!SHOTS) return; await R(() => { if (!document.getElementById('shotcss')) { const st = document.createElement('style'); st.id = 'shotcss'; st.textContent = '#l25{display:none!important}'; document.head.appendChild(st); } document.querySelectorAll('body *').forEach(el => { if (!el.closest('header.hero') && getComputedStyle(el).position === 'fixed' && el.getBoundingClientRect().top < 300) el.style.visibility = 'hidden'; }); }); if (ms != null) await R(t => document.getAnimations().forEach(a => { try { const el = a.effect && a.effect.target; if (el && el.closest && el.closest('header.hero')) { a.pause(); a.currentTime = t; } } catch (e) {} }), ms);
     await page.screenshot({ path: path.join(SHOTS, n + '.png'), clip: { x: 0, y: 0, width: 390, height: 420 } }); if (ms != null) await R(() => document.getAnimations().forEach(a => { try { a.play(); } catch (e) {} })); };
@@ -39,13 +45,14 @@ const BIG = path.join(ROOT, 'audit/bigcov'); const PNG = Buffer.from('iVBORw0KGg
   ok(s.masks.join() === 'art/scenes/wok_sky.png,art/scenes/wok_fg.png', 'the sky and figure shapes are the Way of Kings ones: ' + s.masks);
   ok(s.cover, 'the painting covers the whole masthead');
   ok(s.c === 'The Way of Kings · Michael Whelan', 'credit line: ' + s.c);
-  ok(s.anim.join() === 'l53sky,l53thunder,l53flash,l53lit', 'sky drift, thunder jolt, lightning flash, lit painting: ' + s.anim);
+  ok(s.anim.join() === 'l53sky,none,none,none', 'the sky drifts; no lightning, no jolt, no lit-up painting: ' + s.anim);
+  let nf = await R(NOFLASH); ok(!nf.bad.length && nf.shake === 'none' && nf.n > 0, 'Stormlight: nothing on screen flashes or shakes: ' + JSON.stringify(nf));
   ok(s.atmo === '', 'no drawn sky over the painting: ' + s.atmo);
   let q = await R(() => [!!document.querySelector('#l34sky .l34-rig'), L34.mascot()]); ok(!q[0] && q[1] === null, 'no blade sprite over the Stormlight painting: ' + q);
   await R(() => L34.set({ mascot: 'blade' })); await page.waitForTimeout(700); q = await R(() => [!!document.querySelector('#l34sky .l34-rig'), L34.mascot()]); await R(() => L34.set({ mascot: 'auto' })); await page.waitForTimeout(300);
   ok(!q[0] && q[1] === null, 'not even when a sprite is picked by hand: ' + q);
   ok(s.acc === '#efb058', 'Stormlight takes its accent from the painting: ' + s.acc);
-  await shot('storm_home_0', 0); await shot('storm_home_flash', 2800); await shot('storm_home_8s', 7900);
+  await shot('storm_home_0', 0); await shot('storm_home_3s', 2800); await shot('storm_home_8s', 7900);
   // ---- the shapes only go over the cover they were cut from ----
   s = await R(() => { const t = ALL_TITLES.filter(x => /^The Way of Kings/i.test(x)); const keep = t.map(x => [x, JSON.stringify(getOverride('cv:' + x) || {})]);
     t.forEach(x => { const o = getOverride('cv:' + x); if (o && o.url) o.url = o.url.replace(/\/([^/]+)\/(\d+x\d+bb\.jpg)$/, '/other$1/$2'); });
@@ -61,6 +68,7 @@ const BIG = path.join(ROOT, 'audit/bigcov'); const PNG = Buffer.from('iVBORw0KGg
   ok(s.anim.join() === 'l53drift,l53bob,1', 'mist drifts and the figure floats once the fill is ready: ' + s.anim);
   ok(s.c === (await R(k => L53.B[k].c, want.ash)) && s.acc === '#f79353', 'Mistborn credit and colours: ' + s.c + ' ' + s.acc);
   s = await R(() => [!!document.querySelector('#l34sky .l34-rig'), L34.mascot()]); ok(!s[0] && s[1] === null, 'no Kelsier sprite over the Mistborn painting: ' + s);
+  nf = await R(NOFLASH); ok(!nf.bad.length && nf.shake === 'none', 'Mistborn: nothing on screen flashes or shakes: ' + JSON.stringify(nf));
   await shot('ash_home_0', 0); await shot('ash_home_mid', 2600); await shot('ash_home_8s', 7900);
   // ---- Throne of Glass: push-in under firelight, no dragon ----
   await R(() => L34.set({ mode: 'pick', pick: 'glass' })); await page.waitForTimeout(1800);
@@ -69,8 +77,10 @@ const BIG = path.join(ROOT, 'audit/bigcov'); const PNG = Buffer.from('iVBORw0KGg
   ok(s.L.join() === 'l53-push' && s.glow && s.anim === 'l53push', 'Throne of Glass Home: the painting pushes in with the glow: ' + JSON.stringify(s.L) + ' ' + s.anim);
   ok(!s.masc && !s.mi, 'no dragon on the Throne of Glass look: ' + s.masc + ' ' + (s.mi || '').slice(0, 40));
   ok(s.acc === '#d23a55', 'Throne of Glass colours: ' + s.acc);
+  nf = await R(NOFLASH); q = await R(() => { const g = document.querySelector('header.hero .b-mast .l53-glow'); return g ? [getComputedStyle(g).animationName, getComputedStyle(g).animationDuration] : null; });
+  ok(!nf.bad.length && nf.shake === 'none' && q && q[0] === 'l53glow' && parseFloat(q[1]) >= 4, 'Throne of Glass: the red glow rises and falls slowly, no flicker: ' + JSON.stringify(nf) + ' ' + q);
   await shot('glass_home_0', 0); await shot('glass_home_8s', 7900);
-  s = await R(() => [L34.TH.night.sub, L34.TH.storm.sub, L34.TH.storm.sw.join()]); ok(!/Starfall/.test(s[0]) && !/rain|blue/i.test(s[1]) && s[2] === '#120f1a,#efb058,#cc5f3f', 'look descriptions and swatches match what is shown: ' + s);
+  s = await R(() => [L34.TH.night.sub, L34.TH.storm.sub, L34.TH.storm.sw.join(), L34.TH.glass.sub]); ok(!/Starfall/.test(s[0]) && !/rain|blue|lightning/i.test(s[1]) && s[2] === '#120f1a,#efb058,#cc5f3f' && !/fire/i.test(s[3]), 'look descriptions and swatches match what is shown: ' + s);
   // ---- back to the Den look: Home's own picture returns ----
   await R(() => L34.set({ mode: 'pick', pick: 'den' })); await page.waitForTimeout(1500);
   s = await R(() => { const m = document.querySelector('header.hero .b-mast'); const own = m.querySelector(':scope > img'); return [!!m.querySelector('.l53-wrap, .l53-c'), m.classList.contains('l53'), getComputedStyle(own).visibility, getComputedStyle(document.documentElement).getPropertyValue('--d-acc').trim()]; });

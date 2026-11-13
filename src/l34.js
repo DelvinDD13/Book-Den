@@ -11,13 +11,13 @@
   // ---------- themes: the app's own tokens, re-pointed ----------
   const TH = {
     den: { n: 'Book Den', sub: 'The original', masc: 'kelsier', sw: ['#0f0f11', '#ff6a2a', '#ffb089'] },
-    storm: { n: 'Stormlight', sub: 'Cover painting, lightning, Cinzel', s: 'stormlight', masc: 'none', sky: 'storm', sw: ['#120f1a', '#efb058', '#cc5f3f'],
+    storm: { n: 'Stormlight', sub: 'Cover painting, drifting sky, Cinzel', s: 'stormlight', masc: 'none', sky: 'storm', sw: ['#120f1a', '#efb058', '#cc5f3f'],
       css: '--d-bg:#0a1220;--d-bg2:#0f1a2c;--d-bg3:#18273d;--d-ink:#eaf2fb;--d-mute:#93a6bf;--d-line:rgba(150,195,255,.2);--d-acc:#6fc3ff;--d-acc2:#dcb663;--b-disp:"Den Cinzel","Bebas Neue",Impact,sans-serif;--th-glow:rgba(111,195,255,.42);--th-sky:radial-gradient(95% 75% at 88% 0%,rgba(74,146,228,.5),transparent 62%),linear-gradient(180deg,#12294a 0%,#0a1220 92%)' },
     ash: { n: 'Mistborn', sub: 'Cover painting, mist, red sun', s: 'mistborn', masc: 'none', sky: 'ash', sw: ['#14111d', '#f79353', '#f5ba70'],
       css: '--d-bg:#0d0b0a;--d-bg2:#161210;--d-bg3:#231c18;--d-ink:#efe6da;--d-mute:#a39686;--d-line:rgba(239,220,190,.16);--d-acc:#e0683a;--d-acc2:#c9a66b;--b-disp:"Den Fell","Bebas Neue",Impact,sans-serif;--th-glow:rgba(224,104,58,.42);--th-sky:linear-gradient(180deg,#2e1711 0%,#170f0c 55%,#0d0b0a 94%)' },
     night: { n: 'ACOTAR', sub: 'Night sky, Cormorant', s: 'acotar', masc: 'none', sky: 'night', sw: ['#0c0a16', '#e9a3b8', '#dcc09a'],
       css: '--d-bg:#0c0a16;--d-bg2:#141127;--d-bg3:#201a38;--d-ink:#f4eef7;--d-mute:#aa9fbb;--d-line:rgba(220,190,255,.18);--d-acc:#e9a3b8;--d-acc2:#dcc09a;--b-disp:"Den Cormorant","Bebas Neue",Impact,sans-serif;--th-glow:rgba(233,163,184,.42);--th-sky:radial-gradient(80% 45% at 25% 100%,rgba(233,163,184,.22),transparent 70%),linear-gradient(180deg,#1f174d 0%,#130f2c 55%,#0c0a16 94%)' },
-    glass: { n: 'Throne of Glass', sub: 'Cover painting, firelight, Marcellus', s: 'tog', masc: 'none', sky: 'glass', sw: ['#0b0708', '#d23a55', '#1690be'],
+    glass: { n: 'Throne of Glass', sub: 'Cover painting, red glow, Marcellus', s: 'tog', masc: 'none', sky: 'glass', sw: ['#0b0708', '#d23a55', '#1690be'],
       css: '--d-bg:#09100c;--d-bg2:#101a14;--d-bg3:#19271f;--d-ink:#eef5ef;--d-mute:#96aa9d;--d-line:rgba(190,235,208,.18);--d-acc:#7fd6a6;--d-acc2:#d8b45a;--b-disp:"Den Marcellus","Bebas Neue",Impact,sans-serif;--th-glow:rgba(127,214,166,.4);--th-sky:linear-gradient(180deg,#133325 0%,#0c1711 60%,#09100c 94%)' },
     pixel: { n: 'Dungeon Crawler Carl', sub: 'Pink and gold, Bungee', s: 'dcc', masc: 'none', sky: '', sw: ['#140d1c', '#ff4f9a', '#ffb12e'],
       css: '--d-bg:#140d1c;--d-bg2:#1c1427;--d-bg3:#2a1f3a;--d-ink:#fff4f8;--d-mute:#b9a8c6;--d-line:rgba(255,160,210,.2);--d-acc:#ff4f9a;--d-acc2:#ffb12e;--b-disp:"Den Bungee","Bebas Neue",Impact,sans-serif;--th-glow:rgba(255,79,154,.42);--th-sky:linear-gradient(180deg,#2a1440 0%,#180e24 55%,#140d1c 94%)' }

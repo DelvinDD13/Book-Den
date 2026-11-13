@@ -11,6 +11,12 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
     await ctx.route(u => !/^http:\/\/localhost/.test(u.href), r => r.request().resourceType() === 'image' ? r.fulfill({ status: 200, contentType: 'image/png', body: PNG }) : r.abort());
     await ctx.route(/script\.google\.com/, r => r.fulfill({ status: 200, contentType: 'application/json', body: store })); return ctx; };
   const ctx = await mk(); const page = await ctx.newPage(); const errs = []; page.on('pageerror', e => errs.push(String(e))); await page.goto('http://localhost:8867/'); await page.waitForTimeout(6500); const R = (f, a) => page.evaluate(f, a);
+  // nothing big on screen keeps brightening or dimming fast, and nothing shakes (in a repeating animation, a change of a tenth or
+  // more in under half a second counts; a one-time fade such as a badge banner coming in is not a flash)
+  const NOFLASH = () => { const vw = innerWidth * innerHeight, bad = []; document.getAnimations().forEach(a => { const ef = a.effect; if (!ef || !ef.getKeyframes || !ef.target) return; const r = ef.target.getBoundingClientRect(); if (r.width * r.height < 0.1 * vw) return;
+      const T = ef.getComputedTiming(); if (!(T.iterations > 1)) return; const dur = +T.duration || 0, K = ef.getKeyframes(); const val = k => { const f = String(k.filter || ''), m = f.match(/brightness\(([\d.]+)\)/); return { o: k.opacity != null && k.opacity !== '' ? +k.opacity : null, b: m ? +m[1] : null }; };
+      for (let i = 1; i < K.length; i++) { const A0 = val(K[i - 1]), A1 = val(K[i]), dt = (K[i].computedOffset - K[i - 1].computedOffset) * dur; ['o', 'b'].forEach(p => { if (A0[p] != null && A1[p] != null && Math.abs(A1[p] - A0[p]) >= 0.1 && dt < 500) bad.push((a.animationName || 'anim') + ' ' + p + ' ' + A0[p] + '>' + A1[p] + ' in ' + Math.round(dt) + 'ms'); }); } });
+    const m = document.querySelector('header.hero .b-mast'); return { bad, shake: m ? getComputedStyle(m).animationName : 'none', n: document.getAnimations().length }; };
   // ---- the looks before any pictures ----
   let s = await R(() => [Object.keys(L34.TH).join(), L34.TH.pixel.n, L34.TH.pixel.sub, L34.TH.night.sub, L34.TH.pixel.masc]);
   ok(s[0] === 'den,storm,ash,night,glass,pixel' && s[1] === 'Dungeon Crawler Carl' && s[2] === 'Pink and gold, Bungee' && s[3] === 'Night sky, Cormorant' && s[4] === 'none', 'a Dungeon Crawler Carl look, described by what it has: ' + s);
@@ -27,7 +33,7 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
   s = await R(() => L34.artList().then(A => A.map(a => a.th + ':' + (a.sc ? a.sc.m : '-')).join()));
   ok(s === 'night:pan,night:push,pixel:pan,pixel:pan', 'the file adds four pictures with their settings, and skips a look that does not exist: ' + s);
   s = await R(() => [L34.TH.night.sub, L34.TH.pixel.sub, document.getElementById('l34').shadowRoot.querySelectorAll('.th').length]);
-  ok(s[0] === 'Your pictures, darkness, Cormorant' && s[1] === 'Your pictures, explosions, Bungee' && s[2] === 6, 'with pictures the looks say so, and the sheet lists six looks: ' + s);
+  ok(s[0] === 'Your pictures, darkness, Cormorant' && s[1] === 'Your pictures, pink and gold, Bungee' && s[2] === 6, 'with pictures the looks say so, and the sheet lists six looks: ' + s);
   const inp2 = await page.evaluateHandle(() => document.getElementById('l34').shadowRoot.querySelector('input[data-a="art"]')); await inp2.asElement().setInputFiles(tmp); await page.waitForTimeout(2000);
   s = await R(() => L34.artList().then(A => A.length)); ok(s === 4, 'adding the same file again adds nothing: ' + s);
   await R(() => L34.close()); await page.waitForTimeout(400);
@@ -48,12 +54,14 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
   s = await R(() => L34.artList().then(A => { const a = A.find(x => x.th === 'night' && x.sc.m === 'pan'); const m = document.querySelector('header.hero .b-mast'); L53.paintArt(m, 'night', a); const L = m.querySelector('.l53-pan'); const an = L && L.getAnimations()[0]; const k = an && an.effect.getKeyframes();
     return { pan: !!L, glow: !!m.querySelector('.l53-pan .l53-box .l53-g'), from: k && k[0].transform, to: k && k[k.length - 1].transform, run: an && an.playState }; }));
   ok(s.pan && s.glow && /translate3d\(0(px)?, ?0(px)?, ?0(px)?\)/.test(s.from) && /translate3d\(0(px)?, ?-\d/.test(s.to) && s.run === 'running', 'a tall picture travels from its top to its bottom, its light moving with it: ' + JSON.stringify(s));
-  // ---- the Carl look: explosions, colours, font ----
+  // ---- the Carl look: his pictures move; nothing flashes or shakes; colours, font ----
+  let nf0 = await R(NOFLASH); ok(!nf0.bad.length && nf0.shake === 'none', 'ACOTAR with his pictures: nothing on screen flashes or shakes: ' + JSON.stringify(nf0));
   await R(() => L34.set({ mode: 'pick', pick: 'pixel' })); await page.waitForTimeout(1500);
   const wantP = await today('pixel');
   s = await R(() => L34.artList().then(A => { const a = A.find(x => x.th === 'pixel' && x.sc.fx === 'boom'); const m = document.querySelector('header.hero .b-mast'); L53.paintArt(m, 'pixel', a); const box = m.querySelector('.l53-box'); const cs = getComputedStyle(document.documentElement);
-    return { boom: m.classList.contains('l53-boom'), shake: getComputedStyle(m).animationName, lit: getComputedStyle(box).animationName, flash: !!m.querySelector('.l53-box .l53-bf'), fa: getComputedStyle(m.querySelector('.l53-bf')).animationName, acc: cs.getPropertyValue('--d-acc').trim(), font: cs.getPropertyValue('--b-disp') }; }));
-  ok(s.boom && s.shake === 'l53shake' && s.lit === 'l53boomlit' && s.flash && s.fa === 'l53bf', 'an explosion flashes from the picture and shakes the masthead: ' + JSON.stringify(s));
+    return { boom: m.classList.contains('l53-boom'), shake: getComputedStyle(m).animationName, lit: getComputedStyle(box).animationName, flash: !!m.querySelector('.l53-bf'), moves: !!m.querySelector('.l53-pan, .l53-push'), acc: cs.getPropertyValue('--d-acc').trim(), font: cs.getPropertyValue('--b-disp') }; }));
+  ok(!s.boom && s.shake === 'none' && s.lit === 'none' && !s.flash && s.moves, 'an explosion picture moves like the rest: no flash, no shake: ' + JSON.stringify(s));
+  nf0 = await R(NOFLASH); ok(!nf0.bad.length && nf0.shake === 'none', 'Carl: nothing on screen flashes or shakes: ' + JSON.stringify(nf0));
   ok(s.acc === '#ff4f9a' && /Den Bungee/.test(s.font), 'Carl colours and Bungee: ' + s.acc + ' ' + s.font);
   s = await R(() => document.fonts.check('40px "Den Bungee"') || document.fonts.load('40px "Den Bungee"').then(f => f.length > 0)); ok(s, 'the Bungee font loads from the site');
   await R(() => { L34.mast(); }); await page.waitForTimeout(900); s = await R(() => document.querySelector('header.hero .b-mast').dataset.l53 || '');
@@ -78,8 +86,8 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
   // ---- reduced motion: still ----
   const ctx2 = await mk({ reducedMotion: 'reduce' }); const p2 = await ctx2.newPage(); await p2.goto('http://localhost:8867/'); await p2.waitForTimeout(6500);
   await p2.evaluate(async (b) => { await L34.artImport(JSON.parse(b)); L34.set({ on: true, mode: 'pick', pick: 'pixel' }); switchLib('life'); }, bundle); await p2.waitForTimeout(1500);
-  s = await p2.evaluate(() => L34.artList().then(A => { const a = A.find(x => x.th === 'pixel' && x.sc.fx === 'boom'); const m = document.querySelector('header.hero .b-mast'); L53.paintArt(m, 'pixel', a); const L = m.querySelector('.l53-pan'); return [L ? L.getAnimations().length : -1, getComputedStyle(m).animationName, getComputedStyle(m.querySelector('.l53-bf')).animationName]; }));
-  ok(s[0] === 0 && s[1] === 'none' && s[2] === 'none', 'reduced motion keeps his pictures still: ' + s);
+  s = await p2.evaluate(() => L34.artList().then(A => { const a = A.find(x => x.th === 'pixel' && x.sc.fx === 'boom'); const m = document.querySelector('header.hero .b-mast'); L53.paintArt(m, 'pixel', a); const L = m.querySelector('.l53-pan'); return [L ? L.getAnimations().length : -1, getComputedStyle(m).animationName, document.getAnimations().filter(x => x.playState === 'running' && x.effect && x.effect.target && m.contains(x.effect.target)).length]; }));
+  ok(s[0] === 0 && s[1] === 'none' && s[2] === 0, 'reduced motion keeps his pictures still: ' + s);
   await ctx2.close(); await br.close(); srv.close(); fs.unlinkSync(tmp);
   console.log(pass + ' passed, ' + fail + ' failed'); process.exit(fail ? 1 : 0);
 })().catch(e => { console.log('ERR', e); console.log(pass + ' passed, ' + (fail + 1) + ' failed'); process.exit(1); });

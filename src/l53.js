@@ -1,7 +1,8 @@
 // ===== L53: series scenes. Under the Stormlight, Mistborn and Throne of Glass looks, Home's masthead is the painted scene from
 //   the cover of the series book being read (or the last one read), cut into layers on the phone so it moves: the sky drifts
-//   behind the figure (Stormlight, with lightning that jolts the masthead), the figure floats in front of the mist (Mistborn),
-//   or the scene pushes in under firelight (Throne of Glass). Each look takes its colours from its painting.
+//   behind the figure (Stormlight), the figure floats in front of the mist (Mistborn), or the scene pushes in under a slow red
+//   glow (Throne of Glass). Each look takes its colours from its painting. Nothing flashes, flickers or shakes (Nov 13: he raised
+//   seizure safety; the lightning, the explosions and the firelight flicker were taken out).
 //   The paintings are never copied into the site: the app already loads each cover from Apple's image server, and only the
 //   cut-out shapes (art/scenes) live here, with a short hash of the cover address they were cut from, so they are only ever
 //   laid over that same picture. The Books tab shows the series' covers fanned over the painting, blurred, and the series'
@@ -112,28 +113,28 @@
   L53.tab = tab;
   // ---------- his own pictures as scenes (ACOTAR, Dungeon Crawler Carl), from a pictures file made for him; they stay on the phone ----------
   // sc: c = the part of the picture shown (left, top, right, bottom), ar = that part's shape, m = pan (the masthead travels down
-  // the picture from p[0] to p[1] of the way) or push, z = zoom, fx = boom (an explosion flash that shakes the masthead), night
-  // (darkness breathing in from the edges) or glow, o = where the light or explosion sits (fractions of the part shown), g = its colour
+  // the picture from p[0] to p[1] of the way) or push, z = zoom, fx = boom (an explosion picture; nothing flashes,
+  // so it moves like the rest), night (darkness breathing in from the edges) or glow, o = where the light sits (fractions of the part shown), g = its colour
   let ART = [];
   const DAYN = () => Math.floor(Date.now() / 864e5);
   function todays(th) { const mine = ART.filter(a => a.th === th), any = ART.filter(a => a.th === 'any'), pool = mine.length ? mine : any; return pool.length ? pool[DAYN() % pool.length] : null; }
   function sceneArt(th) { const a = todays(th); return a && a.sc && a.sc.ar ? a : null; }
   L53.sceneArt = sceneArt;
-  const SUB = { night: ['Night sky, Cormorant', 'Your pictures, darkness, Cormorant'], pixel: ['Pink and gold, Bungee', 'Your pictures, explosions, Bungee'] };
+  const SUB = { night: ['Night sky, Cormorant', 'Your pictures, darkness, Cormorant'], pixel: ['Pink and gold, Bungee', 'Your pictures, pink and gold, Bungee'] };
   L53.setArt = function (A) { const id = () => { try { return (sceneArt(L34.current()) || {}).id || 0; } catch (e) { return 0; } }; const before = id(); ART = A || [];
     try { Object.keys(SUB).forEach(th => { if (L34.TH[th]) L34.TH[th].sub = SUB[th][ART.some(a => a.th === th && a.sc) ? 1 : 0]; }); } catch (e) {} if (id() !== before) setTimeout(() => { try { L34.mast(); } catch (e) {} tab(); }, 0); };
   const px = n => Math.round(n * 10) / 10 + 'px';
   function artBox(a, W, H, blur) { const sc = a.sc, C = sc.c || [0, 0, 1, 1], ar = +sc.ar || 1, z = blur ? 1.15 : (+sc.z || 1.05); let bw = W * z, bh = bw / ar, pan = sc.m === 'pan' && !blur;
       if (bh < H * z) { bh = H * z; bw = bh * ar; pan = false; } const w = C[2] - C[0], h = C[3] - C[1], o = sc.o, fx = blur ? '' : sc.fx;
       const im = '<img src="' + E(a.url) + '" alt="" draggable="false" style="position:absolute;display:block;max-width:none;max-height:none;object-fit:fill;filter:none;opacity:1;margin:0;width:' + pc(100 / w) + ';height:' + pc(100 / h) + ';left:' + pc(-100 * C[0] / w) + ';top:' + pc(-100 * C[1] / h) + '">';
-      const lit = o && (fx === 'boom' || fx === 'glow' || fx === 'night') ? '<i class="' + (fx === 'boom' ? 'l53-bf' : 'l53-g') + '" style="left:' + pc(100 * o[0]) + ';top:' + pc(100 * o[1]) + (sc.g ? ';--g:' + E(sc.g) : '') + '"></i>' : '';
+      const lit = o && (fx === 'glow' || fx === 'night') ? '<i class="l53-g" style="left:' + pc(100 * o[0]) + ';top:' + pc(100 * o[1]) + (sc.g ? ';--g:' + E(sc.g) : '') + '"></i>' : '';
       const top = pan ? 0 : (H - bh) / 2;
       return { html: '<div class="l53-box" style="position:absolute;overflow:hidden;width:' + px(bw) + ';height:' + px(bh) + ';left:' + px((W - bw) / 2) + ';top:' + px(top) + '">' + im + lit + '</div>', pan: pan ? [-(bh - H) * ((sc.p || [0, 1])[0]), -(bh - H) * ((sc.p || [0, 1])[1])] : null }; }
   // paint one of his pictures on a masthead (Home: moving, with its light; Books: blurred under the series' covers)
   function paintArt(m, th, a, home) { if (home === undefined) home = true; try { const W = m.clientWidth || window.innerWidth, H = m.clientHeight || 280; if (!a || !a.sc || !W || !H) { clear(m); return false; }
       const C = home ? [] : L53.covers((TH34(th) || {}).s || ''); const key = 'art:' + th + ':' + a.id + ':' + W + 'x' + H + ':' + (home ? 'home' : 'tab:' + C.map(c => c.k).join('.'));
       if (m.dataset.l53 === key && m.querySelector(':scope > .l53-wrap')) return true;
-      clear(m); if (!home) m.innerHTML = ''; m.dataset.l53 = key; m.classList.add('l53'); m.classList.toggle('l53-boom', home && a.sc.fx === 'boom');
+      clear(m); if (!home) m.innerHTML = ''; m.dataset.l53 = key; m.classList.add('l53');
       const B2 = artBox(a, W, H, !home); const w = document.createElement('div'); w.className = 'l53-wrap ready'; w.setAttribute('aria-hidden', 'true');
       w.innerHTML = '<div class="l53-L ' + (home ? (B2.pan ? 'l53-pan' : 'l53-push') : 'l53-blur') + '">' + B2.html + '</div>' + (home && a.sc.fx === 'night' ? '<i class="l53-dark"></i>' : ''); m.appendChild(w);
       if (!home && C.length) m.insertAdjacentHTML('beforeend', fan(C));
@@ -155,11 +156,8 @@
   const css = [
     R('.b-mast.l53', 'overflow:hidden;background:var(--d-bg,#0b0b0d)'),
     R('.b-mast.l53 > img', 'visibility:hidden'),
-    R('.b-mast.l53:not(.l53-storm):after', 'display:none!important'),
+    R('.b-mast.l53:after', 'display:none!important'),
     R('.b-mast.l53:before', 'content:"";position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(rgba(0,0,0,.2),rgba(0,0,0,0) 28%,rgba(0,0,0,0) 58%,var(--d-bg) 100%)'),
-    R('.b-mast.l53-storm:after', 'content:"";display:block!important;position:absolute;inset:0;z-index:2;pointer-events:none;background:radial-gradient(120% 90% at 28% -10%,rgba(225,238,255,.95),rgba(170,195,255,.35) 45%,rgba(0,0,0,0) 75%)!important;background-size:auto!important;mix-blend-mode:screen;opacity:0;animation:l53flash 5s linear infinite'),
-    R('.b-mast.l53-storm', 'animation:l53thunder 5s linear infinite'),
-    R('.b-mast.l53-storm .l53-box', 'animation:l53lit 5s linear infinite'),
     R('.l53-wrap', 'position:absolute;inset:0;overflow:hidden;container-type:size;z-index:0;pointer-events:none'),
     R('.l53-L', 'position:absolute;inset:0;display:block'),
     R('.l53-wrap:not(.ready) .l53-bob', 'opacity:0'),
@@ -167,7 +165,7 @@
     R('.l53-drift', 'transform:scale(1.16);animation:l53drift 8s ease-in-out infinite alternate;will-change:transform'),
     R('.l53-bob', 'animation:l53bob 2.6s ease-in-out infinite alternate;will-change:transform'),
     R('.l53-push', 'animation:l53push 8s ease-in-out infinite alternate;will-change:transform'),
-    R('.l53-glow', 'position:absolute;inset:0;display:block;background:radial-gradient(40% 55% at 52% 58%,rgba(255,60,90,.55),rgba(255,60,90,0) 70%);mix-blend-mode:screen;animation:l53glow 1.6s ease-in-out infinite alternate'),
+    R('.l53-glow', 'position:absolute;inset:0;display:block;background:radial-gradient(40% 55% at 52% 58%,rgba(255,60,90,.55),rgba(255,60,90,0) 70%);mix-blend-mode:screen;animation:l53glow 5s ease-in-out infinite alternate'),
     R('.l53-blur', 'filter:blur(12px) saturate(1.15);transform:scale(1.15)'),
     R('.l53-fan', 'position:absolute;right:16px;top:calc(env(safe-area-inset-top) + 14px);bottom:50px;width:58%;z-index:2'),
     R('.l53-fan .c', 'position:absolute;top:6%;height:88%;width:auto;max-width:none;aspect-ratio:2/3;object-fit:cover;filter:none;border:3px solid #f4efe6;box-shadow:6px 6px 0 rgba(0,0,0,.55)'),
@@ -177,25 +175,16 @@
     R('.l53-fan.n3 .c0', 'right:46%;transform:rotate(-7deg)'), R('.l53-fan.n3 .c1', 'right:22%;transform:rotate(1deg)'), R('.l53-fan.n3 .c2', 'right:0;transform:rotate(7deg)'),
     R('.l53-c', 'position:absolute;right:12px;top:calc(env(safe-area-inset-top) + 8px);font:500 9px/1.2 Barlow,sans-serif;letter-spacing:.02em;color:rgba(255,255,255,.38);text-shadow:0 1px 2px rgba(0,0,0,.45);max-width:60%;text-align:right;z-index:4'),
     R('.l53-g', 'position:absolute;width:70%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(closest-side,var(--g,#ffd58a),transparent);mix-blend-mode:screen;opacity:.55;pointer-events:none;animation:l53g 3.2s ease-in-out infinite alternate'),
-    R('.l53-bf', 'position:absolute;width:150%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(closest-side,rgba(255,250,230,.92),rgba(255,190,90,.75) 22%,rgba(255,110,40,.4) 48%,rgba(255,80,30,0) 72%);mix-blend-mode:screen;opacity:0;pointer-events:none;animation:l53bf 6s linear infinite'),
-    R('.b-mast.l53-boom', 'animation:l53shake 6s linear infinite'),
-    R('.b-mast.l53-boom .l53-box', 'animation:l53boomlit 6s linear infinite'),
     R('.l53-dark', 'position:absolute;inset:0;display:block;pointer-events:none;background:radial-gradient(120% 95% at 50% 45%,rgba(6,3,14,0) 38%,rgba(6,3,14,.8) 100%);animation:l53dark 7s ease-in-out infinite alternate'),
-    '@media (prefers-reduced-motion:reduce){' + R('.l53-sky,.l53-drift,.l53-bob,.l53-push,.l53-glow,.b-mast.l53-storm,.b-mast.l53-storm .l53-box,.b-mast.l53-storm:after,.l53-g,.l53-bf,.b-mast.l53-boom,.b-mast.l53-boom .l53-box,.l53-dark', 'animation:none!important') + '}'
+    '@media (prefers-reduced-motion:reduce){' + R('.l53-sky,.l53-drift,.l53-bob,.l53-push,.l53-glow,.l53-g,.l53-dark', 'animation:none!important') + '}'
   ].join('');
   const kf = '@keyframes l53sky{from{transform:translate3d(-6.5%,.5%,0) scale(1.1)}to{transform:translate3d(6.5%,-1.5%,0) scale(1.1)}}' +
     '@keyframes l53drift{from{transform:scale(1.16) translate3d(-6.5%,1.5%,0)}to{transform:scale(1.16) translate3d(6.5%,-2%,0)}}' +
     '@keyframes l53bob{from{transform:translate3d(-.8%,1.5%,0) rotate(-1deg)}to{transform:translate3d(.8%,-4%,0) rotate(1deg)}}' +
     '@keyframes l53push{from{transform:scale(1) translate3d(1.5%,0,0)}to{transform:scale(1.2) translate3d(-1.5%,-1%,0)}}' +
-    '@keyframes l53glow{0%{opacity:.35}20%{opacity:.8}35%{opacity:.5}55%{opacity:.95}70%{opacity:.45}100%{opacity:.85}}' +
-    '@keyframes l53flash{0%,55%,100%{opacity:0}56%{opacity:.95}57%{opacity:.15}59%{opacity:.85}61%{opacity:.1}64%{opacity:.6}68%{opacity:0}}' +
-    '@keyframes l53lit{0%,55%,100%{filter:brightness(1)}56%{filter:brightness(2) contrast(1.15) saturate(.7)}57%{filter:brightness(1.1)}59%{filter:brightness(1.8) saturate(.75)}61%{filter:brightness(1.05)}64%{filter:brightness(1.4)}68%{filter:brightness(1)}}' +
+    '@keyframes l53glow{from{opacity:.5}to{opacity:.85}}' +
     '@keyframes l53g{from{opacity:.35}to{opacity:.8}}' +
-    '@keyframes l53bf{0%,58%,100%{opacity:0}60%{opacity:1}62%{opacity:.55}64%{opacity:.9}70%{opacity:.35}80%{opacity:0}}' +
-    '@keyframes l53boomlit{0%,58%,100%{filter:brightness(1)}60%{filter:brightness(1.5) saturate(1.15)}64%{filter:brightness(1.3)}72%{filter:brightness(1.08)}80%{filter:brightness(1)}}' +
-    '@keyframes l53shake{0%,59%,100%{transform:none}60%{transform:translate3d(-7px,3px,0) rotate(-.6deg)}61%{transform:translate3d(6px,-4px,0) rotate(.5deg)}62%{transform:translate3d(-5px,2px,0)}63.5%{transform:translate3d(4px,-1px,0)}65%{transform:translate3d(-2px,1px,0)}67%{transform:none}}' +
-    '@keyframes l53dark{from{opacity:.3}to{opacity:.95}}' +
-    '@keyframes l53thunder{0%,58%,100%{transform:none}59%{transform:translate3d(-4px,2px,0)}60%{transform:translate3d(4px,-2px,0)}61%{transform:translate3d(-3px,1px,0)}62%{transform:translate3d(2px,0,0)}63%{transform:none}}';
+    '@keyframes l53dark{from{opacity:.3}to{opacity:.95}}';
   try { const st = document.createElement('style'); st.id = 'l53css'; st.textContent = css + kf; document.head.appendChild(st); } catch (e) {}
   // the series' encyclopedia shows the same painting behind its title (inline styles: it lives in its own shadow root)
   function codex(th) { const p = L53.pick(th); if (!p) return ''; const F = 'linear-gradient(#000 55%,transparent)';
