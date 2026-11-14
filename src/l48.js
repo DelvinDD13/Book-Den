@@ -4,7 +4,7 @@
 // Steps tick themselves from what he logs where they can (a Steel session that day, a book finished, the date); the rest he taps.
 // He can add his own arcs and steps. An arc with every step done moves to finished arcs with the day it closed.
 (function () {
-  const L48 = window.L48 = {};
+  const L48 = window.L48 = {}; L48.more = [];
   const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const O = k => { try { return getOverride(k) || {}; } catch (e) { return {}; } };
   const pad = n => String(n).padStart(2, '0');
@@ -49,6 +49,7 @@
         steps: P.books.slice(0, stop).map((b, i) => { const ti = mine(b[0]); const len = ti ? lenOf(ti) : null; return { id: 'b' + i, t: b[1], s: len ? hm(len) + ' in Audible' : 'Not in your library', auto: () => readAny(b[0]), book: ti }; }) },
       { id: 'yearend', name: 'Year end', from: '2026-10-16', to: '2026-12-31', key: '2026-12-31', sub: 'The Cosmere, ACOTAR, Crescent City, John Gwynne, back to First Law, 280 h of listening', steps: yearSteps() }
     ];
+    (L48.more || []).forEach(f => { try { const x = f(); if (x) A.push(x); } catch (e) { console.warn('l48 more', e); } });
     (S().own || []).forEach(a => A.push({ id: a.id, name: a.name, from: a.from || a.made || t, to: a.to, key: a.to, own: true, sub: '', steps: (a.steps || []).map(s => ({ id: s.id, t: s.t, s: s.s || '' })) }));
     return A; }
   function series(rx, label) { const L = []; const seen = new Set(); titles(rx).forEach(t => { const k = (window.L46 ? L46.work(t) : t); if (seen.has(k)) return; seen.add(k); L.push(t); }); const n = L.filter(t => (window.L46 ? L46.done(t) : st(t) === 'read')).length; return { n, of: L.length, label }; }
@@ -77,7 +78,7 @@
   L48.section = function () { const A = L48.sync(); const on = A.filter(a => !a.closed && !a.over); const past = A.filter(a => a.closed || a.over);
     return '<h3>Arcs<small>' + on.length + ' open</small></h3><div class="arcs">' + on.map(card).join('') + '<button class="newarc" data-a="arcnew">New arc</button></div>' + (past.length ? '<h3>Finished arcs<small>' + past.length + '</small></h3><div class="arcs">' + past.map(card).join('') + '</div>' : ''); };
   L48.form = function () { return '<button class="back" data-a="arcback">‹ Quest log</button><p class="ah">New arc</p><label class="af"><span>What it is</span><input data-arc="name" maxlength="60" placeholder="Move into the new place"></label><label class="af"><span>The day it comes to</span><input data-arc="to" type="date" min="' + today() + '" value="' + addD(today(), 14) + '"></label><p class="fine">Add its steps on the next screen.</p><button class="pri" data-a="arcsave">Make the arc</button>'; };
-  L48.detail = function (id) { const a = L48.arcs().find(x => x.id === id); if (!a) return L48.form(); const t = today();
+  L48.detail = function (id) { const a = L48.arcs().find(x => x.id === id); if (!a) return L48.form(); if (a.page) return a.page(a); const t = today();
     const row = (s, i) => '<button class="l37-q' + (s.done ? ' done' : '') + '" data-a="arcstep" data-k="' + esc(a.id + '|' + s.id) + '"' + (s.auto ? ' aria-disabled="true"' : '') + '><span class="num">' + (i + 1) + '</span><span class="l37-x"><b>' + esc(s.t) + '</b><i>' + esc(s.s) + (s.auto ? ' · from your log' : '') + '</i></span><em>' + (s.done ? '✓' : (a.push && s.book && st(s.book) === 'currently-reading') ? '<small class="now">Now</small>' : s.book ? '›' : '○') + '</em></button>';
     let h = '<button class="back" data-a="arcback">‹ Quest log</button><p class="ah">' + esc(a.name) + '</p><p class="as">' + esc(md(a.key)) + ' · ' + esc(left(a)) + '</p>';
     if (a.push) { const p = L48.pace(); const all = PUSH().books.length; const stop = L48.pushStop(); const alt = L48.pace(stop === all ? 6 : all); const altN = stop === all ? 6 : all; const altName = (PUSH().books[altN - 1] || [])[1];

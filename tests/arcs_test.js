@@ -11,7 +11,7 @@ const store = fs.readFileSync(path.join(__dirname, 'store.json')); let pass = 0,
   const sh = () => R(() => { const r = document.getElementById('l37').shadowRoot; const b = r.querySelector('.body'); return { title: r.querySelector('.top b').textContent, txt: b.innerText, arcs: [...b.querySelectorAll('.arc')].map(a => ({ k: a.dataset.k, dt: a.querySelector('.dt').innerText.replace(/\n/g, ' '), sub: a.querySelector('.tx span').textContent, next: (a.querySelector('em') || {}).textContent || '' })), tabsAfter: !!b.querySelector('.arcs ~ .tabs, h3 ~ .tabs') }; });
   const click = sel => R(s => document.getElementById('l37').shadowRoot.querySelector(s).click(), sel);
   await R(() => L37.open('log')); await page.waitForTimeout(300); let s = await sh();
-  ok(s.arcs.length === 4 && s.arcs.map(a => a.k).join() === 'tattoo,trip,push,yearend', 'four arcs above the quest tabs: ' + s.arcs.map(a => a.k).join());
+  ok(s.arcs.length === 5 && s.arcs.map(a => a.k).join() === 'tattoo,trip,push,yearend,y2027', 'five arcs above the quest tabs, the 2027 plan last: ' + s.arcs.map(a => a.k).join());
   ok(s.tabsAfter, 'the arcs come before the tabs');
   const A = k => s.arcs.find(a => a.k === k);
   ok(/NOV 14 3 days/.test(A('tattoo').dt) && /Nov 12–17/.test(A('tattoo').sub) && /0 of 5/.test(A('tattoo').sub) && /Thursday: Fortress/.test(A('tattoo').next), 'Tattoo week: Nov 14 in 3 days, 0 of 5, next Thursday: Fortress: ' + JSON.stringify(A('tattoo')));
