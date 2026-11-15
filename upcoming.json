@@ -128,7 +128,8 @@
    "sources": [
     "https://winteriscoming.net/rebecca-yarros-shares-fourth-wing-book-4-update-new-tour",
     "https://www.risingshadow.net/book/67659-the-empyrean-book-4"
-   ]
+   ],
+   "num": 4
   },
   {
    "series": "Dungeon Crawler Carl",
@@ -141,7 +142,8 @@
    "sources": [
     "https://www.cinemablend.com/streaming-news/dungeon-crawler-carl-book-9-10-blame-matt-dinniman",
     "https://booksofbrilliance.com/2026/09/20/dungeon-crawler-carl-book-9-release-date/"
-   ]
+   ],
+   "num": 9
   },
   {
    "series": "Red Rising Saga",
@@ -154,7 +156,8 @@
    "sources": [
     "https://winteriscoming.net/pierce-brown-confirms-hat-death-red-god-stalled-writing-final-red-rising-novel",
     "https://www.goodreads.com/series/117100"
-   ]
+   ],
+   "num": 7
   },
   {
    "series": "Cosmere",
