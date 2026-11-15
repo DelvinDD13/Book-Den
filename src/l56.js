@@ -135,7 +135,7 @@
   L56.page = function (a) { const t = today(); const S = L56.slots(); const sp = L56.speed(); const set = S.filter(x => !x.open); const tot = set.reduce((s, x) => s + x.min, 0) / sp; const nOpen = S.length - set.length;
     const doneIds = {}; S.forEach(x => { if (doneOn('y2027', x)) doneIds[x.id] = 1; }); const n = Object.keys(doneIds).length;
     const doneSet = set.filter(x => doneIds[x.id]).reduce((s, x) => s + x.min, 0) / sp;
-    let h = '<button class="back" data-a="arcback">‹ Quest log</button><p class="ah">2027: ' + S.length + ' books</p><p class="as">Jan 1 – Dec 31, 2027 · ' + (t < Y0 ? 'starts in ' + days(t, Y0) + ' days' : t <= Y1 ? days(t, Y1) + ' days left' : 'over') + '</p>';
+    let h = '<button class="back" data-a="arcback">‹ Quest log</button><p class="ah">2027: ' + S.length + ' books</p><p class="as">Jan 1 – Dec 31, 2027 · ' + (t < Y0 ? 'starts in ' + days(t, Y0) + ' days' : t <= Y1 ? days(t, Y1) + ' days left' : 'over') + '</p>' + (window.L59 && L59.go ? '<button class="y27e" data-l59to="plan">Change plan</button>' : '');
     let pace;
     if (t < Y0) pace = '<b>' + n + ' of ' + S.length + '</b><p>The ' + set.length + ' set books are ' + hh(tot) + ' at ' + sp + 'x, about ' + hm(tot / 365).replace(/ 00 m$/, '') + ' a day. The ' + nOpen + ' open spots add whatever you put in them.</p>';
     else { const want = Math.floor(S.length * Math.min(1, (days(Y0, t) + 1) / 365)); const gap = n - want; pace = '<b>' + n + ' of ' + S.length + ' · ' + (gap === 0 ? 'on pace' : gap > 0 ? gap + ' ahead' : -gap + ' behind') + '</b><p>Set books: ' + hh(doneSet) + ' of ' + hh(tot) + ' at ' + sp + 'x.</p>'; }
@@ -160,6 +160,6 @@
     return h; };
   L48.CSS += '.y27u{display:block;height:6px;margin:10px 0 0;background:var(--d-line,rgba(243,239,230,.16));text-decoration:none}.y27u s{display:block;height:100%;background:var(--d-acc,#e9a3b8)}' +
     '.y27b{display:flex;gap:14px;align-items:center;padding:12px 14px;margin:12px 0;border:1px solid #e8d79c55;background:linear-gradient(135deg,#111a33,#0a0f1e)}.y27b svg{flex:0 0 88px}.y27b b{display:block;font:600 20px/1.1 "Barlow Condensed",Barlow,sans-serif;color:#fff4cf}.y27b small{display:block;margin:2px 0 4px;font:600 11px var(--b-mono,"IBM Plex Mono"),monospace;letter-spacing:.14em;text-transform:uppercase;color:#e8d79c}.y27b p{margin:0;font-size:13px;line-height:1.4;color:#c9c3b6}' +
-    '.y27g{padding:10px 12px;margin:0 0 6px;border-left:3px solid var(--d-acc,#e9a3b8);background:var(--d-bg2,#15131f)}.y27g b{font:600 15px "Barlow Condensed",Barlow,sans-serif}.y27g p{margin:2px 0 0;font-size:12.5px;line-height:1.45;color:var(--d-mute,#9a8f82)}';
+    '.y27e{display:block;width:100%;min-height:44px;margin:0 0 14px;border:1px solid var(--d-acc,#e9a3b8);color:var(--d-acc,#e9a3b8);background:none;font:600 15px "Barlow Condensed",Barlow,sans-serif;letter-spacing:.04em;text-align:center}.y27g{padding:10px 12px;margin:0 0 6px;border-left:3px solid var(--d-acc,#e9a3b8);background:var(--d-bg2,#15131f)}.y27g b{font:600 15px "Barlow Condensed",Barlow,sans-serif}.y27g p{margin:2px 0 0;font-size:12.5px;line-height:1.45;color:var(--d-mute,#9a8f82)}';
   L48.CSS += '.l37-q.open{border-style:dashed}.l37-q.open:not(.done) b{color:var(--d-mute,#9a8f82)}';
 })();

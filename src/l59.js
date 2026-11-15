@@ -1,18 +1,18 @@
-// ===== L59: the bookcase, a preview. Three bookcases, drawn the same way: his 2027 plan (L56) by season, the books he owns by
-//   category, and the books he has finished by year. Every book is the same book-shaped cover (two wide to three tall), three to
-//   a shelf, showing its real cover whole. A cover that is not that shape (about one in five is square or narrower) sits whole
-//   on the book over a wash of its own colours, so every book is still the same shape. No lettering on a book that has a cover;
-//   a book with none is a cloth cover with its title, measured so it is shortened at a word and never cut.
-//   Marks on a cover: a gold seal when finished, a ribbon on the book he is on or in, a brass seal on the book that closes a
-//   series in the plan. A book that is not out yet is a wrapped parcel with its day on the tag, a book that is not in his
-//   library is an outline, the open spots are the empty shelf between two bookends, and the Backlog Breaker medal stands at
-//   the end of the last shelf. The page carries no explaining text (his words: "lots of stray aphorisms and texts").
-//   The plan tab offers the plans from his 2027 deck (the one the app starts with and three more, defined as data: what leaves
-//   and which series take its hours) and an edit mode: move a book to another month, remove it, add one from his library, add or
-//   remove open spots, and save the result as his own plan. "Use this plan" and "Save as my plan" hand the plan to L56, and
-//   from then it is the 2027 plan across the app. Looking at a plan changes nothing.
-//   It is a preview: nothing in the app links to it, and it changes nothing until he picks or saves a plan. It opens from the address ending #bookcase, or by
-//   typing "bookcase" in the Books search box. "As of July 1" shows the first half of the plan year as read. Nothing moves.
+// ===== L59: the bookcase. One of the Books views (its button stands first in the row of Genre, Series, Status...). It takes
+//   the place of the grid and stays the chosen view until he picks one of the grid views. Three bookcases behind three tabs,
+//   drawn the same way: the books he owns by category, the books he has finished by year, and his 2027 plan (L56) by season.
+//   Every book is the same book-shaped cover (two wide to three tall), three to a shelf, showing its real cover whole. A cover
+//   that is not that shape (about one in five is square or narrower) sits whole on the book over a wash of its own colours.
+//   No lettering on a book that has a cover; a book with none is a cloth cover with its title, measured so it is shortened at
+//   a word and never cut. Marks on a cover: a gold seal when finished, a ribbon on the book he is on or in, a brass seal on the
+//   book that closes a series in the plan. A book that is not out yet is a wrapped parcel with its day on the tag, a book that
+//   is not in his library is an outline, the open spots are the empty shelf between two bookends, and the Backlog Breaker medal
+//   stands at the end of the last shelf. Tapping a book opens its page, like the grid. The page carries no explaining text.
+//   The plan tab has one row: a menu of the plans from his 2027 deck (the one the app starts with and three more, defined as
+//   data: what leaves and which series take its hours) and Blank, then Use and Edit. Edit works on a copy: a minus on every
+//   book, a minus and a plus on the open room, Add on each season, and a tapped book gives the months and Earlier / Later.
+//   Use and Save hand the plan to L56, and from then it is the 2027 plan across the app. Looking at a plan changes nothing.
+//   Also reached from the 2027 page in the quest log ("Change plan") and from the address ending #bookcase. Nothing moves.
 (function () {
   if (!window.L56 || !L56.slots || typeof ALL_TITLES === 'undefined') return;
   const L59 = window.L59 = {};
@@ -119,14 +119,14 @@
     return { Z, n: L.length, min: L.reduce((s, x) => s + x.min, 0), sp: speed() }; };
 
   // ---- drawing: every book the same cover-shaped book, three to a shelf ----
-  let host = null, view = 'plan', mode = false, D = null, IT = [], picked = -1, back = false, lastY = 0;
+  let host = null, view = 'owned', mode = false, D = null, IT = [], picked = -1; const KEY = 'den:case', $ = id => document.getElementById(id);
   // which plan is on the shelves ('use' is his own saved plan), the copy being edited, and whether "Use this plan" has had its first tap
   let sel = 'A', work = null, arm = false, adding = -1;
   const own = () => { try { return !!L56.plan().own; } catch (e) { return false; } };
   const asPlan = t => ({ P: t.set, OPEN: t.open.slice().sort((a, b) => a - b).map(m => [m, seasonOf(m)]) });
   const shown = () => { if (work) return asPlan(work); if (sel === 'use' || sel === inUse()) return undefined; const t = L59.template(sel); return t ? asPlan(t) : undefined; };
   const inUse = () => { if (!own()) return 'A'; let n = ''; try { n = L56.plan().name; } catch (e) {} const T = TPL.find(t => t.key !== 'A' && t.name === n); return T ? T.key : 'use'; };   // one of the four taken as it is keeps its own chip
-  const on = () => !!(host && host.classList.contains('on'));
+  const on = () => { try { return !!(host && host.classList.contains('on') && currentView === 'case'); } catch (e) { return false; } };
   // a cover that is not two-to-three sits whole on the book over a wash of itself (the same cover asked for very small and stretched)
   const offShape = t => { try { const c = getOverride('cv:' + t) || {}; return +c.w > 0 && +c.h > 0 && Math.abs(c.w / c.h - 2 / 3) > .03; } catch (e) { return false; } };
   const tiny = u => /mzstatic\.com\//.test(u) ? u.replace(/\/[0-9]+x[0-9]+[a-z]*(-[0-9]+)?\.(jpg|png|webp)$/i, '/24x36bb.jpg') : '';
@@ -145,10 +145,10 @@
         if (key !== undefined && key !== last) { last = key; if (key) { const t = key.length > 19 ? key.slice(0, 18).replace(/\s+$/, '') + '…' : key; const tx = Math.max(x + 2, end + 4), tw = t.length * 5.5 + 9; if (tx + tw <= G.W && tx <= x + Math.max(o.ow, 26)) { tags += '<i style="left:' + tx + 'px">' + esc(t) + '</i>'; end = tx + tw; } } } x += o.ow + G.gap; });
       h += '<div class="l59-sh" style="height:' + (G.H + 12) + 'px;gap:' + G.gap + 'px">' + r.map(o => o.h).join('') + rm + '</div><div class="l59-bd">' + tags + '</div>'; });
     return h + '</div>'; }
-  function html() { const W = Math.max(280, Math.min(430, host.clientWidth || 390) - 42), gap = 12, cw = Math.floor((W - 2 * gap) / 3), H = Math.round(cw * 1.5), G = { W, gap, cw, H }; IT = []; const sp = D.sp;
-    const tab = (k, t) => '<button data-l59v="' + k + '"' + (view === k ? ' class="on"' : '') + '>' + t + '</button>'; const hrs = m => Math.round(m / 60 / sp);
+  function html() { const W = Math.max(280, Math.min(430, document.documentElement.clientWidth || window.innerWidth || 390) - 42), gap = 12, cw = Math.floor((W - 2 * gap) / 3), H = Math.round(cw * 1.5), G = { W, gap, cw, H }; IT = []; const sp = D.sp;
+    const hrs = m => Math.round(m / 60 / sp);
     const put = z => z.items.filter(x => !(work && x.extra)).map(x => { IT.push(x); const i = IT.length - 1; return { x, i, ow: cw, h: thing(x, i, cw, H), rm: work && entryOf(x) ? i : null }; }); const stat = z => z.books + (z.books === 1 ? ' book, ' : ' books, ') + hrs(z.min) + ' h';
-    let h = '<div class="l59-top"><button class="l59-x" data-l59="close">‹ Back</button></div><div class="l59-tabs">' + tab('plan', '2027 plan') + tab('owned', 'Owned') + tab('read', 'Finished') + '</div>';
+    let h = '';
     if (view === 'plan') { const use = inUse(); const opts = (use === 'use' ? [{ key: 'use', name: L56.plan().name || 'My plan' }] : []).concat(TPL.map(t => ({ key: t.key, name: t.key + ' ' + t.name })), [{ key: 'new', name: 'Blank' }]);
       h += work ? '<div class="l59-act"><button data-l59="save" class="go"' + (work.set.length ? '' : ' disabled') + '>Save</button><button data-l59="cancel">Cancel</button></div>'
         : '<div class="l59-act"><select id="l59sel" aria-label="Plan">' + opts.map(c => '<option value="' + c.key + '"' + (sel === c.key ? ' selected' : '') + '>' + esc(c.name) + (c.key === use ? ' ✓' : '') + '</option>').join('') + '</select>' + (sel !== use ? '<button data-l59="use" class="go">' + (arm ? 'Confirm' : 'Use') + '</button>' : '') + '<button data-l59="edit">Edit</button></div>';
@@ -167,69 +167,83 @@
   function picker(q) { const taken = inSet(); const n = nrm(q || ''); const L = ALL_TITLES.filter(t => { if (!BOOK(t) || taken(t)) return false; try { if (getStatus(t) === 'read') return false; } catch (e) {} return !n || nrm(t).indexOf(n) >= 0; }).sort((a, b) => nrm(bare(a)) < nrm(bare(b)) ? -1 : 1).slice(0, 40);
     const typed = String(q || '').replace(/\s+/g, ' ').trim().slice(0, 80); const free = typed.length > 1 && !L.some(t => nrm(short(t)) === nrm(typed)) && !work.set.some(e => nrm(e[1]) === nrm(typed)) ? '<button data-l59free="' + esc(encodeURIComponent(typed)) + '">Add “' + esc(typed) + '”</button>' : '';
     return L.map(t => '<button data-l59pick="' + esc(encodeURIComponent(t)) + '">' + esc(short(t)) + '</button>').join('') + free || '<p>Nothing matches</p>'; }
-  function addCard(se) { const c = document.getElementById('l59card'); if (!c) return; adding = se; picked = -1; c.className = 'l59-card top'; c.innerHTML = '<div class="l59-ct"><b>Add to ' + SEAS[se] + '</b><input id="l59q" type="search" placeholder="Search your library" autocomplete="off" autocorrect="off" spellcheck="false"><div class="l59-pk" id="l59pk">' + picker('') + '</div><div class="l59-cb"><button data-l59="os">An open spot</button><button data-l59="put">Close</button></div></div>'; c.hidden = false; }
-  function card(i) { const c = document.getElementById('l59card'); if (!c) return; c.className = 'l59-card'; const x = IT[i]; if (!x) { c.hidden = true; picked = -1; adding = -1; return; } picked = i; adding = -1; const sp = D.sp; let cv = '', t = '', L = [], go = '';
+  const barH = () => { try { const n = $('libs'); const r = n.getBoundingClientRect(); return getComputedStyle(n).position === 'fixed' && r.height && r.top > innerHeight / 2 ? Math.max(0, Math.round(innerHeight - r.top)) : 0; } catch (e) { return 0; } };
+  function addCard(se) { const c = document.getElementById('l59card'); if (!c) return; adding = se; picked = -1; c.className = 'l59-card top'; c.style.bottom = ''; c.innerHTML = '<div class="l59-ct"><b>Add to ' + SEAS[se] + '</b><input id="l59q" type="search" placeholder="Search your library" autocomplete="off" autocorrect="off" spellcheck="false"><div class="l59-pk" id="l59pk">' + picker('') + '</div><div class="l59-cb"><button data-l59="os">An open spot</button><button data-l59="put">Close</button></div></div>'; c.hidden = false; }
+  function card(i) { const c = document.getElementById('l59card'); if (!c) return; c.className = 'l59-card'; c.style.bottom = barH() + 'px'; const x = IT[i]; if (!x) { c.hidden = true; picked = -1; adding = -1; return; } picked = i; adding = -1; const sp = D.sp; let cv = '', t = '', L = [], go = '';
     if (work && entryOf(x)) { c.innerHTML = '<div class="l59-ct"><b>' + esc(x.name) + '</b><div class="l59-mo">' + MON.map((m, k) => '<button data-l59m="' + k + '"' + (k === x.m ? ' class="on"' : '') + '>' + m.slice(0, 3) + '</button>').join('') + '</div><div class="l59-cb"><button data-l59="up">Earlier</button><button data-l59="dn">Later</button><button data-l59="put">Close</button></div></div>'; c.hidden = false; return; }
     if (x.k === 'room') { let sug = []; try { sug = L56.suggest().slice(0, 3); } catch (e) {} t = x.n + ' open'; L.push(x.se); if (sug.length) L.push('Backlog: ' + sug.join(', ')); }
     else if (x.k === 'prize') { t = 'Backlog Breaker'; L.push(D.done + ' of ' + D.total); try { cv = L56.medal(84, D.total ? D.done / D.total : 0); } catch (e) {} }
     else { t = x.name; const fin = x.d ? 'Finished ' + md(x.d) + (view === 'plan' ? '' : ', ' + x.d.slice(0, 4)) : ''; const a = []; if (view === 'plan') a.push(MON[x.m]); if (x.min && x.k !== 'pick' && !x.extra) a.push(hm(x.min / sp)); if (x.ser) a.push(x.ser); else if (x.extra && x.note) a.push(x.note); if (a.length) L.push(a.join(', '));
       const st = x.k === 'pick' ? '' : x.k === 'parcel' ? 'Out ' + (x.date ? md(x.date) : 'later') : x.read ? (fin || 'Finished') : x.k === 'ghost' ? 'Not in your library' : x.now ? 'Reading' + (x.pct ? ', ' + Math.round(x.pct) + '%' : '') : x.cur ? 'Next' : x.get ? 'Goodreads shelf, not owned' : 'Not started'; if (st) L.push(st);
       if (x.closes) L.push('Closes ' + x.closes.name + (x.closes.when ? ', ' + x.closes.when : ''));
-      cv = x.art && x.k === 'book' ? '<img src="' + esc(x.art) + '" alt="">' : x.k === 'parcel' ? '<div class="l59-bigpc"></div>' : '<div class="l59-bigcl" style="--c:' + (x.k === 'pick' ? '#4a4458' : cloth(x.name)) + '">' + esc(x.name) + '</div>'; if (x.t) go = '<button data-l59="book">Open</button>'; }
+      cv = x.art && x.k === 'book' ? '<img src="' + esc(x.art) + '" alt="">' : x.k === 'parcel' ? '<div class="l59-bigpc"></div>' : '<div class="l59-bigcl" style="--c:' + (x.k === 'pick' ? '#4a4458' : cloth(x.name)) + '">' + esc(x.name) + '</div>'; }
     c.innerHTML = (cv ? '<div class="l59-cv">' + cv + '</div>' : '') + '<div class="l59-ct"><b>' + esc(t) + '</b>' + L.map(l => '<p>' + esc(l) + '</p>').join('') + '<div class="l59-cb">' + go + '<button data-l59="put">Close</button></div></div>'; c.hidden = false; }
-  L59.open = function (v) { try { if (v === 'plan' || v === 'owned' || v === 'read') view = v; if (!host) { host = document.createElement('div'); host.id = 'l59'; host.setAttribute('role', 'dialog'); host.setAttribute('aria-label', 'The bookcase, a preview'); document.body.appendChild(host); }
-      host.classList.add('on'); document.documentElement.classList.add('l59-lock'); if ((sel === 'use' && inUse() !== 'use') || (sel === 'new' && !work)) sel = inUse(); D = view === 'plan' ? L59.data(work ? false : mode, shown()) : view === 'owned' ? L59.owned() : L59.finished(); host.innerHTML = '<div class="l59-in' + (work ? ' ed' : '') + '">' + html() + '</div>'; host.scrollTop = lastY; lastY = 0; picked = -1; return true; } catch (e) { console.warn('l59', e); return false; } };
-  L59.close = function () { if (host) host.classList.remove('on'); document.documentElement.classList.remove('l59-lock'); try { if (/^#bookcase\b/i.test(location.hash)) history.replaceState(null, '', location.pathname + location.search); } catch (e) {} };
-  L59.pretend = b => { mode = !!b; if (on()) { lastY = host.scrollTop; L59.open(); } }; L59.isOpen = on; L59.things = () => IT.slice(); L59.view = () => view; L59.sel = () => sel; L59.work = () => work ? { set: work.set.map(e => e.slice()), open: work.open.slice() } : null;
-  // a book opened from the shelf comes back to the shelf when its page closes
-  try { const _cs = closeSheet; closeSheet = function () { const r = _cs.apply(this, arguments); if (back) { back = false; setTimeout(() => L59.open(), 30); } return r; }; } catch (e) {}
-  document.addEventListener('click', e => { const el = e.target.closest && e.target.closest('#l59 [data-l59],#l59 [data-l59i],#l59 [data-l59v],#l59 [data-l59go],#l59 [data-l59m],#l59 [data-l59add],#l59 [data-l59pick],#l59 [data-l59free],#l59 [data-l59rm],#l59 [data-l59om],#l59 [data-l59op]'); if (!el) return; e.preventDefault(); e.stopPropagation();
-    const redo = () => { lastY = host.scrollTop; L59.open(); }; const sorted = () => { const S = work.set.map((e, i) => [e, i]).sort((a, b) => a[0][0] - b[0][0] || a[1] - b[1]).map(p => p[0]); work.set.length = 0; S.forEach(e => work.set.push(e)); };
+  // the bookcase is one of the Books views: the shelves stand where the grid does, and the search row and the category row step aside
+  // its three cases are the tabs of the Books tab's own row of tabs, with their counts
+  let CNT = null; const counts = () => { if (!CNT) { CNT = {}; try { CNT.owned = L59.owned().n; } catch (e) {} try { CNT.read = L59.finished().n; } catch (e) {} } try { CNT.plan = L56.count(); } catch (e) {} return CNT; };
+  const tabs = () => { const n = $('nav'); if (!n) return; const c = counts(); n.style.display = ''; n.innerHTML = [['owned', 'Owned'], ['read', 'Finished'], ['plan', '2027 plan']].map(p => '<button data-l59v="' + p[0] + '"' + (view === p[0] ? ' class="active"' : '') + '><span>' + p[1] + '<span class="n">' + (c[p[0]] == null ? '' : c[p[0]]) + '</span></span></button>').join(''); };
+  const mount = () => { const c = $('content'); if (!c) return false; if (!host) { host = document.createElement('div'); host.id = 'l59'; host.setAttribute('role', 'region'); host.setAttribute('aria-label', 'Bookcase'); } if (host.previousElementSibling !== c) c.after(host); return true; };
+  L59.open = function (v) { try { if (v === 'plan' || v === 'owned' || v === 'read') view = v; if (!mount()) return false;
+      if (currentView !== 'case') { currentView = 'case'; setViewButtons('case'); $('mainToolbar').style.display = 'none'; $('content').innerHTML = ''; try { localStorage.setItem(KEY, '1'); } catch (e) {} }
+      try { $('rail').style.display = 'none'; } catch (e) {} host.classList.add('on'); if ((sel === 'use' && inUse() !== 'use') || (sel === 'new' && !work)) sel = inUse(); D = view === 'plan' ? L59.data(work ? false : mode, shown()) : view === 'owned' ? L59.owned() : L59.finished(); host.innerHTML = '<div class="l59-in' + (work ? ' ed' : '') + '">' + html() + '</div>'; picked = -1; tabs(); return true; } catch (e) { console.warn('l59', e); return false; } };
+  L59.close = function () { try { if (on()) renderView('genre'); } catch (e) {} };
+  // from anywhere in the app: the Books tab, the bookcase, that tab of it, at the top of the screen
+  L59.go = function (v) { try { if (window.L37 && L37.close) L37.close(); } catch (e) {} try { if ($('sheet').classList.contains('open')) closeSheet(); } catch (e) {} try { if (currentLib !== 'books') switchLib('books'); } catch (e) {}
+    if (!L59.open(v)) return false; try { ($('btn-case').closest('.controls') || host).scrollIntoView({ block: 'start' }); } catch (e) {} return true; };
+  L59.pretend = b => { mode = !!b; if (on()) L59.open(); }; L59.isOpen = on; L59.things = () => IT.slice(); L59.view = () => view; L59.sel = () => sel; L59.work = () => work ? { set: work.set.map(e => e.slice()), open: work.open.slice() } : null;
+  // its button, first in the row of views; any other view puts the shelves away, and a grid view also stops it being the view he comes back to
+  try { const row = document.querySelector('#lib-books .view-toggle'); if (row && !$('btn-case')) { const b = document.createElement('button'); b.id = 'btn-case'; b.innerHTML = '<span>Bookcase</span>'; b.onclick = () => L59.open(); row.insertBefore(b, row.firstChild); }
+    try { if (!ORDERS.case) ORDERS.case = []; if (!VIEWS.case) VIEWS.case = {}; } catch (e) {}
+    const _svb = setViewButtons; setViewButtons = function (v) { const r = _svb.apply(this, arguments); try { const b = $('btn-case'); if (b) b.classList.toggle('active', v === 'case'); if (v !== 'case') { if (host) host.classList.remove('on'); work = null; arm = false; if (['genre', 'series', 'status', 'shelves'].indexOf(v) >= 0) localStorage.removeItem(KEY); } } catch (e) {} return r; };
+    // the shelves follow his library: after any change, and when he comes back to the Books tab
+    const _rae = refreshAfterEdit; refreshAfterEdit = function () { const r = _rae.apply(this, arguments); CNT = null; try { if (on() && currentLib === 'books' && !work) L59.open(); } catch (e) {} return r; };
+    const _sl = switchLib; switchLib = function (lib) { const r = _sl.apply(this, arguments); CNT = null; try { if (lib === 'books' && on() && !work) L59.open(); } catch (e) {} return r; };
+    if (localStorage.getItem(KEY) === '1' && currentView === 'genre') L59.open();
+  } catch (e) { console.warn('l59 view', e); }
+  document.addEventListener('click', e => { const el = e.target.closest && e.target.closest('#l59 [data-l59],#l59 [data-l59i],#nav [data-l59v],#l59 [data-l59go],#l59 [data-l59m],#l59 [data-l59add],#l59 [data-l59pick],#l59 [data-l59free],#l59 [data-l59rm],#l59 [data-l59om],#l59 [data-l59op]'); if (!el) return; e.preventDefault(); e.stopPropagation();
+    const redo = () => { L59.open(); }; const sorted = () => { const S = work.set.map((e, i) => [e, i]).sort((a, b) => a[0][0] - b[0][0] || a[1] - b[1]).map(p => p[0]); work.set.length = 0; S.forEach(e => work.set.push(e)); };
     const again = en => { const id = slug(en[1]); redo(); const i = IT.findIndex(x => x.id === id && !x.extra); if (i >= 0) card(i); }; if (el.dataset.l59 !== 'use') arm = false;
-    if (el.dataset.l59i != null) { const i = +el.dataset.l59i; card(i === picked ? -1 : i); return; }
+    if (el.dataset.l59i != null) { const i = +el.dataset.l59i, x = IT[i]; if (!work && x && x.t) { card(-1); try { openSheet(x.t); } catch (err) {} return; } card(i === picked ? -1 : i); return; }
     if (el.dataset.l59rm != null && work) { const en = entryOf(IT[+el.dataset.l59rm]); if (en) { work.set.splice(work.set.indexOf(en), 1); redo(); } return; }
     if ((el.dataset.l59om != null || el.dataset.l59op != null) && work) { const more = el.dataset.l59op != null, se = +(more ? el.dataset.l59op : el.dataset.l59om); if (more) work.open.push(se * 3 + 2); else { let k = -1; work.open.forEach((m, i) => { if (seasonOf(m) === se) k = i; }); if (k >= 0) work.open.splice(k, 1); } redo(); return; }
     if (el.dataset.l59add != null) { addCard(+el.dataset.l59add); return; }
     if (el.dataset.l59pick && work && adding >= 0) { const t = decodeURIComponent(el.dataset.l59pick); let sn = ''; try { sn = SERIES_OF[t] && SERIES_OF[t] !== 'Standalone / Other' ? SERIES_OF[t] : ''; } catch (x) {} work.set.push([adding * 3 + 2, nice(t, sn), rx(t), 0, '']); sorted(); redo(); return; }
     if (el.dataset.l59free && work && adding >= 0) { const n = decodeURIComponent(el.dataset.l59free).replace(/\s+/g, ' ').trim().slice(0, 80); if (n && !work.set.some(e => nrm(e[1]) === nrm(n))) { work.set.push([adding * 3 + 2, n, null, 0, '']); sorted(); } redo(); return; }
     if (el.dataset.l59m != null && work) { const en = entryOf(IT[picked]); if (en) { en[0] = +el.dataset.l59m; work.set.splice(work.set.indexOf(en), 1); work.set.push(en); sorted(); again(en); } return; }
-    if (el.dataset.l59v) { lastY = 0; L59.open(el.dataset.l59v); return; }
-    if (el.dataset.l59go != null) { const c = document.getElementById('l59c' + el.dataset.l59go); if (c) host.scrollTop = Math.max(0, c.offsetTop - 10); return; }
-    const a = el.dataset.l59; if (a === 'close') L59.close(); else if (a === 'put') card(-1);
+    if (el.dataset.l59v) { L59.open(el.dataset.l59v); return; }
+    if (el.dataset.l59go != null) { const c = document.getElementById('l59c' + el.dataset.l59go); if (c) c.scrollIntoView({ block: 'start' }); return; }
+    const a = el.dataset.l59; if (a === 'put') card(-1);
     else if (a === 'edit') { const p = shown() || L56.plan(); work = { set: p.P.map(e => e.slice()), open: p.OPEN.map(o => o[0]) }; sorted(); redo(); }
     else if (a === 'cancel') { work = null; if (sel === 'new') sel = inUse(); redo(); }
     else if (a === 'os' && work && adding >= 0) { work.open.push(adding * 3 + 2); redo(); }
     else if ((a === 'up' || a === 'dn') && work) { const en = entryOf(IT[picked]); if (!en) return; const S = work.set, i = S.indexOf(en), j = a === 'up' ? i - 1 : i + 1, o = S[j];
       if (o && o[0] === en[0]) { S[j] = en; S[i] = o; } else { const m = en[0] + (a === 'up' ? -1 : 1); if (m < 0 || m > 11) return; en[0] = m; } again(en); }
     else if (a === 'save' && work) { if (!work.set.length) return; if (L56.use(work.set, work.open, 'My plan')) { work = null; sel = inUse(); } redo(); }
-    else if (a === 'use') { if (!arm) { arm = true; redo(); return; } arm = false; const t = sel === 'A' ? null : L59.template(sel); if (sel === 'A' ? L56.reset() : t && L56.use(t.set, t.open, t.name)) sel = inUse(); redo(); }
-    else if (a === 'book') { const x = IT[picked]; if (x && x.t) { back = true; lastY = host.scrollTop; if (host) host.classList.remove('on'); document.documentElement.classList.remove('l59-lock'); try { openSheet(x.t); } catch (err) { back = false; } } } }, true);
-  window.addEventListener('keydown', e => { if (e.key === 'Escape' && on()) L59.close(); });
-  document.addEventListener('change', e => { if (!e.target || e.target.id !== 'l59sel') return; sel = e.target.value; work = sel === 'new' ? { set: [], open: [] } : null; arm = false; lastY = 0; L59.open(); });
+    else if (a === 'use') { if (!arm) { arm = true; redo(); return; } arm = false; const t = sel === 'A' ? null : L59.template(sel); if (sel === 'A' ? L56.reset() : t && L56.use(t.set, t.open, t.name)) sel = inUse(); redo(); } }, true);
+  document.addEventListener('change', e => { if (!e.target || e.target.id !== 'l59sel') return; sel = e.target.value; work = sel === 'new' ? { set: [], open: [] } : null; arm = false; L59.open(); });
   document.addEventListener('input', e => { if (e.target && e.target.id === 'l59q' && work) { const b = document.getElementById('l59pk'); if (b) b.innerHTML = picker(e.target.value); } });
-  // the two ways in: the address, and the word typed in the Books search box
-  const want = () => /^#bookcase\b/i.test(location.hash);
-  window.addEventListener('hashchange', () => { if (want()) L59.open(); else if (on()) L59.close(); });
-  if (want()) { let n = 0; const iv = setInterval(() => { n++; const ready = !(typeof SYNC82 !== 'undefined' && SYNC82.state === 'wait'); if (ready || n > 40) { clearInterval(iv); if (want()) L59.open(); } }, 500); }
-  try { const s = document.getElementById('search'); if (s) s.addEventListener('input', () => { if (s.value.trim().toLowerCase() !== 'bookcase') return; s.value = ''; try { s.dispatchEvent(new Event('input', { bubbles: true })); } catch (e) {} try { s.blur(); } catch (e) {} L59.open(); }); } catch (e) {}
+  // the other ways in: a button elsewhere in the app that names a tab (the 2027 page in the quest log), and the address ending #bookcase
+  document.addEventListener('click', e => { let el = null; try { el = (e.composedPath ? e.composedPath() : [e.target]).find(n => n && n.dataset && n.dataset.l59to) || null; } catch (x) {} if (!el) return; e.preventDefault(); e.stopPropagation(); L59.go(el.dataset.l59to); }, true);   // the quest log is drawn inside a shadow root, so the button is found on the event's path
+  const want = () => /^#bookcase\b/i.test(location.hash); const take = () => { const m = /^#bookcase[-:/]?(plan|owned|read)?/i.exec(location.hash); try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {} L59.go(m && m[1] ? m[1].toLowerCase() : undefined); };
+  window.addEventListener('hashchange', () => { if (want()) take(); });
+  if (want()) { let n = 0; const iv = setInterval(() => { n++; const ready = !(typeof SYNC82 !== 'undefined' && SYNC82.state === 'wait'); if (ready || n > 40) { clearInterval(iv); if (want()) take(); } }, 500); }
 
   // ---- styles: wood, brass and paper; nothing animates ----
   const B = 'html body #l59';
-  const css = B + '{position:fixed;inset:0;z-index:2100;display:none;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;background:var(--d-bg,#0c0a16);color:var(--d-ink,#f4eef7);font:400 15px/1.45 Barlow,system-ui,sans-serif}' + B + '.on{display:block}html.l59-lock,html.l59-lock body{overflow:hidden}' +
-    B + ' *{box-sizing:border-box;animation:none!important;transition:none!important}' + B + ' button{-webkit-appearance:none;appearance:none;font:inherit;color:inherit;margin:0;padding:0;border:0;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent}' +
-    B + ' .l59-in{max-width:430px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 8px) 12px calc(env(safe-area-inset-bottom) + 190px)}' +
-    B + ' .l59-top{display:flex;align-items:center}' + B + ' .l59-x{min-height:44px;padding:0 14px 0 2px;font-size:15px;color:var(--d-mute,#aa9fbb)}' +
-    B + ' .l59-tabs{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:6px;margin:4px 0 0}' +
-    B + ' .l59-tabs button{min-height:44px;border:1px solid var(--d-line,rgba(220,190,255,.2));font-size:14px}' + B + ' .l59-tabs .on{background:var(--d-ink,#f4eef7);color:var(--d-bg,#0c0a16);border-color:var(--d-ink,#f4eef7);font-weight:600}' +
+  const css = B + '{display:none;width:100vw;margin-left:calc(50% - 50vw);color:var(--d-ink,#f4eef7);font:400 15px/1.45 Barlow,system-ui,sans-serif}' + B + '.on{display:block}' +
+    B + ' *{box-sizing:border-box;animation:none!important;transition:none!important}' + B + ' button{-webkit-appearance:none;appearance:none;font:inherit;color:inherit;margin:0;padding:0;border:0;border-radius:0;background:none;box-shadow:none;cursor:pointer;-webkit-tap-highlight-color:transparent}' +
+    B + ' .l59-in{max-width:430px;margin:0 auto;padding:0 12px 150px}' +
+    B + ' .ed .l59-act{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;margin:0 -12px;padding:6px 12px;background:var(--d-bg,#0c0a16)}' +
+    B + ' .l59-act button,' + B + ' .l59-jump button,' + B + ' .l59-add,' + B + ' .l59-cb button,' + B + ' .l59-mo button{font-family:"Den Cormorant","Cormorant Garamond",Georgia,serif!important;font-weight:500;letter-spacing:1.2px;text-transform:uppercase}' +
     B + ' .l59-act{display:flex;gap:6px;margin:6px 0 0}' + B + ' .l59-act button{flex:1;min-height:44px;border:1px solid var(--d-line,rgba(220,190,255,.2));font-size:14px}' + B + ' .l59-act button[disabled]{opacity:.38}' + B + ' .l59-act .go{background:var(--d-acc2,#dcc09a);border-color:var(--d-acc2,#dcc09a);color:#1b1408;font-weight:600}' +
-    B + ' #l59sel{flex:2.4;min-width:0;min-height:44px;margin:0;padding:0 32px 0 13px;border:1px solid var(--d-line,rgba(220,190,255,.2));border-radius:0;background:var(--d-bg2,#141127) url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%278%27%3E%3Cpath d=%27M1 1.5l5 5 5-5%27 fill=%27none%27 stroke=%27%23aa9fbb%27 stroke-width=%271.6%27/%3E%3C/svg%3E") no-repeat right 12px center;color:var(--d-ink,#f4eef7);font:600 16px Barlow,system-ui,sans-serif;text-overflow:ellipsis;-webkit-appearance:none;appearance:none}' +
+    B + ' #l59sel{flex:2.4;min-width:0;min-height:44px;margin:0;padding:0 32px 0 13px;border:1px solid var(--d-line,rgba(220,190,255,.2));border-radius:0;background:var(--d-bg2,#141127) url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2712%27 height=%278%27%3E%3Cpath d=%27M1 1.5l5 5 5-5%27 fill=%27none%27 stroke=%27%23aa9fbb%27 stroke-width=%271.6%27/%3E%3C/svg%3E") no-repeat right 12px center;color:var(--d-ink,#f4eef7);font:500 16px "Den Cormorant","Cormorant Garamond",Georgia,serif;letter-spacing:1.2px;text-transform:uppercase;text-overflow:ellipsis;-webkit-appearance:none;appearance:none}' +
     B + ' .l59-rm{position:absolute;z-index:6;top:7px;width:44px;height:44px;padding:0}' + B + ' .l59-rm i{position:absolute;right:5px;top:10px;width:26px;height:26px;border-radius:50%;background:#15111f;border:1.5px solid var(--d-ink,#f4eef7);box-shadow:0 2px 6px rgba(0,0,0,.75)}' + B + ' .l59-rm i::before{content:"";position:absolute;left:6px;right:6px;top:50%;height:2px;margin-top:-1px;background:var(--d-ink,#f4eef7)}' + B + ' .ed .rb{display:none}' +
     B + ' .l59-gap.ed button{flex:none;align-self:center;position:relative;width:44px;height:44px;padding:0;border:1.5px solid rgba(236,213,150,.7);border-radius:50%}' + B + ' .l59-gap.ed button b::before,' + B + ' .l59-gap.ed button b.pl::after{content:"";position:absolute;left:13px;right:13px;top:50%;height:2px;margin-top:-1px;background:rgba(236,213,150,.9)}' + B + ' .l59-gap.ed button b.pl::after{transform:rotate(90deg)}' +
     B + ' .l59-add{flex:none;min-height:44px;min-width:58px;margin-bottom:-4px;padding:0 12px;border:1px solid var(--d-acc2,#dcc09a)!important;color:var(--d-acc2,#dcc09a)!important;font-size:13.5px!important}' +
     B + ' .l59-mo{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-top:10px}' + B + ' .l59-mo button{min-height:44px;border:1px solid var(--d-line,rgba(220,190,255,.24));font-size:13.5px}' + B + ' .l59-mo .on{background:var(--d-ink,#f4eef7);color:var(--d-bg,#0c0a16);border-color:var(--d-ink,#f4eef7);font-weight:600}' +
     B + ' #l59q{display:block;width:100%;min-height:44px;margin-top:9px;padding:0 12px;border:1px solid var(--d-line,rgba(220,190,255,.3));border-radius:0;background:var(--d-bg,#0c0a16);color:var(--d-ink,#f4eef7);font:400 16px Barlow,system-ui,sans-serif;-webkit-appearance:none}' +
     B + ' .l59-pk{max-height:38vh;margin-top:6px;overflow-y:auto;-webkit-overflow-scrolling:touch}' + B + ' .l59-pk button{display:block;width:100%;min-height:44px;padding:8px 2px;border-bottom:1px solid var(--d-line,rgba(220,190,255,.14));text-align:left;font-size:14.5px}' +
-    B + ' .l59-jump{display:flex;gap:6px;margin:12px -12px 0;padding:0 12px 2px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}' + B + ' .l59-jump::-webkit-scrollbar{display:none}' + B + ' .l59-jump button{flex:none;min-height:44px;padding:0 13px;border:1px solid var(--d-line,rgba(220,190,255,.2));border-radius:99px;font-size:13.5px;white-space:nowrap}' +
+    B + ' .l59-jump{display:flex;gap:6px;margin:12px -12px 0;padding:0 12px 2px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}' + B + ' .l59-jump::-webkit-scrollbar{display:none}' + B + ' .l59-jump button{flex:none;min-height:44px;padding:0 13px;border:1px solid var(--d-line,rgba(220,190,255,.2));font-size:14px;white-space:nowrap}' +
     B + ' .l59-sea{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin:26px 0 0}' +
     B + ' .l59-sea b{position:relative;z-index:1;margin:0 0 -3px 14px;padding:5px 16px 6px;border-radius:3px;background:linear-gradient(180deg,#ecd596,#b8923f 70%,#8e6c26);color:#2a1c06;font:700 21px/1 "Den Cormorant","Cormorant Garamond",Georgia,serif;letter-spacing:.02em;box-shadow:0 1px 0 #fff3c4 inset,0 2px 4px rgba(0,0,0,.6)}' +
     B + ' .l59-sea span{margin-left:auto;padding-bottom:7px;font-size:12.5px;color:var(--d-mute,#aa9fbb);text-align:right}' +
@@ -255,7 +269,7 @@
     B + ' .l59-gap{flex:none;display:flex;align-items:flex-end}' + B + ' .l59-gap i{flex:none;width:14px;height:64px;border-radius:7px 7px 0 0;background:linear-gradient(90deg,#7c8089,#dfe1e6 42%,#6a6e77)}' +
     B + ' .l59-gap span{flex:1;align-self:stretch;display:flex;align-items:center;justify-content:center;font:italic 600 16px/1.15 "Cormorant Garamond",Georgia,serif;color:rgba(236,213,150,.68)}' +
     B + ' .l59-prize{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:flex-end}' + B + ' .l59-prize svg{display:block}' + B + ' .l59-prize i{width:26px;height:10px;margin-top:-1px;background:linear-gradient(180deg,#8e6c26,#4d3a14);clip-path:polygon(22% 0,78% 0,100% 100%,0 100%)}' +
-    B + ' .l59-card{position:fixed;z-index:30;left:0;right:0;bottom:0;display:flex;gap:14px;padding:14px 14px calc(env(safe-area-inset-bottom) + 14px);background:var(--d-bg2,#141127);border-top:1px solid var(--d-line,rgba(220,190,255,.2));box-shadow:0 -12px 30px rgba(0,0,0,.6)}' + B + ' .l59-card[hidden]{display:none}' + B + ' .l59-card.top{top:0;bottom:auto;padding:calc(env(safe-area-inset-top) + 14px) 14px 14px;border-top:0;border-bottom:1px solid var(--d-line,rgba(220,190,255,.2));box-shadow:0 12px 30px rgba(0,0,0,.6)}' + B + ' .l59-card.top .l59-pk{max-height:30vh}' + B + ' .l59-cb{flex-wrap:wrap}' +
+    B + ' .l59-card{position:fixed;z-index:30;left:0;right:0;bottom:0;display:flex;gap:14px;padding:14px;background:var(--d-bg2,#141127);border-top:1px solid var(--d-line,rgba(220,190,255,.2));box-shadow:0 -12px 30px rgba(0,0,0,.6)}' + B + ' .l59-card[hidden]{display:none}' + B + ' .l59-card.top{top:0;bottom:auto;padding:calc(env(safe-area-inset-top) + 14px) 14px 14px;border-top:0;border-bottom:1px solid var(--d-line,rgba(220,190,255,.2));box-shadow:0 12px 30px rgba(0,0,0,.6)}' + B + ' .l59-card.top .l59-pk{max-height:30vh}' + B + ' .l59-cb{flex-wrap:wrap}' +
     B + ' .l59-cv{flex:none;width:92px}' + B + ' .l59-cv img{display:block;width:92px;height:138px;object-fit:cover;border-radius:2px;box-shadow:0 4px 10px rgba(0,0,0,.6)}' + B + ' .l59-cv svg{display:block;margin:0 auto}' +
     B + ' .l59-bigcl{display:grid;place-items:center;width:92px;height:138px;padding:8px;border-radius:2px;background:var(--c);color:#f7f0e3;text-align:center;font:500 15px/1.1 "Cormorant Garamond",Georgia,serif}' +
     B + ' .l59-bigpc{position:relative;width:92px;height:138px;border-radius:2px;background:linear-gradient(90deg,#9a7648,#c19a69 30%,#b08a58 70%,#86643b)}' + B + ' .l59-bigpc::before{content:"";position:absolute;top:0;bottom:0;left:50%;width:3px;margin-left:-1.5px;background:#5b3d20}' + B + ' .l59-bigpc::after{content:"";position:absolute;left:0;right:0;top:40%;height:3px;background:#5b3d20}' +
