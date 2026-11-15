@@ -22,7 +22,7 @@
   const MON = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   const md = d => MON[+String(d).slice(5, 7) - 1].slice(0, 3) + ' ' + (+String(d).slice(8, 10));
   // [month, the book, his library title (null: no way to match it yet), minutes when not in his library, note]
-  const P = [
+  const P0 = [
     [0, 'Warbreaker', '^Warbreaker$', 0, ''], [0, 'House of Earth and Blood', '^House of Earth and Blood', 0, ''], [0, 'House of Sky and Breath', '^House of Sky and Breath', 0, ''], [0, 'House of Flame and Shadow', '^House of Flame and Shadow', 0, ''],
     [1, 'A Court of Splintered Harmony', '^A Court of Splintered Harmony', 0, 'After Crescent City, your order'], [1, 'A Court of Forgotten Melody', '^A Court of Forgotten Melody', 1200, 'ACOTAR 7 · out Jan 12 · length is a guess'], [1, 'Onyx Storm', '^Onyx Storm', 0, ''], [1, 'Threshing Day', '^Threshing Day', 0, ''], [1, 'Edgedancer', '^Edgedancer', 0, ''], [1, 'Elsecaller and King Lopen the First of Alethkar', '^Elsecaller', 0, 'Ebook · two short stories set during Words of Radiance'],
     [2, 'The Alloy of Law', '^The Alloy of Law', 0, ''], [2, 'Shadows of Self', '^Shadows of Self', 0, ''], [2, 'The Bands of Mourning', '^The Bands of Mourning', 0, ''], [2, 'Elantris', '^Elantris', 0, ''], [2, 'Arcanum Unbounded', '^Arcanum Unbounded', 0, 'Skip The Emperor\'s Soul and Edgedancer in it; you\'ll have read both'], [2, 'White Sand: Volume One', '^White Sand', 0, 'Dramatized adaptation · Volume Two is sold separately'],
@@ -38,16 +38,23 @@
   ];
   // Goodreads seasons (2026's dates; 2027's are assumed to match) and the open spots, four a season: [month, season]
   const SEASONS = [['Winter', '2027-01-01', '2027-03-31'], ['Spring', '2027-04-01', '2027-06-30'], ['Summer', '2027-07-01', '2027-09-14'], ['Fall', '2027-09-15', '2027-12-31']];
-  const OPEN = [[0, 0], [1, 0], [1, 0], [1, 0], [2, 0], [3, 1], [4, 1], [4, 1], [5, 1], [6, 2], [7, 2], [7, 2], [8, 2], [9, 3], [10, 3], [10, 3], [11, 3]];
+  const OPEN0 = [[0, 0], [1, 0], [1, 0], [1, 0], [2, 0], [3, 1], [4, 1], [4, 1], [5, 1], [6, 2], [7, 2], [7, 2], [8, 2], [9, 3], [10, 3], [10, 3], [11, 3]];
   const seasonOf = m => m < 3 ? 0 : m < 6 ? 1 : m < 9 ? 2 : 3;
+  // The plan is data. The list above is the plan the app starts with. When he saves or picks a plan of his own (L59, the bookcase),
+  // it is kept in the store as the row plan2027: set is the set books, each [month, name, pattern for his library title or null,
+  // minutes when it is not in his library, note]; open is the month of each open spot. That row, when it holds books, is the 2027
+  // plan everywhere: the quest log, the plan page and Backlog Breaker, whose count is the plan's own size.
+  const mine = () => { try { const o = O('plan2027'); if (o && Array.isArray(o.set) && o.set.length && o.set.every(e => Array.isArray(e) && +e[0] >= 0 && +e[0] <= 11 && typeof e[1] === 'string' && e[1])) return o; } catch (e) {} return null; };
+  const plan = () => { const o = mine(); if (!o) return { P: P0, OPEN: OPEN0, name: '', own: false };
+    return { P: o.set.map(e => [+e[0], String(e[1]), e[2] == null || e[2] === '' ? null : String(e[2]), +e[3] || 0, String(e[4] || '')]), OPEN: (Array.isArray(o.open) ? o.open : []).map(Number).filter(m => m >= 0 && m <= 11).sort((a, b) => a - b).map(m => [m, seasonOf(m)]), name: String(o.name || 'My plan'), own: true }; };
   // his backlog, in the order empty open spots suggest it
   const BACKLOG = [['Golden Son', '^Golden Son'], ['Morning Star', '^Morning Star'], ['The Heroes', '^The Heroes'], ['Red Country', '^Red Country'], ['Iron Gold', '^Iron Gold'], ['A Little Hatred', '^A Little Hatred'], ['Dark Age', '^Dark Age'], ['The Trouble with Peace', '^The Trouble with Peace'], ['Light Bringer', '^Light Bringer'], ['The Wisdom of Crowds', '^The Wisdom of Crowds'], ['Vengeful', '^Vengeful'], ['Victorious', '^Victorious'], ['The Lies of Locke Lamora', '^The Lies of Locke Lamora'], ['The Devils', '^The Devils$'], ['The Heretics', '^The Heretics']];
   // new books in his series that are not out yet come from upcoming.json (L58): they drop into an open spot the day they are out
   const nrm = t => { try { return normT(t); } catch (e) { return String(t).toLowerCase(); } };
   const UP = () => window.L58 || null;
-  L56.watch = function () { const up = UP(); if (!up) return []; let L = []; try { L = up.watch(2027); } catch (e) {} return L.filter(x => !P.some(e => nrm(e[1]) === nrm(x.title))).map(x => { const d = String(x.date || ''); const day = /^\d{4}-\d{2}-\d{2}$/.test(d);
+  L56.watch = function () { const up = UP(); if (!up) return []; const P = plan().P; let L = []; try { L = up.watch(2027); } catch (e) {} return L.filter(x => !P.some(e => nrm(e[1]) === nrm(x.title))).map(x => { const d = String(x.date || ''); const day = /^\d{4}-\d{2}-\d{2}$/.test(d);
     return { name: x.title, sub: (x.series && x.title.indexOf(x.series) < 0 ? x.series + ' · ' : '') + (day ? 'Out ' + md(d) + ' · drops into ' + MON[+d.slice(5, 7) - 1] : /^\d{4}/.test(d) ? 'Expected ' + up.when(x) + ' · no day yet' : 'No date yet') }; }); };
-  L56.P = P; L56.OPEN = OPEN; L56.SEASONS = SEASONS; L56.BACKLOG = BACKLOG; L56.MON = MON;
+  Object.defineProperty(L56, 'P', { get: () => plan().P }); Object.defineProperty(L56, 'OPEN', { get: () => plan().OPEN }); L56.P0 = P0; L56.OPEN0 = OPEN0; L56.plan = plan; L56.count = () => { const p = plan(); return p.P.length + p.OPEN.length; }; L56.SEASONS = SEASONS; L56.BACKLOG = BACKLOG; L56.MON = MON;
   const st = t => { try { return getStatus(t) || ''; } catch (e) { return ''; } };
   const fin = t => String(O(t).finished || '');
   const ln = t => { try { return L46.len(t) || 0; } catch (e) { return 0; } };
@@ -59,11 +66,15 @@
   const before = L => !!finIn(L, '0000', '2026-12-31');
   const fam = t => { try { const v = L46.versions(t); if (v && v.length) return v.slice().sort()[0]; } catch (e) {} return t; };
   L56.speed = () => 1.8; // he listens at 1.8x (Nov 2026)
+  // his own plan, saved: from then on it is the 2027 plan everywhere. An empty one clears it, and the plan the app starts with is back.
+  L56.use = function (set, open, name) { try { if (typeof CAN_EDIT !== 'undefined' && !CAN_EDIT) return false; setOverride('plan2027', { set: (set || []).map(e => [+e[0], String(e[1]), e[2] == null || e[2] === '' ? null : String(e[2]), +e[3] || 0, String(e[4] || '')]), open: (open || []).map(Number), name: String(name || ''), at: today() });
+      try { L4.clear(); } catch (e) {} try { refreshAfterEdit(); } catch (e) {} return true; } catch (e) { console.warn('l56 use', e); return false; } };
+  L56.reset = () => L56.use([], [], '');
   // books finished in 2027 that aren't set books, one per book (editions counted once), in the order he finished them
   L56.extras = function (setTs) { const seen = {}, out = []; ALL_TITLES.forEach(t => { if (!BOOK(t) || setTs.has(t) || st(t) !== 'read') return; const d = fin(t).slice(0, 10); if (!d || d < Y0 || d > Y1) return; const k = fam(t); if (seen[k]) return; seen[k] = 1; out.push({ t, d }); });
     return out.sort((a, b) => a.d < b.d ? -1 : a.d > b.d ? 1 : a.t < b.t ? -1 : 1); };
   // the 75 spots in reading order: each month's set books, then its open spots
-  L56.slots = function () { const sets = [], opens = [], setTs = new Set();
+  L56.slots = function (other) { const { P, OPEN } = other || plan(); const sets = [], opens = [], setTs = new Set();   // other: a plan to look at without using it (the bookcase shows the deck's other plans this way)
     P.forEach((e, i) => { const ts = all(e[2]), t = pick(ts); ts.forEach(x => setTs.add(x));
       if (before(ts)) { opens.push({ m: e[0], se: seasonOf(e[0]), early: e[1] }); return; }
       const real = Math.max(0, ...ts.map(ln)) || (UP() ? UP().min(e[1]) : 0);   // its real length, once his library or the upcoming list has it
@@ -86,7 +97,7 @@
     return BACKLOG.filter(b => !hold.has(nrm(b[0])) && !all(b[1]).some(t => st(t) === 'read')).map(b => b[0]); };
   // the arc in the quest log
   L48.more.push(function () { const S = L56.slots(); const sp = L56.speed(); const set = S.filter(x => !x.open); const tot = set.reduce((s, x) => s + x.min, 0) / sp;
-    return { id: 'y2027', name: '2027: 75 books', from: Y0, to: Y1, key: today() < Y0 ? Y0 : Y1, sub: set.length + ' set, ' + (S.length - set.length) + ' open · ' + hh(tot) + ' at ' + sp + 'x',
+    return { id: 'y2027', name: '2027: ' + S.length + ' books', from: Y0, to: Y1, key: today() < Y0 ? Y0 : Y1, sub: set.length + ' set, ' + (S.length - set.length) + ' open · ' + hh(tot) + ' at ' + sp + 'x',
       steps: S.map(x => x.open && x.drop && !x.t ? { id: x.id, t: x.name, s: dropSub(x, sp), book: dropKey(x), auto: () => false, next: x.name + ' · ' + MON[x.m] }
         : x.open ? { id: x.id, t: x.t ? x.name : 'Open spot', s: x.t ? (x.min ? hm(x.min / sp) + ' · ' : '') + 'open spot' : 'A Goodreads ' + SEASONS[x.se][0] + ' badge book or one from your backlog', book: x.t || undefined, auto: () => !!x.d, next: 'Open spot · ' + MON[x.m] }
         : { id: x.id, t: x.name, s: (x.min ? hm(x.min / sp) : 'Short read') + (x.note ? ' · ' + x.note : ''), book: x.t || undefined, auto: x.t || today() < Y0 ? () => !!doneOn('y2027', x) : undefined, next: x.name + ' · ' + MON[x.m] }),
@@ -98,7 +109,7 @@
       '<rect x="27" y="47" width="30" height="3" rx="1.5" fill="' + B + '"/><rect x="33" y="62" width="26" height="3" rx="1.5" fill="' + B + '"/><rect x="25" y="77.5" width="36" height="3" rx="1.5" fill="' + B + '"/>';
   } catch (e) {}
   const bk = x => ({ t: x.t || x.name, k: x.t ? 'book' : 'note', d: x.d, sub: x.t ? undefined : MON[x.m] });
-  L4.defs.push({ cat: 'books', id: 'y2027', name: 'Backlog Breaker', sub: '2027', desc: 'All 75 books in your 2027 plan, finished in 2027', th: [75], tn: ['Mistborn'], icon: 'y2027', hue: ['#22325c', '#070b18'],
+  L4.defs.push({ cat: 'books', id: 'y2027', name: 'Backlog Breaker', sub: '2027', get desc() { return 'All ' + L56.count() + ' books in your 2027 plan, finished in 2027'; }, get th() { return [L56.count()]; }, tn: ['Mistborn'], icon: 'y2027', hue: ['#22325c', '#070b18'],
     items: () => L56.done().sort((a, b) => a.d < b.d ? -1 : a.d > b.d ? 1 : 0).map(bk), cand: () => L56.slots().filter(x => !x.open && !doneOn('y2027', x)).slice(0, 20).map(x => ({ t: x.t || x.name, k: x.t ? 'book' : 'note', sub: MON[x.m] })) });
   // The Full Set (every badge at least Bronze) does not wait on one year's plan
   try { const fs = L4.defs.find(d => d.id === 'fullset'); if (fs && typeof fs.meta === 'function' && !fs._y27) { const _m = fs.meta; fs.meta = function (R) { const a = [].slice.call(arguments); a[0] = (R || []).filter(b => b.id !== 'y2027'); return _m.apply(this, a); }; fs._y27 = 1; } } catch (e) {}
@@ -124,12 +135,12 @@
   L56.page = function (a) { const t = today(); const S = L56.slots(); const sp = L56.speed(); const set = S.filter(x => !x.open); const tot = set.reduce((s, x) => s + x.min, 0) / sp; const nOpen = S.length - set.length;
     const doneIds = {}; S.forEach(x => { if (doneOn('y2027', x)) doneIds[x.id] = 1; }); const n = Object.keys(doneIds).length;
     const doneSet = set.filter(x => doneIds[x.id]).reduce((s, x) => s + x.min, 0) / sp;
-    let h = '<button class="back" data-a="arcback">‹ Quest log</button><p class="ah">2027: 75 books</p><p class="as">Jan 1 – Dec 31, 2027 · ' + (t < Y0 ? 'starts in ' + days(t, Y0) + ' days' : t <= Y1 ? days(t, Y1) + ' days left' : 'over') + '</p>';
+    let h = '<button class="back" data-a="arcback">‹ Quest log</button><p class="ah">2027: ' + S.length + ' books</p><p class="as">Jan 1 – Dec 31, 2027 · ' + (t < Y0 ? 'starts in ' + days(t, Y0) + ' days' : t <= Y1 ? days(t, Y1) + ' days left' : 'over') + '</p>';
     let pace;
     if (t < Y0) pace = '<b>' + n + ' of ' + S.length + '</b><p>The ' + set.length + ' set books are ' + hh(tot) + ' at ' + sp + 'x, about ' + hm(tot / 365).replace(/ 00 m$/, '') + ' a day. The ' + nOpen + ' open spots add whatever you put in them.</p>';
     else { const want = Math.floor(S.length * Math.min(1, (days(Y0, t) + 1) / 365)); const gap = n - want; pace = '<b>' + n + ' of ' + S.length + ' · ' + (gap === 0 ? 'on pace' : gap > 0 ? gap + ' ahead' : -gap + ' behind') + '</b><p>Set books: ' + hh(doneSet) + ' of ' + hh(tot) + ' at ' + sp + 'x.</p>'; }
     h += '<div class="pace">' + pace + '<u class="y27u"><s style="width:' + Math.round(n / S.length * 100) + '%"></s></u></div>';
-    h += '<div class="y27b">' + L56.medal(88, n >= S.length ? null : n / S.length) + '<span><b>Backlog Breaker</b><small>Mistborn tier</small><p>Finish all 75 in 2027. Mistborn is a tier above Atium, and no other badge in Book Den has it.</p></span></div>';
+    h += '<div class="y27b">' + L56.medal(88, n >= S.length ? null : n / S.length) + '<span><b>Backlog Breaker</b><small>Mistborn tier</small><p>Finish all ' + S.length + ' in 2027. Mistborn is a tier above Atium, and no other badge in Book Den has it.</p></span></div>';
     const per = SEASONS.map((z, k) => z[0] + ' ' + S.filter(x => x.open && x.se === k).length).join(', '); const nDrop = S.filter(x => x.drop && !x.t).length;
     h += '<div class="y27g"><b>Goodreads badges</b><p>Open spots for books off each season\'s badge lists: ' + per + '.' + (nDrop ? ' New releases have taken ' + nDrop + ' of them.' : '') + ' Page-Turner, Speed Reader and Book Boss (any 2, 3 and 5 books) come from the set books on their own. The 2026 seasons ran Jan 1–Mar 31, Apr 1–Jun 30, Jul 1–Sep 14 and Sep 15–Dec 31.</p></div>';
     const get = set.filter(x => !x.t); if (get.length) h += '<div class="y27g"><b>' + get.length + ' to get</b><p>' + get.map(x => esc(x.name)).join(', ') + '</p></div>';

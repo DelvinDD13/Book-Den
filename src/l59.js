@@ -7,7 +7,11 @@
 //   series in the plan. A book that is not out yet is a wrapped parcel with its day on the tag, a book that is not in his
 //   library is an outline, the open spots are the empty shelf between two bookends, and the Backlog Breaker medal stands at
 //   the end of the last shelf. The page carries no explaining text (his words: "lots of stray aphorisms and texts").
-//   It is a preview: nothing in the app links to it and it changes nothing. It opens from the address ending #bookcase, or by
+//   The plan tab offers the plans from his 2027 deck (the one the app starts with and three more, defined as data: what leaves
+//   and which series take its hours) and an edit mode: move a book to another month, remove it, add one from his library, add or
+//   remove open spots, and save the result as his own plan. "Use this plan" and "Save as my plan" hand the plan to L56, and
+//   from then it is the 2027 plan across the app. Looking at a plan changes nothing.
+//   It is a preview: nothing in the app links to it, and it changes nothing until he picks or saves a plan. It opens from the address ending #bookcase, or by
 //   typing "bookcase" in the Books search box. "As of July 1" shows the first half of the plan year as read. Nothing moves.
 (function () {
   if (!window.L56 || !L56.slots || typeof ALL_TITLES === 'undefined') return;
@@ -49,7 +53,7 @@
     try { x.get = (META[t] || {}).gr === true; } catch (e) {} try { x.now = getStatus(t) === 'currently-reading'; x.pct = +(getOverride(t) || {}).progress || 0; } catch (e) {} return x; };
 
   // ---- 1. the 2027 plan as things on a shelf ----
-  L59.data = function (pretend) { const S = L56.slots(); const sp = speed(); const up = window.L58 || null; const med = median();
+  L59.data = function (pretend, other) { const S = L56.slots(other); const sp = speed(); const up = window.L58 || null; const med = median();
     const doneAt = {}; try { L56.done().forEach(x => { doneAt[x.id] = x.d; }); } catch (e) {}
     // the series of each spot: his library's for a book he has, else the series page that lists it
     const ser = {}, byName = {}; S.forEach(x => { try { const s = x.t && SERIES_OF[x.t]; if (s && s !== 'Standalone / Other') ser[x.id] = s; } catch (e) {} });
@@ -65,7 +69,7 @@
       if (it.t) { it.art = art(it.t); try { it.get = (META[it.t] || {}).gr === true; } catch (e) {} try { it.now = getStatus(it.t) === 'currently-reading'; it.pct = +(getOverride(it.t) || {}).progress || 0; } catch (e) {} }
       z.items.push(it); all.push(it); if (!empty) { z.min += min; z.books++; } });
     // books in his series with a day in 2027 that are not out yet: parcels waiting in the open part of their season
-    const soon = []; try { const P = L56.P || []; (up ? up.watch(2027) : []).forEach(u => { if (P.some(e => nrm(e[1]) === nrm(u.title))) return; if (!full(u.date)) { soon.push(u.title); return; } if (pretend && u.date < JULY) return;
+    const soon = []; try { const P = (other || L56.plan()).P || []; (up ? up.watch(2027) : []).forEach(u => { if (P.some(e => nrm(e[1]) === nrm(u.title))) return; if (!full(u.date)) { soon.push(u.title); return; } if (pretend && u.date < JULY) return;
         const m = +u.date.slice(5, 7) - 1; const min = +u.minutes || med; Z[seasonOf(m)].items.push({ k: 'parcel', id: 'w:' + nrm(u.title), m, name: u.title, t: null, min, read: false, date: u.date, extra: true, note: u.series && u.title.indexOf(u.series) < 0 ? u.series : '', ser: '' }); }); } catch (e) {}
     // the book he is on: the first one in the plan he has not finished
     const cur = all.find(x => !x.read && x.k !== 'parcel' && x.k !== 'pick') || null; if (cur) cur.cur = true;
@@ -74,6 +78,24 @@
     Object.keys(bySer).forEach(s => { const L = bySer[s]; if (!L.every(x => x.read)) return; const last = L[L.length - 1]; const when = pretend ? MON[last.m] : (L.map(x => x.d).filter(Boolean).sort().pop() || ''); last.closes = { name: s, n: L.length, when: pretend ? when : (when ? md(when) : '') }; });
     const nDone = pretend ? all.filter(x => x.read).length : Object.keys(doneAt).length;
     return { Z, all, soon, cur, total: S.length, set: S.filter(x => !x.open).length, min: S.filter(x => !x.open).reduce((a, x) => a + x.min, 0), done: nDone, sp, med, pretend: !!pretend }; };
+
+  // ---- the plans to choose from. A is the plan the app starts with. The others are data: the series that leaves it (all of it, or
+  // all after its first few books) and the series that take the hours it frees, in order; unread books only, each series in the
+  // order its own page gives, packed into the freed months by listening time ----
+  const TPL = [{ key: 'A', name: 'The Wheel' },
+    { key: 'B', name: 'Finish what’s open', drop: 'The Wheel of Time', add: ['Red Rising Saga', 'The First Law World', 'Villains', 'The Hunger Games', "Stephen Fry's Great Mythology", 'The Chronicles of Narnia', 'Inkworld', 'The Folk of the Air'] },
+    { key: 'C', name: 'Half the Wheel', drop: 'The Wheel of Time', keep: 6, add: ['Red Rising Saga', 'The First Law World'] },
+    { key: 'D', name: 'Shelf sweep', drop: 'The Wheel of Time', add: ['The Folk of the Air', 'Inkworld', 'Villains', 'The Hunger Games', 'The Chronicles of Narnia', 'Shattered Sea', "Stephen Fry's Great Mythology", 'Arc of a Scythe', 'The Drowning Empire', 'The Belgariad', 'The Bloodsworn Saga', 'Shadow of the Leviathan'] }];
+  const rx = t => '^' + String(t).replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$';
+  const slug = n => 's:' + String(n).toLowerCase().replace(/[^a-z0-9]+/g, '-');
+  L59.template = function (key) { const T = TPL.find(t => t.key === key); if (!T) return null; const set0 = L56.P0.map(e => e.slice()), open = L56.OPEN0.map(o => o[0]); if (!T.drop) return { key, name: T.name, set: set0, open };
+    let rows = []; try { rows = L57.data(T.drop).R.filter(r => !r.up); } catch (e) {} const names = new Set(rows.map(r => nrm(r.title))), keep = new Set(rows.filter(r => !r.extra).slice(0, T.keep || 0).map(r => nrm(r.title)));
+    const out = e => names.has(nrm(e[1])) && !keep.has(nrm(e[1])); const minOf = e => { let m = 0; try { if (e[2]) { const re = new RegExp(e[2]); ALL_TITLES.forEach(t => { if (BOOK(t) && re.test(t)) m = Math.max(m, lenOf(t)); }); } } catch (x) {} return m || +e[3] || 0; };
+    const freed = {}; set0.forEach(e => { if (out(e)) freed[e[0]] = (freed[e[0]] || 0) + minOf(e); }); const months = Object.keys(freed).map(Number).sort((a, b) => a - b); const set = set0.filter(e => !out(e)); const have = new Set(set.map(e => nrm(e[1])));
+    const add = []; T.add.forEach(sn => { let R = []; try { R = L57.data(sn).R; } catch (e) {} R.forEach(r => { if (r.up || r.run > 1 || r.st === 'read' || have.has(nrm(r.title))) return; have.add(nrm(r.title)); add.push([0, r.title, r.t ? rx(r.t) : null, r.min || 0, '']); }); });
+    let k = 0, used = 0; add.forEach(e => { const m = e[3] || 600; while (k < months.length - 1 && used + m / 2 > freed[months[k]]) { k++; used = 0; } e[0] = months.length ? months[k] : 11; used += m; set.push(e); });
+    return { key, name: T.name, set, open }; };
+  L59.templates = () => TPL.map(t => ({ key: t.key, name: t.name }));
 
   // ---- 2. the books he owns, a case for each category, a series kept together and in its order ----
   L59.owned = function () { const cats = {}; let order = []; try { order = ORDERS.genre.slice(); } catch (e) {} ALL_TITLES.forEach(t => { if (!BOOK(t)) return; let m = {}; try { m = META[t] || {}; } catch (e) {} if (m.gr === true || m.added) return;
@@ -98,6 +120,12 @@
 
   // ---- drawing: every book the same cover-shaped book, three to a shelf ----
   let host = null, view = 'plan', mode = false, D = null, IT = [], picked = -1, back = false, lastY = 0;
+  // which plan is on the shelves ('use' is his own saved plan), the copy being edited, and whether "Use this plan" has had its first tap
+  let sel = 'A', work = null, arm = false, adding = -1;
+  const own = () => { try { return !!L56.plan().own; } catch (e) { return false; } };
+  const asPlan = t => ({ P: t.set, OPEN: t.open.slice().sort((a, b) => a - b).map(m => [m, seasonOf(m)]) });
+  const shown = () => { if (work) return asPlan(work); if (sel === 'use' || sel === inUse()) return undefined; const t = L59.template(sel); return t ? asPlan(t) : undefined; };
+  const inUse = () => { if (!own()) return 'A'; let n = ''; try { n = L56.plan().name; } catch (e) {} const T = TPL.find(t => t.key !== 'A' && t.name === n); return T ? T.key : 'use'; };   // one of the four taken as it is keeps its own chip
   const on = () => !!(host && host.classList.contains('on'));
   // a cover that is not two-to-three sits whole on the book over a wash of itself (the same cover asked for very small and stretched)
   const offShape = t => { try { const c = getOverride('cv:' + t) || {}; return +c.w > 0 && +c.h > 0 && Math.abs(c.w / c.h - 2 / 3) > .03; } catch (e) { return false; } };
@@ -110,27 +138,39 @@
     const kind = x.k === 'parcel' ? ' pc' : x.k === 'ghost' ? ' gh' : x.k === 'pick' ? ' pick' : '', say = x.k === 'parcel' ? ', not out yet' : x.k === 'ghost' ? ', not in your library' : x.cur ? ', the book you are on' : '', w = has && offShape(x.t) ? tiny(x.art) : '';
     return '<button class="l59-bk' + kind + (x.cur ? ' cur' : '') + (x.read ? ' rd' : '') + '" data-l59i="' + i + '" style="width:' + cw + 'px;height:' + H + 'px;--c:' + (x.k === 'pick' ? '#4a4458' : cloth(x.name)) + '" aria-label="' + esc(x.name) + say + '"><span class="cv"' + (w ? ' data-w="' + esc(w) + '"' : '') + '>' + inner + marks + '</span></button>'; }
   // one case: its brass plate, its shelves three books across, and paper tags on the shelf edge where a new month or series starts
-  function drawCase(name, sub, L, G, tagOf, id) { const rows = [[]]; let used = 0; const fits = w => used + (rows[rows.length - 1].length ? G.gap : 0) + w <= G.W;
+  function drawCase(name, sub, L, G, tagOf, id, extra) { const rows = [[]]; let used = 0; const fits = w => used + (rows[rows.length - 1].length ? G.gap : 0) + w <= G.W;
     L.forEach(o => { if (!fits(o.ow) && rows[rows.length - 1].length) { const left = G.W - used - G.gap; if (o.mk && left >= o.min) Object.assign(o, o.mk(left)); else { rows.push([]); used = 0; } } used += (rows[rows.length - 1].length ? G.gap : 0) + o.ow; rows[rows.length - 1].push(o); });
-    let h = '<div class="l59-sea"' + (id ? ' id="' + id + '"' : '') + '><b>' + esc(name) + '</b><span>' + esc(sub) + '</span></div><div class="l59-case">', last = null;
+    let h = '<div class="l59-sea"' + (id ? ' id="' + id + '"' : '') + '><b>' + esc(name) + '</b><span>' + esc(sub) + '</span>' + (extra || '') + '</div><div class="l59-case">', last = null;
     rows.forEach(r => { let x = 0, end = -99, tags = ''; r.forEach(o => { const key = o.x ? tagOf(o.x) : undefined;
         if (key !== undefined && key !== last) { last = key; if (key) { const t = key.length > 19 ? key.slice(0, 18).replace(/\s+$/, '') + '…' : key; const tx = Math.max(x + 2, end + 4), tw = t.length * 5.5 + 9; if (tx + tw <= G.W && tx <= x + Math.max(o.ow, 26)) { tags += '<i style="left:' + tx + 'px">' + esc(t) + '</i>'; end = tx + tw; } } } x += o.ow + G.gap; });
       h += '<div class="l59-sh" style="height:' + (G.H + 12) + 'px;gap:' + G.gap + 'px">' + r.map(o => o.h).join('') + '</div><div class="l59-bd">' + tags + '</div>'; });
     return h + '</div>'; }
   function html() { const W = Math.max(280, Math.min(430, host.clientWidth || 390) - 42), gap = 12, cw = Math.floor((W - 2 * gap) / 3), H = Math.round(cw * 1.5), G = { W, gap, cw, H }; IT = []; const sp = D.sp;
     const tab = (k, t) => '<button data-l59v="' + k + '"' + (view === k ? ' class="on"' : '') + '>' + t + '</button>'; const hrs = m => Math.round(m / 60 / sp);
-    const put = z => z.items.map(x => { IT.push(x); const i = IT.length - 1; return { x, i, ow: cw, h: thing(x, i, cw, H) }; }); const stat = z => z.books + (z.books === 1 ? ' book, ' : ' books, ') + hrs(z.min) + ' h';
+    const put = z => z.items.filter(x => !(work && x.extra)).map(x => { IT.push(x); const i = IT.length - 1; return { x, i, ow: cw, h: thing(x, i, cw, H) }; }); const stat = z => z.books + (z.books === 1 ? ' book, ' : ' books, ') + hrs(z.min) + ' h';
     let h = '<div class="l59-top"><button class="l59-x" data-l59="close">‹ Back</button></div><div class="l59-tabs">' + tab('plan', '2027 plan') + tab('owned', 'Owned') + tab('read', 'Finished') + '</div>';
-    if (view === 'plan') { h += '<div class="l59-tg"><button data-l59="now"' + (mode ? '' : ' class="on"') + '>Today</button><button data-l59="july"' + (mode ? ' class="on"' : '') + '>As of July 1</button></div>';
+    if (view === 'plan') { const chips = (inUse() === 'use' ? [{ key: 'use', name: L56.plan().name || 'My plan' }] : []).concat(TPL.map(t => ({ key: t.key, name: t.key + ' ' + t.name })), [{ key: 'new', name: 'Blank' }]);
+      if (!work) h += '<div class="l59-pl">' + chips.map(c => '<button data-l59p="' + c.key + '" class="' + (!work && sel === c.key ? 'on' : '') + (c.key === inUse() ? ' use' : '') + '">' + esc(c.name) + '</button>').join('') + '</div>';
+      h += work ? '<div class="l59-act"><button data-l59="save" class="go"' + (work.set.length ? '' : ' disabled') + '>Save as my plan</button><button data-l59="cancel">Cancel</button></div>'
+        : '<div class="l59-act">' + (sel !== inUse() ? '<button data-l59="use" class="go">' + (arm ? 'Tap again to use it' : 'Use this plan') + '</button>' : '') + '<button data-l59="edit">Edit</button></div><div class="l59-tg"><button data-l59="now"' + (mode ? '' : ' class="on"') + '>Today</button><button data-l59="july"' + (mode ? ' class="on"' : '') + '>As of July 1</button></div>';
       D.Z.forEach(z => { const L = put(z);
         if (z.room) { IT.push({ k: 'room', n: z.room, se: z.n }); const gi = IT.length - 1; const mk = w => ({ ow: w, h: '<button class="l59-gap" data-l59i="' + gi + '" style="width:' + w + 'px;height:' + H + 'px" aria-label="' + z.room + ' open"><i></i><span>' + z.room + ' open</span><i></i></button>' }); L.push(Object.assign(mk(Math.min(W, 2 * cw + gap)), { x: null, min: cw, mk })); }
         if (z.i === 3) { IT.push({ k: 'prize' }); let m = ''; try { m = L56.medal(Math.min(cw - 16, 84), D.total ? D.done / D.total : 0); } catch (e) {} L.push({ ow: cw, x: null, h: '<button class="l59-prize" data-l59i="' + (IT.length - 1) + '" style="width:' + cw + 'px;height:' + H + 'px" aria-label="Backlog Breaker, ' + D.done + ' of ' + D.total + '">' + m + '<i></i></button>' }); }
-        h += drawCase(z.n, stat(z), L, G, x => x.extra || x.k === 'pick' ? undefined : MON[x.m].slice(0, 3)); }); }
+        h += drawCase(z.n, stat(z), L, G, x => x.extra || x.k === 'pick' ? undefined : MON[x.m].slice(0, 3), 'l59z' + z.i, work ? '<button class="l59-add" data-l59add="' + z.i + '" aria-label="Add to ' + z.n + '">Add</button>' : ''); }); }
     else { if (D.Z.length > 3) h += '<div class="l59-jump">' + D.Z.map((z, i) => '<button data-l59go="' + i + '">' + esc(z.n) + '</button>').join('') + '</div>';
       D.Z.forEach((z, i) => { h += drawCase(z.n, stat(z), put(z), G, x => x.tag ? (view === 'owned' ? bare(x.tag) : x.tag) : null, 'l59c' + i); }); }
     return h + '<div class="l59-card" id="l59card" hidden></div>'; }
   // the card for a tapped book: its cover, its name, and the facts, nothing more
-  function card(i) { const c = document.getElementById('l59card'); if (!c) return; const x = IT[i]; if (!x) { c.hidden = true; picked = -1; return; } picked = i; const sp = D.sp; let cv = '', t = '', L = [], go = '';
+  // editing: the entry of the copy that a book on the shelf stands for
+  const entryOf = x => work && x && x.id && !x.extra ? work.set.find(e => slug(e[1]) === x.id) || null : null;
+  const inSet = () => { const res = []; work.set.forEach(e => { try { if (e[2]) res.push(new RegExp(e[2])); } catch (x) {} }); return t => res.some(r => r.test(t)) || work.set.some(e => nrm(e[1]) === nrm(short(t))); };
+  function picker(q) { const taken = inSet(); const n = nrm(q || ''); const L = ALL_TITLES.filter(t => { if (!BOOK(t) || taken(t)) return false; try { if (getStatus(t) === 'read') return false; } catch (e) {} return !n || nrm(t).indexOf(n) >= 0; }).sort((a, b) => nrm(bare(a)) < nrm(bare(b)) ? -1 : 1).slice(0, 40);
+    const typed = String(q || '').replace(/\s+/g, ' ').trim().slice(0, 80); const free = typed.length > 1 && !L.some(t => nrm(short(t)) === nrm(typed)) && !work.set.some(e => nrm(e[1]) === nrm(typed)) ? '<button data-l59free="' + esc(encodeURIComponent(typed)) + '">Add “' + esc(typed) + '”</button>' : '';
+    return L.map(t => '<button data-l59pick="' + esc(encodeURIComponent(t)) + '">' + esc(short(t)) + '</button>').join('') + free || '<p>Nothing matches</p>'; }
+  function addCard(se) { const c = document.getElementById('l59card'); if (!c) return; adding = se; picked = -1; c.className = 'l59-card top'; c.innerHTML = '<div class="l59-ct"><b>Add to ' + SEAS[se] + '</b><input id="l59q" type="search" placeholder="Search your library" autocomplete="off" autocorrect="off" spellcheck="false"><div class="l59-pk" id="l59pk">' + picker('') + '</div><div class="l59-cb"><button data-l59="os">An open spot</button><button data-l59="put">Close</button></div></div>'; c.hidden = false; }
+  function card(i) { const c = document.getElementById('l59card'); if (!c) return; c.className = 'l59-card'; const x = IT[i]; if (!x) { c.hidden = true; picked = -1; adding = -1; return; } picked = i; adding = -1; const sp = D.sp; let cv = '', t = '', L = [], go = '';
+    if (work && x.k === 'room') { c.innerHTML = '<div class="l59-ct"><b>' + x.n + ' open in ' + esc(x.se) + '</b><div class="l59-cb"><button data-l59="om">One fewer</button><button data-l59="op">One more</button><button data-l59="put">Close</button></div></div>'; c.hidden = false; return; }
+    if (work && entryOf(x)) { c.innerHTML = '<div class="l59-ct"><b>' + esc(x.name) + '</b><div class="l59-mo">' + MON.map((m, k) => '<button data-l59m="' + k + '"' + (k === x.m ? ' class="on"' : '') + '>' + m.slice(0, 3) + '</button>').join('') + '</div><div class="l59-cb"><button data-l59="up">Earlier</button><button data-l59="dn">Later</button><button data-l59="rm">Remove</button><button data-l59="put">Close</button></div></div>'; c.hidden = false; return; }
     if (x.k === 'room') { let sug = []; try { sug = L56.suggest().slice(0, 3); } catch (e) {} t = x.n + ' open'; L.push(x.se); if (sug.length) L.push('Backlog: ' + sug.join(', ')); }
     else if (x.k === 'prize') { t = 'Backlog Breaker'; L.push(D.done + ' of ' + D.total); try { cv = L56.medal(84, D.total ? D.done / D.total : 0); } catch (e) {} }
     else { t = x.name; const fin = x.d ? 'Finished ' + md(x.d) + (view === 'plan' ? '' : ', ' + x.d.slice(0, 4)) : ''; const a = []; if (view === 'plan') a.push(MON[x.m]); if (x.min && x.k !== 'pick' && !x.extra) a.push(hm(x.min / sp)); if (x.ser) a.push(x.ser); else if (x.extra && x.note) a.push(x.note); if (a.length) L.push(a.join(', '));
@@ -139,18 +179,35 @@
       cv = x.art && x.k === 'book' ? '<img src="' + esc(x.art) + '" alt="">' : x.k === 'parcel' ? '<div class="l59-bigpc"></div>' : '<div class="l59-bigcl" style="--c:' + (x.k === 'pick' ? '#4a4458' : cloth(x.name)) + '">' + esc(x.name) + '</div>'; if (x.t) go = '<button data-l59="book">Open</button>'; }
     c.innerHTML = (cv ? '<div class="l59-cv">' + cv + '</div>' : '') + '<div class="l59-ct"><b>' + esc(t) + '</b>' + L.map(l => '<p>' + esc(l) + '</p>').join('') + '<div class="l59-cb">' + go + '<button data-l59="put">Close</button></div></div>'; c.hidden = false; }
   L59.open = function (v) { try { if (v === 'plan' || v === 'owned' || v === 'read') view = v; if (!host) { host = document.createElement('div'); host.id = 'l59'; host.setAttribute('role', 'dialog'); host.setAttribute('aria-label', 'The bookcase, a preview'); document.body.appendChild(host); }
-      host.classList.add('on'); document.documentElement.classList.add('l59-lock'); D = view === 'plan' ? L59.data(mode) : view === 'owned' ? L59.owned() : L59.finished(); host.innerHTML = '<div class="l59-in">' + html() + '</div>'; host.scrollTop = lastY; lastY = 0; picked = -1; return true; } catch (e) { console.warn('l59', e); return false; } };
+      host.classList.add('on'); document.documentElement.classList.add('l59-lock'); if ((sel === 'use' && inUse() !== 'use') || (sel === 'new' && !work)) sel = inUse(); D = view === 'plan' ? L59.data(work ? false : mode, shown()) : view === 'owned' ? L59.owned() : L59.finished(); host.innerHTML = '<div class="l59-in">' + html() + '</div>'; host.scrollTop = lastY; lastY = 0; picked = -1; return true; } catch (e) { console.warn('l59', e); return false; } };
   L59.close = function () { if (host) host.classList.remove('on'); document.documentElement.classList.remove('l59-lock'); try { if (/^#bookcase\b/i.test(location.hash)) history.replaceState(null, '', location.pathname + location.search); } catch (e) {} };
-  L59.isOpen = on; L59.things = () => IT.slice(); L59.view = () => view;
+  L59.isOpen = on; L59.things = () => IT.slice(); L59.view = () => view; L59.sel = () => sel; L59.work = () => work ? { set: work.set.map(e => e.slice()), open: work.open.slice() } : null;
   // a book opened from the shelf comes back to the shelf when its page closes
   try { const _cs = closeSheet; closeSheet = function () { const r = _cs.apply(this, arguments); if (back) { back = false; setTimeout(() => L59.open(), 30); } return r; }; } catch (e) {}
-  document.addEventListener('click', e => { const el = e.target.closest && e.target.closest('#l59 [data-l59],#l59 [data-l59i],#l59 [data-l59v],#l59 [data-l59go]'); if (!el) return; e.preventDefault(); e.stopPropagation();
+  document.addEventListener('click', e => { const el = e.target.closest && e.target.closest('#l59 [data-l59],#l59 [data-l59i],#l59 [data-l59v],#l59 [data-l59go],#l59 [data-l59p],#l59 [data-l59m],#l59 [data-l59add],#l59 [data-l59pick],#l59 [data-l59free]'); if (!el) return; e.preventDefault(); e.stopPropagation();
+    const redo = () => { lastY = host.scrollTop; L59.open(); }; const sorted = () => { const S = work.set.map((e, i) => [e, i]).sort((a, b) => a[0][0] - b[0][0] || a[1] - b[1]).map(p => p[0]); work.set.length = 0; S.forEach(e => work.set.push(e)); };
+    const again = en => { const id = slug(en[1]); redo(); const i = IT.findIndex(x => x.id === id && !x.extra); if (i >= 0) card(i); }; if (el.dataset.l59 !== 'use') arm = false;
     if (el.dataset.l59i != null) { const i = +el.dataset.l59i; card(i === picked ? -1 : i); return; }
+    if (el.dataset.l59p) { sel = el.dataset.l59p; work = sel === 'new' ? { set: [], open: [] } : null; lastY = 0; L59.open(); return; }
+    if (el.dataset.l59add != null) { addCard(+el.dataset.l59add); return; }
+    if (el.dataset.l59pick && work && adding >= 0) { const t = decodeURIComponent(el.dataset.l59pick); let sn = ''; try { sn = SERIES_OF[t] && SERIES_OF[t] !== 'Standalone / Other' ? SERIES_OF[t] : ''; } catch (x) {} work.set.push([adding * 3 + 2, nice(t, sn), rx(t), 0, '']); sorted(); redo(); return; }
+    if (el.dataset.l59free && work && adding >= 0) { const n = decodeURIComponent(el.dataset.l59free).replace(/\s+/g, ' ').trim().slice(0, 80); if (n && !work.set.some(e => nrm(e[1]) === nrm(n))) { work.set.push([adding * 3 + 2, n, null, 0, '']); sorted(); } redo(); return; }
+    if (el.dataset.l59m != null && work) { const en = entryOf(IT[picked]); if (en) { en[0] = +el.dataset.l59m; work.set.splice(work.set.indexOf(en), 1); work.set.push(en); sorted(); again(en); } return; }
     if (el.dataset.l59v) { lastY = 0; L59.open(el.dataset.l59v); return; }
     if (el.dataset.l59go != null) { const c = document.getElementById('l59c' + el.dataset.l59go); if (c) host.scrollTop = Math.max(0, c.offsetTop - 10); return; }
-    const a = el.dataset.l59; if (a === 'close') L59.close(); else if (a === 'put') card(-1); else if (a === 'now' || a === 'july') { mode = a === 'july'; lastY = host.scrollTop; L59.open(); }
+    const a = el.dataset.l59; if (a === 'close') L59.close(); else if (a === 'put') card(-1); else if (a === 'now' || a === 'july') { mode = a === 'july'; redo(); }
+    else if (a === 'edit') { const p = shown() || L56.plan(); work = { set: p.P.map(e => e.slice()), open: p.OPEN.map(o => o[0]) }; sorted(); redo(); }
+    else if (a === 'cancel') { work = null; if (sel === 'new') sel = inUse(); redo(); }
+    else if (a === 'os' && work && adding >= 0) { work.open.push(adding * 3 + 2); redo(); }
+    else if ((a === 'up' || a === 'dn') && work) { const en = entryOf(IT[picked]); if (!en) return; const S = work.set, i = S.indexOf(en), j = a === 'up' ? i - 1 : i + 1, o = S[j];
+      if (o && o[0] === en[0]) { S[j] = en; S[i] = o; } else { const m = en[0] + (a === 'up' ? -1 : 1); if (m < 0 || m > 11) return; en[0] = m; } again(en); }
+    else if (a === 'save' && work) { if (!work.set.length) return; if (L56.use(work.set, work.open, 'My plan')) { work = null; sel = inUse(); } redo(); }
+    else if (a === 'use') { if (!arm) { arm = true; redo(); return; } arm = false; const t = sel === 'A' ? null : L59.template(sel); if (sel === 'A' ? L56.reset() : t && L56.use(t.set, t.open, t.name)) sel = inUse(); redo(); }
+    else if (a === 'rm' && work) { const en = entryOf(IT[picked]); if (en) { work.set.splice(work.set.indexOf(en), 1); redo(); } }
+    else if ((a === 'op' || a === 'om') && work) { const x = IT[picked]; const se = x ? SEAS.indexOf(x.se) : -1; if (se < 0) return; if (a === 'op') work.open.push(se * 3 + 2); else { let k = -1; work.open.forEach((m, i) => { if (seasonOf(m) === se) k = i; }); if (k >= 0) work.open.splice(k, 1); } redo(); }
     else if (a === 'book') { const x = IT[picked]; if (x && x.t) { back = true; lastY = host.scrollTop; if (host) host.classList.remove('on'); document.documentElement.classList.remove('l59-lock'); try { openSheet(x.t); } catch (err) { back = false; } } } }, true);
   window.addEventListener('keydown', e => { if (e.key === 'Escape' && on()) L59.close(); });
+  document.addEventListener('input', e => { if (e.target && e.target.id === 'l59q' && work) { const b = document.getElementById('l59pk'); if (b) b.innerHTML = picker(e.target.value); } });
   // the two ways in: the address, and the word typed in the Books search box
   const want = () => /^#bookcase\b/i.test(location.hash);
   window.addEventListener('hashchange', () => { if (want()) L59.open(); else if (on()) L59.close(); });
@@ -165,10 +222,16 @@
     B + ' .l59-top{display:flex;align-items:center}' + B + ' .l59-x{min-height:44px;padding:0 14px 0 2px;font-size:15px;color:var(--d-mute,#aa9fbb)}' +
     B + ' .l59-tabs{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:6px;margin:4px 0 0}' + B + ' .l59-tg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:6px 0 0}' +
     B + ' .l59-tabs button,' + B + ' .l59-tg button{min-height:44px;border:1px solid var(--d-line,rgba(220,190,255,.2));font-size:14px}' + B + ' .l59-tabs .on{background:var(--d-ink,#f4eef7);color:var(--d-bg,#0c0a16);border-color:var(--d-ink,#f4eef7);font-weight:600}' + B + ' .l59-tg button{font-size:13.5px;color:var(--d-mute,#aa9fbb)}' + B + ' .l59-tg .on{border-color:var(--d-acc2,#dcc09a);color:var(--d-acc2,#dcc09a);font-weight:600}' +
+    B + ' .l59-act{display:flex;gap:6px;margin:6px 0 0}' + B + ' .l59-act button{flex:1;min-height:44px;border:1px solid var(--d-line,rgba(220,190,255,.2));font-size:14px}' + B + ' .l59-act button[disabled]{opacity:.38}' + B + ' .l59-act .go{background:var(--d-acc2,#dcc09a);border-color:var(--d-acc2,#dcc09a);color:#1b1408;font-weight:600}' +
+    B + ' .l59-pl{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}' + B + ' .l59-pl button{min-height:44px;padding:0 10px;border:1px solid var(--d-line,rgba(220,190,255,.2));border-radius:99px;font-size:13.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' + B + ' .l59-pl .on{background:var(--d-ink,#f4eef7);color:var(--d-bg,#0c0a16);border-color:var(--d-ink,#f4eef7);font-weight:600}' + B + ' .l59-pl .use{border-color:var(--d-acc2,#dcc09a)}' +
+    B + ' .l59-add{flex:none;min-height:44px;min-width:58px;margin-bottom:-4px;padding:0 12px;border:1px solid var(--d-acc2,#dcc09a)!important;color:var(--d-acc2,#dcc09a)!important;font-size:13.5px!important}' +
+    B + ' .l59-mo{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-top:10px}' + B + ' .l59-mo button{min-height:44px;border:1px solid var(--d-line,rgba(220,190,255,.24));font-size:13.5px}' + B + ' .l59-mo .on{background:var(--d-ink,#f4eef7);color:var(--d-bg,#0c0a16);border-color:var(--d-ink,#f4eef7);font-weight:600}' +
+    B + ' #l59q{display:block;width:100%;min-height:44px;margin-top:9px;padding:0 12px;border:1px solid var(--d-line,rgba(220,190,255,.3));border-radius:0;background:var(--d-bg,#0c0a16);color:var(--d-ink,#f4eef7);font:400 16px Barlow,system-ui,sans-serif;-webkit-appearance:none}' +
+    B + ' .l59-pk{max-height:38vh;margin-top:6px;overflow-y:auto;-webkit-overflow-scrolling:touch}' + B + ' .l59-pk button{display:block;width:100%;min-height:44px;padding:8px 2px;border-bottom:1px solid var(--d-line,rgba(220,190,255,.14));text-align:left;font-size:14.5px}' +
     B + ' .l59-jump{display:flex;gap:6px;margin:12px -12px 0;padding:0 12px 2px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}' + B + ' .l59-jump::-webkit-scrollbar{display:none}' + B + ' .l59-jump button{flex:none;min-height:44px;padding:0 13px;border:1px solid var(--d-line,rgba(220,190,255,.2));border-radius:99px;font-size:13.5px;white-space:nowrap}' +
     B + ' .l59-sea{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin:26px 0 0}' +
     B + ' .l59-sea b{position:relative;z-index:1;margin:0 0 -3px 14px;padding:5px 16px 6px;border-radius:3px;background:linear-gradient(180deg,#ecd596,#b8923f 70%,#8e6c26);color:#2a1c06;font:700 21px/1 "Den Cormorant","Cormorant Garamond",Georgia,serif;letter-spacing:.02em;box-shadow:0 1px 0 #fff3c4 inset,0 2px 4px rgba(0,0,0,.6)}' +
-    B + ' .l59-sea span{padding-bottom:7px;font-size:12.5px;color:var(--d-mute,#aa9fbb);text-align:right}' +
+    B + ' .l59-sea span{margin-left:auto;padding-bottom:7px;font-size:12.5px;color:var(--d-mute,#aa9fbb);text-align:right}' +
     B + ' .l59-case{padding:0 9px;border-top:9px solid #4a3324;border-radius:3px 3px 0 0;background:linear-gradient(90deg,#3a271b,#4f3626 4px,#33221a 9px,transparent 9px),linear-gradient(270deg,#3a271b,#4f3626 4px,#33221a 9px,transparent 9px),#17111c;box-shadow:0 1px 0 #6d5039 inset}' +
     B + ' .l59-sh{display:flex;align-items:flex-end;padding:0;background:linear-gradient(180deg,rgba(0,0,0,.62),rgba(0,0,0,0) 40px),linear-gradient(90deg,rgba(0,0,0,.35),rgba(0,0,0,0) 14px,rgba(0,0,0,0) calc(100% - 14px),rgba(0,0,0,.35))}' +
     B + ' .l59-bd{position:relative;height:17px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.035) 0 2px,rgba(0,0,0,0) 2px 9px,rgba(0,0,0,.05) 9px 11px,rgba(0,0,0,0) 11px 23px),linear-gradient(180deg,#8a6648 0,#6e4f37 2px,#523a29 60%,#2f2018);box-shadow:0 6px 9px rgba(0,0,0,.55)}' +
@@ -191,7 +254,7 @@
     B + ' .l59-gap{flex:none;display:flex;align-items:flex-end}' + B + ' .l59-gap i{flex:none;width:14px;height:64px;border-radius:7px 7px 0 0;background:linear-gradient(90deg,#7c8089,#dfe1e6 42%,#6a6e77)}' +
     B + ' .l59-gap span{flex:1;align-self:stretch;display:flex;align-items:center;justify-content:center;font:italic 600 16px/1.15 "Cormorant Garamond",Georgia,serif;color:rgba(236,213,150,.68)}' +
     B + ' .l59-prize{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:flex-end}' + B + ' .l59-prize svg{display:block}' + B + ' .l59-prize i{width:26px;height:10px;margin-top:-1px;background:linear-gradient(180deg,#8e6c26,#4d3a14);clip-path:polygon(22% 0,78% 0,100% 100%,0 100%)}' +
-    B + ' .l59-card{position:fixed;z-index:5;left:0;right:0;bottom:0;display:flex;gap:14px;padding:14px 14px calc(env(safe-area-inset-bottom) + 14px);background:var(--d-bg2,#141127);border-top:1px solid var(--d-line,rgba(220,190,255,.2));box-shadow:0 -12px 30px rgba(0,0,0,.6)}' + B + ' .l59-card[hidden]{display:none}' +
+    B + ' .l59-card{position:fixed;z-index:5;left:0;right:0;bottom:0;display:flex;gap:14px;padding:14px 14px calc(env(safe-area-inset-bottom) + 14px);background:var(--d-bg2,#141127);border-top:1px solid var(--d-line,rgba(220,190,255,.2));box-shadow:0 -12px 30px rgba(0,0,0,.6)}' + B + ' .l59-card[hidden]{display:none}' + B + ' .l59-card.top{top:0;bottom:auto;padding:calc(env(safe-area-inset-top) + 14px) 14px 14px;border-top:0;border-bottom:1px solid var(--d-line,rgba(220,190,255,.2));box-shadow:0 12px 30px rgba(0,0,0,.6)}' + B + ' .l59-card.top .l59-pk{max-height:30vh}' + B + ' .l59-cb{flex-wrap:wrap}' +
     B + ' .l59-cv{flex:none;width:92px}' + B + ' .l59-cv img{display:block;width:92px;height:138px;object-fit:cover;border-radius:2px;box-shadow:0 4px 10px rgba(0,0,0,.6)}' + B + ' .l59-cv svg{display:block;margin:0 auto}' +
     B + ' .l59-bigcl{display:grid;place-items:center;width:92px;height:138px;padding:8px;border-radius:2px;background:var(--c);color:#f7f0e3;text-align:center;font:500 15px/1.1 "Cormorant Garamond",Georgia,serif}' +
     B + ' .l59-bigpc{position:relative;width:92px;height:138px;border-radius:2px;background:linear-gradient(90deg,#9a7648,#c19a69 30%,#b08a58 70%,#86643b)}' + B + ' .l59-bigpc::before{content:"";position:absolute;top:0;bottom:0;left:50%;width:3px;margin-left:-1.5px;background:#5b3d20}' + B + ' .l59-bigpc::after{content:"";position:absolute;left:0;right:0;top:40%;height:3px;background:#5b3d20}' +
