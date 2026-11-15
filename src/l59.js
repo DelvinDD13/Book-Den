@@ -1,11 +1,13 @@
 // ===== L59: the bookcase, a preview. Three bookcases, drawn the same way: his 2027 plan (L56) by season, the books he owns by
-//   category, and the books he has finished by year. Every book is a spine as thick as its listening time at his speed. A spine
-//   wears its own cover: the whole cover as a plate (never cropped), as large as the spine allows, over a soft wash of the same
-//   cover, and no lettering (his ask: "why the title letterings if using the covers"). A title is lettered only where there is
-//   no cover to show: none on file, or a spine too thin to hold one. Then it is set to fit, shortened at a word, never cut. In the plan the book he is on stands face-out; a finished
-//   book carries a gold seal and a series whose plan books are all finished gets a brass seal standing on the shelf; a book that
-//   is not out yet is a wrapped parcel with its day on the tag, a book that is not in his library is an outline, the open spots
-//   are the empty shelf between two bookends, and the Backlog Breaker medal waits at the end of the last shelf.
+//   category, and the books he has finished by year. The shelves are built around the covers (his words: "Why is the cover art
+//   so small??? Make it fit"): every book stands at full shelf height with its real cover and no lettering. Two looks:
+//   "whole covers" shows every cover whole, never cropped, three to a shelf, and the block of pages beside it is as thick as the
+//   book's listening time at his speed; "packed" overlaps the covers like a full shelf, and the more hours a book is, the more of its cover shows.
+//   A title is lettered only on a book with no cover on file, measured so it is shortened at a word and never cut.
+//   In the plan the book he is on carries a ribbon; a finished book carries a gold seal and a series whose plan books are all
+//   finished gets a brass seal standing on the shelf; a book that is not out yet is a wrapped parcel with its day on the tag, a
+//   book that is not in his library is an outline, the open spots are the empty shelf between two bookends, and the Backlog
+//   Breaker medal waits at the end of the last shelf.
 //   It is a preview: nothing in the app links to it and it changes nothing. It opens from the address ending #bookcase, or by
 //   typing "bookcase" in the Books search box. "Pretend it is July 1" shows the first half of the plan year as read, so the
 //   finished states can be seen before any of it has happened. Nothing on it moves.
@@ -32,8 +34,6 @@
     try { if (window.L10 && L10.ART && L10.ART[t] && ART[t]) return ART[t]; } catch (e) {}
     try { const c = getOverride('cv:' + t) || {}; if (c.url) return window.L11 && L11.sized ? L11.sized(c.url, false) : c.url; } catch (e) {}
     try { if (ART[t]) return ART[t]; if (COVERS[t] && COVERS[t].cover_data) return COVERS[t].cover_data; } catch (e) {} return ''; };
-  // the wash behind a spine is the same cover asked for very small, so it stretches into soft colour with no letters to read
-  const tiny = u => /mzstatic\.com\//.test(u) ? u.replace(/\/[0-9]+x[0-9]+[a-z]*(-[0-9]+)?\.(jpg|png|webp)$/i, '/24x36bb.jpg') : '';
   const cloth = t => { let h = 0; t = String(t); for (let i = 0; i < t.length; i++) h = (h * 31 + t.charCodeAt(i)) >>> 0; return 'hsl(' + (h % 360) + ' 34% ' + (24 + h % 9) + '%)'; };
   const tall = t => { let h = 0; t = String(t); for (let i = 0; i < t.length; i++) h = (h * 17 + t.charCodeAt(i)) >>> 0; return 138 + (h % 4) * 4; };
   const short = t => String(t).replace(/\s*[\[(][^\])]*[\])]/g, '').split(':')[0].trim();
@@ -51,7 +51,7 @@
   const fitV = (name, w, h) => { const px = w < 16.5 ? 10.5 : 11.5; return fitLines(name, h * .96, Math.max(1, Math.min(3, Math.floor((w - 3) / (px * 1.1)))), px); };
   // a thick spine can set its title across instead: the largest size, from 13 down to 9.5, at which the whole title fits the lines
   // there is room for; if it never all fits, the smallest size, shortened between words
-  const across = (name, w, room) => { const len = (w - 12) * .97; let last = null; for (let fs = 13; fs >= 9.5; fs -= .5) { const lw = name.split(/\s+/).reduce((a, x) => Math.max(a, meas(x, fs)), 0); if (lw > len) continue; const max = Math.max(1, Math.floor(room / (fs * 1.13))); if (linesFor(name, len, fs) <= max) return { fs, t: name, all: true }; last = { fs, t: fitLines(name, len, max, fs), all: false }; } return last && last.t ? last : null; };
+  const across = (name, w, room, top) => { const len = (w - 12) * .97; let last = null; for (let fs = top || 13; fs >= 9.5; fs -= .5) { const lw = name.split(/\s+/).reduce((a, x) => Math.max(a, meas(x, fs)), 0); if (lw > len) continue; const max = Math.max(1, Math.floor(room / (fs * 1.13))); if (linesFor(name, len, fs) <= max) return { fs, t: name, all: true }; last = { fs, t: fitLines(name, len, max, fs), all: false }; } return last && last.t ? last : null; };
   const book = (t, name, o) => { const min = lenOf(t); const x = Object.assign({ k: 'book', t, name, min, w: min ? wide(min) : 24, art: art(t), read: false }, o || {});
     try { x.get = (META[t] || {}).gr === true; } catch (e) {} try { x.now = getStatus(t) === 'currently-reading'; x.pct = +(getOverride(t) || {}).progress || 0; } catch (e) {} return x; };
 
@@ -105,49 +105,51 @@
     return { Z, n: L.length, min: L.reduce((s, x) => s + x.min, 0), sp: speed() }; };
 
   // ---- drawing ----
-  let host = null, view = 'plan', mode = false, D = null, IT = [], picked = -1, back = false, lastY = 0;
+  let host = null, view = 'plan', look = 'whole', mode = false, D = null, IT = [], picked = -1, back = false, lastY = 0;
   const on = () => !!(host && host.classList.contains('on'));
-  L59.bare = function (img) { try { const p = img.parentNode; const big = img.classList.contains('pl'); img.remove(); if (!p) return; p.classList.add('bare'); if (big && p.dataset.fb && !p.querySelector('span')) { const sp = document.createElement('span'); sp.textContent = p.dataset.fb; sp.style.maxHeight = (p.clientHeight - 30) + 'px'; p.insertBefore(sp, p.firstChild); } } catch (e) {} };
-  L59.lit = function (img) { try { const p = img.parentNode; if (!p) return; p.classList.add('ok'); const u = p.dataset.w || img.currentSrc || img.src; if (p.classList.contains('l59-sp')) p.style.backgroundImage = 'url("' + String(u).replace(/"/g, '%22') + '")'; } catch (e) {} };
-  // a spine that can show its cover shows only the cover, as large as the spine allows, with no lettering; a title is lettered
-  // only where there is no cover to show (none on file, or a spine too thin to hold one)
-  function spine(x, i) { const w = x.w, H = tall(x.name); let pw = 0, ph = 0, title = '', cls = w < 22 ? 'thin' : 'mid';
-    if (x.art && w >= 22) { pw = Math.min(w - (w >= 46 ? 10 : 6), 70, Math.floor((H - 38) / 1.5)); ph = Math.round(pw * 1.5); if (w >= 46) cls = 'wide'; }
-    else { const room = H - 30; const down = w >= 13 ? fitV(x.name, w, room) : ''; let ac = null; if (w >= 46) { ac = across(x.name, w, room); if (ac && !ac.all && down.length >= ac.t.length) ac = null; }
-      if (ac) { cls = 'wide'; title = '<span class="hz" style="font-size:' + ac.fs + 'px;max-height:' + room + 'px">' + esc(ac.t) + '</span>'; }
-      else if (down) title = '<span' + (w < 16.5 ? ' class="one"' : '') + ' style="max-height:' + room + 'px">' + esc(down) + '</span>'; }
-    const img = x.art ? '<img class="' + (pw ? 'pl' : 'p0') + '"' + (pw ? ' style="width:' + pw + 'px;height:' + ph + 'px"' : '') + ' src="' + esc(x.art) + '" alt="" loading="lazy" decoding="async" onload="L59.lit(this)" onerror="L59.bare(this)">' : ''; const tw = x.art ? tiny(x.art) : '';
-    // if the cover does not load, the spine falls back to its lettering
-    const fb = pw ? fitV(x.name, w, H - 30) : '';
-    return '<button class="l59-sp ' + cls + (x.art ? '' : ' bare') + (x.read ? ' rd' : '') + '" data-l59i="' + i + '"' + (tw ? ' data-w="' + esc(tw) + '"' : '') + (fb ? ' data-fb="' + esc(fb) + '"' : '') + ' style="width:' + w + 'px;height:' + H + 'px;--c:' + cloth(x.name) + '" aria-label="' + esc(x.name) + '">' + img + title + (x.read ? '<u></u>' : x.get ? '<s>get</s>' : '') + (x.now && !x.read ? '<i class="rb"></i>' : '') + '</button>'; }
-  function thing(x, i) { const lab = esc(x.name);
+  L59.lit = function (img) { try { const p = img.closest('.l59-bk'); if (p) p.classList.add('ok'); } catch (e) {} };
+  // the shape of a book's cover, from the size on file with it (two wide to three tall when there is none)
+  const ratio = t => { try { const c = getOverride('cv:' + t) || {}; if (+c.w > 0 && +c.h > 0) return Math.max(.6, Math.min(1.05, c.w / c.h)); } catch (e) {} return 2 / 3; };
+  // a book on the shelf. Whole: the cover entire, and beside it the block of pages, about a point for an hour of listening;
+  // three stand on a shelf and each shelf's books are sized together (k) so they fill it. Packed: at full shelf height, the cover overlapped by the next book, 5 points of it showing for an hour, up to the whole cover.
+  // The book he is on is always whole. Lettering goes on only when there is no cover to show; a cover that loads hides it.
+  function thing(x, i, k) { const lab = esc(x.name); k = k || 1;
     if (x.k === 'seal') return { ow: x.w + 6, h: '<button class="l59-seal" data-l59i="' + i + '" style="width:' + x.w + 'px" aria-label="' + lab + ', closed"><b>' + esc(mono(x.name)) + '</b><i></i></button>' };
-    if (x.k === 'parcel') return { ow: x.w + 1, h: '<button class="l59-pc' + (x.w < 30 ? ' nar' : '') + '" data-l59i="' + i + '" style="width:' + x.w + 'px;height:' + tall(x.name) + 'px" aria-label="' + lab + ', not out yet"><em>' + (x.date ? esc(md(x.date)) : 'soon') + '</em></button>' };
-    if (x.k === 'ghost') { const H = tall(x.name); const t = x.w >= 13 ? fitV(x.name, x.w, H - 30) : ''; return { ow: x.w + 1, h: '<button class="l59-gh' + (x.read ? ' rd' : '') + '" data-l59i="' + i + '" style="width:' + x.w + 'px;height:' + H + 'px" aria-label="' + lab + ', not in your library">' + (t ? '<span' + (x.w < 16.5 ? ' class="one"' : '') + '>' + esc(t) + '</span>' : '') + (x.read ? '<u></u>' : '') + '</button>' }; }
-    if (x.k === 'pick') return { ow: x.w + 1, h: '<button class="l59-sp mid bare pick rd" data-l59i="' + i + '" style="width:' + x.w + 'px;height:' + tall(x.id) + 'px;--c:#4a4458" aria-label="An open spot you filled"><span>Your pick</span><u></u></button>' };
-    if (x.cur) return { ow: 110, face: 1, h: '<button class="l59-face" data-l59i="' + i + '" style="--c:' + cloth(x.name) + '" aria-label="' + lab + ', the book you are on">' + (x.art ? '<img src="' + esc(x.art) + '" alt="" loading="lazy" decoding="async" onload="L59.lit(this)" onerror="this.remove()">' : '') + '<span>' + esc(x.name) + '</span></button>' };
-    return { ow: x.w + 1, h: spine(x, i) }; }
+    const hrs = (x.min || 0) / 60 / speed(), whole = look === 'whole' || !!x.cur, has = x.k === 'book' && !!x.art, H = Math.round(tall(x.name || x.id || '') * (look === 'whole' ? .89 * k : 1)), cw = Math.round(H * (has ? ratio(x.t) : 2 / 3));
+    const v = whole ? cw : hrs ? Math.max(12, Math.min(cw, Math.round(hrs * 5))) : 40; const pg = whole && x.k !== 'parcel' ? (hrs ? Math.max(3, Math.min(36, Math.round(hrs * .9))) : 5) : 0;
+    const marks = (x.read ? '<u></u>' : x.get ? '<s>get</s>' : '') + ((x.cur || x.now) && !x.read ? '<i class="rb"></i>' : ''); let inner = '';
+    if (x.k === 'parcel') inner = '<em' + (v < 34 ? ' class="nar"' : '') + '>' + (x.date ? esc(md(x.date)) : 'soon') + '</em>';
+    else { let t = ''; if (v >= 46) { const a = across(x.name, v - 4, H - 44, 15); if (a) t = '<b style="font-size:' + a.fs + 'px">' + esc(a.t) + '</b>'; }
+      if (!t && v >= 13) { const d = fitV(x.name, v, H - 30); if (d) t = '<b class="dn' + (v < 16.5 ? ' one' : '') + '">' + esc(d) + '</b>'; }
+      inner = t + (has ? '<img src="' + esc(x.art) + '" alt="" loading="lazy" decoding="async" onload="L59.lit(this)" onerror="this.remove()">' : ''); }
+    const kind = x.k === 'parcel' ? ' pc' : x.k === 'ghost' ? ' gh' : x.k === 'pick' ? ' pick' : '', say = x.k === 'parcel' ? ', not out yet' : x.k === 'ghost' ? ', not in your library' : x.cur ? ', the book you are on' : '';
+    return { ow: v + pg + (whole ? 6 : 0), flex: look === 'whole', face: x.cur ? 1 : 0, h: '<button class="l59-bk' + kind + (whole ? '' : ' pk') + (x.cur ? ' cur' : '') + (x.read ? ' rd' : '') + '" data-l59i="' + i + '" style="height:' + H + 'px;--c:' + (x.k === 'pick' ? '#4a4458' : cloth(x.name)) + '" aria-label="' + lab + say + '"><span class="cv" style="width:' + v + 'px">' + inner + marks + '</span>' + (pg ? '<span class="pg" style="width:' + pg + 'px"></span>' : '') + '</button>' }; }
   // one case: its brass plate, its shelves filled left to right, and paper tags on the shelf edge where a new month or series starts
-  function drawCase(name, sub, L, W, tagOf, id) { const rows = [[]]; let rw = 0; L.forEach(o => { if (rw + o.ow > W && rows[rows.length - 1].length) { rows.push([]); rw = 0; } rows[rows.length - 1].push(o); rw += o.ow; });
-    let h = '<div class="l59-sea"' + (id ? ' id="' + id + '"' : '') + '><b>' + esc(name) + '</b><span>' + esc(sub) + '</span></div><div class="l59-case">'; let last = null;
-    rows.forEach(r => { let x = 0, end = -99, tags = ''; r.forEach(o => { const k = o.x ? tagOf(o.x) : undefined;
-        if (k !== undefined && k !== last) { last = k; if (k) { const s = k.length > 19 ? k.slice(0, 18).replace(/\s+$/, '') + '…' : k; const tx = Math.max(x + 2, end + 4), tw = s.length * 5.5 + 9; if (tx + tw <= W && tx <= x + Math.max(o.ow, 26)) { tags += '<i style="left:' + tx + 'px">' + esc(s) + '</i>'; end = tx + tw; } } }
+  function drawCase(name, sub, L, W, tagOf, id) { const lim = look === 'whole' ? W * 1.1 : W;   // whole covers may be a tenth over at their base size: the shelf's books are then sized down together to fit
+    const rows = [[]]; let rw = 0; L.forEach(o => { if (rw + o.ow > (o.mk ? W : lim) && rows[rows.length - 1].length) { if (o.mk && W - rw >= o.min) Object.assign(o, o.mk(W - rw)); else { rows.push([]); rw = 0; } } rows[rows.length - 1].push(o); rw += o.ow; });
+    let h = '<div class="l59-sea"' + (id ? ' id="' + id + '"' : '') + '><b>' + esc(name) + '</b><span>' + esc(sub) + '</span></div><div class="l59-case">'; let last = null, kPrev = 1.08;
+    rows.forEach((r, ri) => { const flex = r.filter(o => o.flex); if (flex.length) { const fixed = r.reduce((a, o) => a + (o.flex ? 0 : o.ow), 0), fw = flex.reduce((a, o) => a + o.ow, 0); let k = ri === rows.length - 1 && rows.length > 1 && fixed + fw < W * .7 ? kPrev : Math.max(.88, Math.min(1.16, (W - fixed) / fw));
+        for (let n = 0; n < 12; n++) { flex.forEach(o => Object.assign(o, thing(o.x, o.i, k))); if (r.reduce((a, o) => a + o.ow, 0) <= W) break; k -= .01; } kPrev = k; }
+      let x = 0, end = -99, tags = ''; r.forEach(o => { const key = o.x ? tagOf(o.x) : undefined;
+        if (key !== undefined && key !== last) { last = key; if (key) { const t = key.length > 19 ? key.slice(0, 18).replace(/\s+$/, '') + '…' : key; const tx = Math.max(x + 2, end + 4), tw = t.length * 5.5 + 9; if (tx + tw <= W && tx <= x + Math.max(o.ow, 26)) { tags += '<i style="left:' + tx + 'px">' + esc(t) + '</i>'; end = tx + tw; } } }
         if (o.face) { const tx = Math.max(x + 6, end + 4); tags += '<i class="now" style="left:' + tx + 'px">' + (o.x.now ? 'Reading now' : 'Next up') + '</i>'; end = tx + 64; } x += o.ow; });
       h += '<div class="l59-sh">' + r.map(o => o.h).join('') + '</div><div class="l59-bd">' + tags + '</div>'; });
     return h + '</div>'; }
   function html() { const W = Math.max(280, Math.min(430, host.clientWidth || 390) - 42); IT = []; const sp = D.sp; const tab = (k, t) => '<button data-l59v="' + k + '"' + (view === k ? ' class="on"' : '') + '>' + t + '</button>';
     let h = '<div class="l59-top"><button class="l59-x" data-l59="close">‹ Back</button><span>Preview</span></div><div class="l59-hd"><h1>' + (view === 'plan' ? '2027' : view === 'owned' ? 'Owned' : 'Finished') + '</h1><b>The bookcase</b></div>';
     h += '<div class="l59-tabs">' + tab('plan', '2027 plan') + tab('owned', 'Owned') + tab('read', 'Finished') + '</div>';
-    const put = z => z.items.map(x => { IT.push(x); return Object.assign(thing(x, IT.length - 1), { x }); }); const hrs = m => Math.round(m / 60 / sp);
-    if (view === 'plan') { h += '<p class="l59-lead">Your plan as it stands in the app: ' + D.total + ' books, ' + D.set + ' set and ' + (D.total - D.set) + ' open, ' + hrs(D.min) + ' hours at ' + sp + 'x. Every spine is as thick as its listening time and wears its own cover. Tap one for its title.</p>';
+    h += '<div class="l59-lk"><button data-l59l="whole"' + (look === 'whole' ? ' class="on"' : '') + '>Whole covers</button><button data-l59l="packed"' + (look === 'packed' ? ' class="on"' : '') + '>Packed</button></div>'; const how = look === 'whole' ? 'Every cover is whole, and the block of pages beside it is as thick as its listening time.' : 'Covers overlap like a full shelf: the more hours a book is, the more of its cover shows.';
+    const put = z => z.items.map(x => { IT.push(x); const i = IT.length - 1; return Object.assign(thing(x, i), { x, i }); }); const hrs = m => Math.round(m / 60 / sp);
+    if (view === 'plan') { h += '<p class="l59-lead">Your plan as it stands in the app: ' + D.total + ' books, ' + D.set + ' set and ' + (D.total - D.set) + ' open, ' + hrs(D.min) + ' hours at ' + sp + 'x. ' + how + '</p>';
       h += '<div class="l59-tg"><button data-l59="now"' + (mode ? '' : ' class="on"') + '>Today</button><button data-l59="july"' + (mode ? ' class="on"' : '') + '>Pretend it is July 1</button></div>';
       D.Z.forEach(z => { const L = put(z);
-        if (z.room) { IT.push({ k: 'room', n: z.room, se: z.n }); const w = Math.min(W - 30, Math.round(z.room * D.med / 60 / sp * PX)); L.push({ ow: w + 28, x: null, h: '<button class="l59-gap" data-l59i="' + (IT.length - 1) + '" aria-label="Room for ' + z.room + ' more"><i></i><span style="width:' + w + 'px">room for<br>' + z.room + ' more</span><i></i></button>' }); }
+        if (z.room) { IT.push({ k: 'room', n: z.room, se: z.n }); const gi = IT.length - 1; const mk = w => ({ ow: w + 28, h: '<button class="l59-gap" data-l59i="' + gi + '" aria-label="Room for ' + z.room + ' more"><i></i><span style="width:' + w + 'px">room for<br>' + z.room + ' more</span><i></i></button>' });
+          L.push(Object.assign(mk(Math.min(W - 30, z.room * (look === 'whole' ? 58 : 44))), { x: null, min: 118, mk: left => mk(left - 28) })); }   // the open room takes what is left of a shelf when that is enough to stand in
         if (z.i === 3) { IT.push({ k: 'prize' }); let m = ''; try { m = L56.medal(60, D.total ? D.done / D.total : 0); } catch (e) {} L.push({ ow: 72, x: null, h: '<button class="l59-prize" data-l59i="' + (IT.length - 1) + '" aria-label="Backlog Breaker, ' + D.done + ' of ' + D.total + '">' + m + '<i></i></button>' }); }
         h += drawCase(z.n, hrs(z.min) + ' h, ' + z.books + (z.books === 1 ? ' book' : ' books') + (z.room ? ', room for ' + z.room + ' more' : ''), L, W, x => x.k === 'seal' || x.extra || x.k === 'pick' ? undefined : MON[x.m].slice(0, 3)); });
       h += '<p class="l59-key">A gold seal is a book you finished in 2027. An outline is a book that is not in your library yet. A parcel is a book that is not out yet, and the tag is its day. The space between the bookends is yours.</p>';
       if (D.soon.length) h += '<p class="l59-key">On order with no day yet: ' + D.soon.map(esc).join(', ') + '.</p>'; }
-    else { h += '<p class="l59-lead">' + (view === 'owned' ? 'The ' + D.n + ' books you own, a case for each category, each series together and in order. ' : 'The ' + D.n + ' books you have finished, a case for each year, in the order you finished them. ') + hrs(D.min) + ' hours at ' + sp + 'x. A gold seal is a finished book' + (view === 'owned' ? ' and a ribbon is one you are in' : '') + '.</p>';
+    else { h += '<p class="l59-lead">' + (view === 'owned' ? 'The ' + D.n + ' books you own, a case for each category, each series together and in order. ' : 'The ' + D.n + ' books you have finished, a case for each year, in the order you finished them. ') + hrs(D.min) + ' hours at ' + sp + 'x. ' + how + ' A gold seal is a finished book' + (view === 'owned' ? ' and a ribbon is one you are in' : '') + '.</p>';
       if (D.Z.length > 3) h += '<div class="l59-jump">' + D.Z.map((z, i) => '<button data-l59go="' + i + '">' + esc(z.n) + '</button>').join('') + '</div>';
       D.Z.forEach((z, i) => { h += drawCase(z.n, hrs(z.min) + ' h, ' + z.books + (z.books === 1 ? ' book' : ' books'), put(z), W, x => x.tag ? (view === 'owned' ? bare(x.tag) : x.tag) : null, 'l59c' + i); }); }
     h += '<p class="l59-key">This is a preview. Tap anything on the shelf. Moving books by hand is not built, and nothing here changes your library or your plan.</p><div class="l59-card" id="l59card" hidden></div>';
@@ -168,12 +170,13 @@
   L59.open = function (v) { try { if (v === 'plan' || v === 'owned' || v === 'read') view = v; if (!host) { host = document.createElement('div'); host.id = 'l59'; host.setAttribute('role', 'dialog'); host.setAttribute('aria-label', 'The bookcase, a preview'); document.body.appendChild(host); }
       host.classList.add('on'); document.documentElement.classList.add('l59-lock'); D = view === 'plan' ? L59.data(mode) : view === 'owned' ? L59.owned() : L59.finished(); host.innerHTML = '<div class="l59-in">' + html() + '</div>'; host.scrollTop = lastY; lastY = 0; picked = -1; return true; } catch (e) { console.warn('l59', e); return false; } };
   L59.close = function () { if (host) host.classList.remove('on'); document.documentElement.classList.remove('l59-lock'); try { if (/^#bookcase\b/i.test(location.hash)) history.replaceState(null, '', location.pathname + location.search); } catch (e) {} };
-  L59.isOpen = on; L59.things = () => IT.slice(); L59.view = () => view;
+  L59.isOpen = on; L59.things = () => IT.slice(); L59.view = () => view; L59.look = () => look;
   // a book opened from the shelf comes back to the shelf when its page closes
   try { const _cs = closeSheet; closeSheet = function () { const r = _cs.apply(this, arguments); if (back) { back = false; setTimeout(() => L59.open(), 30); } return r; }; } catch (e) {}
-  document.addEventListener('click', e => { const el = e.target.closest && e.target.closest('#l59 [data-l59],#l59 [data-l59i],#l59 [data-l59v],#l59 [data-l59go]'); if (!el) return; e.preventDefault(); e.stopPropagation();
+  document.addEventListener('click', e => { const el = e.target.closest && e.target.closest('#l59 [data-l59],#l59 [data-l59i],#l59 [data-l59v],#l59 [data-l59go],#l59 [data-l59l]'); if (!el) return; e.preventDefault(); e.stopPropagation();
     if (el.dataset.l59i != null) { const i = +el.dataset.l59i; card(i === picked ? -1 : i); return; }
     if (el.dataset.l59v) { lastY = 0; L59.open(el.dataset.l59v); return; }
+    if (el.dataset.l59l) { const at = host.scrollTop / Math.max(1, host.scrollHeight); look = el.dataset.l59l === 'packed' ? 'packed' : 'whole'; L59.open(); host.scrollTop = Math.round(at * host.scrollHeight); return; }
     if (el.dataset.l59go != null) { const c = document.getElementById('l59c' + el.dataset.l59go); if (c) host.scrollTop = Math.max(0, c.offsetTop - 10); return; }
     const a = el.dataset.l59; if (a === 'close') L59.close(); else if (a === 'put') card(-1); else if (a === 'now' || a === 'july') { mode = a === 'july'; lastY = host.scrollTop; L59.open(); }
     else if (a === 'book') { const x = IT[picked]; if (x && x.t) { back = true; lastY = host.scrollTop; if (host) host.classList.remove('on'); document.documentElement.classList.remove('l59-lock'); try { openSheet(x.t); } catch (err) { back = false; } } } }, true);
@@ -193,6 +196,7 @@
     B + ' .l59-hd{display:flex;justify-content:space-between;align-items:flex-end}' + B + ' .l59-hd h1{margin:0;font:400 58px/.9 "Den Cormorant","Cormorant Garamond",Georgia,serif}' + B + ' .l59-hd b{padding-bottom:5px;font:600 19px/1.1 "Barlow Condensed",Barlow,sans-serif}' +
     B + ' .l59-lead{margin:12px 0 0;font-size:13.5px;line-height:1.42;color:var(--d-mute,#aa9fbb)}' +
     B + ' .l59-tabs{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:6px;margin:14px 0 0}' + B + ' .l59-tg{display:grid;grid-template-columns:1fr 1.5fr;gap:6px;margin:12px 0 0}' +
+    B + ' .l59-lk{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:6px 0 0}' + B + ' .l59-lk button{min-height:44px;border:1px solid var(--d-line,rgba(220,190,255,.2));font-size:13.5px}' + B + ' .l59-lk .on{background:var(--d-bg3,#201a38);border-color:var(--d-acc2,#dcc09a);color:var(--d-acc2,#dcc09a);font-weight:600}' +
     B + ' .l59-tabs button,' + B + ' .l59-tg button{min-height:44px;border:1px solid var(--d-line,rgba(220,190,255,.2));font-size:14px}' + B + ' .l59-tabs .on,' + B + ' .l59-tg .on{background:var(--d-ink,#f4eef7);color:var(--d-bg,#0c0a16);border-color:var(--d-ink,#f4eef7);font-weight:600}' + B + ' .l59-tg button{min-height:44px;font-size:13.5px;border-style:dashed}' + B + ' .l59-tg .on{border-style:solid}' +
     B + ' .l59-jump{display:flex;gap:6px;margin:12px -12px 0;padding:0 12px 2px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}' + B + ' .l59-jump::-webkit-scrollbar{display:none}' + B + ' .l59-jump button{flex:none;min-height:44px;padding:0 13px;border:1px solid var(--d-line,rgba(220,190,255,.2));border-radius:99px;font-size:13.5px;white-space:nowrap}' +
     B + ' .l59-sea{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;margin:26px 0 0}' +
@@ -202,25 +206,22 @@
     B + ' .l59-sh{display:flex;align-items:flex-end;height:166px;padding:0;background:linear-gradient(180deg,rgba(0,0,0,.62),rgba(0,0,0,0) 40px),linear-gradient(90deg,rgba(0,0,0,.35),rgba(0,0,0,0) 14px,rgba(0,0,0,0) calc(100% - 14px),rgba(0,0,0,.35))}' +
     B + ' .l59-bd{position:relative;height:17px;background:repeating-linear-gradient(90deg,rgba(255,255,255,.035) 0 2px,rgba(0,0,0,0) 2px 9px,rgba(0,0,0,.05) 9px 11px,rgba(0,0,0,0) 11px 23px),linear-gradient(180deg,#8a6648 0,#6e4f37 2px,#523a29 60%,#2f2018);box-shadow:0 6px 9px rgba(0,0,0,.55)}' +
     B + ' .l59-bd i{position:absolute;top:2.5px;padding:1px 4px;border-radius:1.5px;background:#efe6d2;color:#2b2118;font:600 10px/1.05 "Barlow Condensed",Barlow,sans-serif;font-style:normal;white-space:nowrap}' + B + ' .l59-bd i.now{background:var(--d-acc,#e9a3b8);color:#1b1218}' +
-    // a spine: the wash of its cover, a veil so the lettering reads, the whole cover as a plate, then the title
-    B + ' .l59-sp{position:relative;flex:none;margin-right:1px;padding:8px 0 22px;overflow:hidden;border-radius:2px 2px 0 0;background:var(--c) 50% 50%/100% 100% no-repeat;color:#f7f0e3;display:flex;flex-direction:column;align-items:center}' +
-    B + ' .l59-sp::after{content:"";position:absolute;z-index:3;inset:0;pointer-events:none;box-shadow:inset 2px 0 2px rgba(255,255,255,.2),inset -3px 0 4px rgba(0,0,0,.55),inset 0 2px 1px rgba(255,255,255,.16)}' +
-    B + ' .l59-sp.ok::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,8,14,.22),rgba(10,8,14,.58))}' +
-    B + ' .l59-sp.bare:not(.thin)::before{content:"";position:absolute;left:0;right:0;top:9px;bottom:22px;border:solid rgba(236,213,150,.5);border-width:2px 0}' +
-    B + ' .l59-sp .pl{position:relative;z-index:1;flex:none;display:block;margin:auto 0;object-fit:cover;border-radius:1px;background:rgba(0,0,0,.25);box-shadow:0 0 0 1px rgba(255,255,255,.3),0 2px 4px rgba(0,0,0,.65)}' + B + ' .l59-sp .p0{position:absolute;left:0;top:0;width:1px;height:1px;opacity:0}' +
-    B + ' .l59-sp span,' + B + ' .l59-gh span{position:relative;z-index:1;margin:auto 0;writing-mode:vertical-rl;overflow:hidden;text-align:center;font:600 11.5px/1.09 "Barlow Condensed",Barlow,sans-serif;letter-spacing:.01em;text-shadow:0 1px 2px rgba(0,0,0,.9)}' + B + ' .l59-sp span.one,' + B + ' .l59-gh span.one{white-space:nowrap;font-size:10.5px}' +
-    B + ' .l59-sp .hz{writing-mode:horizontal-tb;margin:auto 0;padding:0 6px;max-width:100%;line-height:1.13}' +
-    B + ' .l59-sp u,' + B + ' .l59-gh u{position:absolute;z-index:2;left:50%;bottom:5px;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3c4,#d9a441 55%,#8a6418);box-shadow:0 1px 2px rgba(0,0,0,.7);text-decoration:none}' + B + ' .l59-sp.thin u,' + B + ' .l59-gh u{width:8px;height:8px;margin-left:-4px;bottom:7px}' +
-    B + ' .l59-sp s{position:absolute;z-index:2;bottom:4px;left:50%;transform:translateX(-50%);padding:2px 3px;background:#efe6d2;color:#2b2118;font:600 9.5px/1 "Barlow Condensed",Barlow,sans-serif;text-decoration:none;border-radius:1.5px}' + B + ' .l59-sp.thin s{display:none}' +
-    B + ' .l59-sp .rb{position:absolute;z-index:4;top:0;right:3px;width:6px;height:25px;background:var(--d-acc,#e9a3b8);clip-path:polygon(0 0,100% 0,100% 100%,50% 76%,0 100%)}' +
-    B + ' .l59-sp.pick span{font-style:italic;color:#d9d2e6}' +
-    B + ' .l59-gh{position:relative;flex:none;margin-right:1px;padding:8px 0 22px;border:1.5px dashed rgba(236,213,150,.55);border-bottom:0;border-radius:2px 2px 0 0;color:rgba(239,230,210,.82);display:flex;flex-direction:column;align-items:center;overflow:hidden}' + B + ' .l59-gh span{text-shadow:none}' +
-    B + ' .l59-pc{position:relative;flex:none;margin-right:1px;overflow:hidden;border-radius:2px 2px 0 0;background:repeating-linear-gradient(115deg,rgba(255,255,255,.05) 0 3px,rgba(0,0,0,.04) 3px 7px),linear-gradient(90deg,#9a7648,#c19a69 30%,#b08a58 70%,#86643b)}' +
-    B + ' .l59-pc::before{content:"";position:absolute;top:0;bottom:0;left:50%;width:2px;margin-left:-1px;background:#5b3d20}' + B + ' .l59-pc::after{content:"";position:absolute;left:0;right:0;top:36%;height:2px;background:#5b3d20}' +
-    B + ' .l59-pc em{position:absolute;z-index:1;left:50%;top:36%;transform:translate(-50%,6px);padding:2px 4px;background:#efe6d2;color:#2b2118;font:600 10px/1.1 "Barlow Condensed",Barlow,sans-serif;font-style:normal;white-space:nowrap;box-shadow:0 1px 2px rgba(0,0,0,.5)}' + B + ' .l59-pc.nar em{writing-mode:vertical-rl;padding:4px 2px}' +
-    B + ' .l59-face{position:relative;flex:none;width:100px;height:150px;margin:0 5px;border-radius:2px;background:var(--c);box-shadow:0 0 0 1px rgba(0,0,0,.5),0 8px 12px rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center}' + B + ' .l59-face img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:2px}' +
-    B + ' .l59-face span{padding:0 8px;text-align:center;font:500 16px/1.08 "Cormorant Garamond",Georgia,serif;color:#f7f0e3}' + B + ' .l59-face.ok span{display:none}' +
-    B + ' .l59-face::before{content:"";position:absolute;z-index:2;top:-5px;right:14px;width:11px;height:36px;background:var(--d-acc,#e9a3b8);clip-path:polygon(0 0,100% 0,100% 100%,50% 76%,0 100%)}' +
+    // a book: its cover at full shelf height, the block of pages beside it, and the marks that sit on the cover
+    B + ' .l59-bk{position:relative;flex:none;display:flex;align-items:stretch;margin-right:6px;border-radius:2px 1px 0 0;box-shadow:0 0 0 .5px rgba(0,0,0,.55),3px 3px 7px rgba(0,0,0,.55)}' + B + ' .l59-bk.pk{margin-right:0;box-shadow:-5px 0 7px -1px rgba(0,0,0,.7)}' +
+    B + ' .l59-bk .cv{position:relative;flex:none;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:2px 0 0 0;background:var(--c);color:#f7f0e3}' +
+    B + ' .l59-bk .cv img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:50% 50%}' + B + ' .l59-bk.pk .cv img{object-fit:cover;object-position:0 50%}' +
+    B + ' .l59-bk .cv::after{content:"";position:absolute;z-index:3;inset:0;pointer-events:none;box-shadow:inset 1.5px 0 0 rgba(255,255,255,.24),inset 0 1.5px 0 rgba(255,255,255,.14),inset 6px 0 6px -4px rgba(0,0,0,.5)}' +
+    B + ' .l59-bk .pg{flex:none;background:repeating-linear-gradient(90deg,#efe6d2 0 1px,#d3c5a8 1px 2px);box-shadow:inset 0 4px 4px -2px rgba(0,0,0,.4),inset -2px 0 0 var(--c)}' +
+    B + ' .l59-bk .cv b{position:relative;padding:0 7px;text-align:center;font:600 13px/1.13 "Barlow Condensed",Barlow,sans-serif;letter-spacing:.01em}' + B + ' .l59-bk.ok .cv b{visibility:hidden}' +
+    B + ' .l59-bk .cv b.dn{padding:0;writing-mode:vertical-rl;max-height:calc(100% - 30px);overflow:hidden;font-size:11.5px;line-height:1.09}' + B + ' .l59-bk .cv b.one{white-space:nowrap;font-size:10.5px}' +
+    B + ' .l59-bk u{position:absolute;z-index:4;left:6px;bottom:6px;width:15px;height:15px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3c4,#d9a441 55%,#8a6418);box-shadow:0 1px 3px rgba(0,0,0,.8);text-decoration:none}' + B + ' .l59-bk.pk u{left:50%;margin-left:-5px;width:10px;height:10px}' +
+    B + ' .l59-bk s{position:absolute;z-index:4;right:5px;bottom:6px;padding:2px 4px;background:#efe6d2;color:#2b2118;font:600 10px/1 "Barlow Condensed",Barlow,sans-serif;text-decoration:none;border-radius:1.5px;box-shadow:0 1px 2px rgba(0,0,0,.6)}' + B + ' .l59-bk.pk s{display:none}' +
+    B + ' .l59-bk .rb{position:absolute;z-index:4;top:0;right:9px;width:11px;height:34px;background:var(--d-acc,#e9a3b8);clip-path:polygon(0 0,100% 0,100% 100%,50% 76%,0 100%)}' + B + ' .l59-bk.pk .rb{right:2px;width:6px;height:24px}' +
+    B + ' .l59-bk.pick .cv b{font-style:italic;color:#d9d2e6}' +
+    B + ' .l59-bk.gh{box-shadow:none}' + B + ' .l59-bk.gh .cv{background:none;border:1.5px dashed rgba(236,213,150,.6);border-bottom:0;color:rgba(239,230,210,.86)}' + B + ' .l59-bk.gh .cv::after{display:none}' + B + ' .l59-bk.gh .pg{background:none;border:1.5px dashed rgba(236,213,150,.35);border-left:0;border-bottom:0;box-shadow:none}' +
+    B + ' .l59-bk.pc .cv{background:repeating-linear-gradient(115deg,rgba(255,255,255,.05) 0 3px,rgba(0,0,0,.04) 3px 7px),linear-gradient(90deg,#9a7648,#c19a69 30%,#b08a58 70%,#86643b)}' +
+    B + ' .l59-bk.pc .cv::before{content:"";position:absolute;top:0;bottom:0;left:50%;width:2px;margin-left:-1px;background:#5b3d20;box-shadow:0 0 0 0 transparent}' + B + ' .l59-bk.pc .cv::after{inset:auto 0 auto 0;top:36%;height:2px;background:#5b3d20;box-shadow:none}' +
+    B + ' .l59-bk.pc em{position:absolute;z-index:4;left:50%;top:36%;transform:translate(-50%,7px);padding:3px 6px;background:#efe6d2;color:#2b2118;font:600 12px/1.1 "Barlow Condensed",Barlow,sans-serif;font-style:normal;white-space:nowrap;box-shadow:0 1px 2px rgba(0,0,0,.5)}' + B + ' .l59-bk.pc em.nar{writing-mode:vertical-rl;padding:4px 2px;font-size:10px}' +
     B + ' .l59-gap{flex:none;display:flex;align-items:flex-end;height:150px}' + B + ' .l59-gap i{flex:none;width:14px;height:64px;border-radius:7px 7px 0 0;background:linear-gradient(90deg,#7c8089,#dfe1e6 42%,#6a6e77)}' +
     B + ' .l59-gap span{align-self:stretch;display:flex;align-items:center;justify-content:center;text-align:center;font:italic 600 15.5px/1.15 "Cormorant Garamond",Georgia,serif;color:rgba(236,213,150,.68)}' +
     B + ' .l59-seal{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;margin:0 3px}' +
