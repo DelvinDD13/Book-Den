@@ -43,6 +43,11 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
   // ---- Percy Jackson: companion books are extras, so the numbering holds ----
   s = await R(() => { const D = L57.data('Percy Jackson & the Olympians'); return D.R.filter(x => !x.up).map(x => (x.extra ? 'x' : x.num) + ':' + x.title); });
   ok(s.some(x => /^x:The Demigod Files/.test(x)) && s.some(x => /^6:The Chalice of the Gods/.test(x)) && s.some(x => /^7:Wrath of the Triple Goddess/.test(x)), 'Percy Jackson: The Demigod Files is an extra; Chalice is book 6 and Wrath book 7: ' + s.join(' / '));
+  // a run of books the library only has as one placeholder; a series with no details; number order
+  s = await R(() => { L57.open('The Primal Hunter'); const h = document.getElementById('l57'); const o = { lib: h.querySelector('.l57-lib b').textContent, add: !!h.querySelector('.l57-add'), tags: [...h.querySelectorAll('.l57-list:not(.l57-up) .l57-row .tx i')].map(x => x.textContent), eye: h.querySelector('.l57-eye').textContent };
+    const D = L57.data('The Ashen Series'); o.ashen = D.R.filter(x => x.t).map(x => (META[x.t] || {}).num || '?').join(); L57.open('The Dresden Files'); o.eye2 = h.querySelector('.l57-eye').textContent; return o; });
+  ok(s.lib === 'You have 1 of 16 books' && !s.add && s.tags.join() === 'Book 1,Books 2 to 16', 'a run of missing books counts as that many and is never added as one made-up book: ' + JSON.stringify(s));
+  ok(!/·\s*$/.test(s.eye) && !/·\s*$/.test(s.eye2) && /^1,2,3/.test(s.ashen), 'no dangling dot when the author is unknown; a list-only series is in number order: ' + s.eye2 + ' / ' + s.ashen);
   // ---- the ways in ----
   s = await R(async () => { L57.close(); switchLib('books'); openSheet('The Way of Kings: Book One of the Stormlight Archive'); await new Promise(r => setTimeout(r, 200)); const b = document.querySelector('#sheet .l57-go'); const had = !!b && b.getBoundingClientRect().height >= 40; if (b) b.click(); await new Promise(r => setTimeout(r, 200));
     return { had, open: document.getElementById('sheet').classList.contains('open'), cur: L57.current(), on: document.getElementById('l57').classList.contains('on') }; });
@@ -61,8 +66,15 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
     return { row: o.t === t && o.s === 'The Stormlight Archive' && /^\d{4}-\d\d-\d\d$/.test(o.at), inLib: ALL_TITLES.indexOf(t) >= 0, st: getStatus(t), want: statusList('To-Read').indexOf(t) >= 0, lib: document.querySelector('#l57 .l57-lib b').textContent, add: !!document.querySelector('#l57 .l57-add'), again: L57.wants() }; });
   ok(s.row && s.inLib && s.st === 'to-read' && s.want, 'Add the missing writes a want: row to his Sheet and the book shows on Want to Read: ' + JSON.stringify(s));
   ok(s.lib === 'All 5 books, 3 of 3 extras' && !s.add && s.again === 0, 'the page then counts it as in the library, with nothing left to add, and it is only added once: ' + s.lib);
+  s = await R(async () => { L57.close(); openSheet('Elsecaller and King Lopen the First of Alethkar'); await new Promise(z => setTimeout(z, 200)); const t = (document.querySelector('#sheet .srcline') || {}).textContent; closeSheet(); await new Promise(z => setTimeout(z, 100)); L57.close(); return t; });
+  ok(/^Added from its series page · not in your Audible library/.test(s || ''), 'the added book\'s own page says where it came from: ' + s);
+  await page.reload(); await page.waitForTimeout(9500);
+  s = await R(() => { const t = 'Elsecaller and King Lopen the First of Alethkar'; return { inLib: ALL_TITLES.indexOf(t) >= 0, st: getStatus(t), D: L57.data('The Stormlight Archive').R.filter(x => x.t).length }; });
+  ok(s.inLib && s.st === 'to-read' && s.D === 8, 'after a restart the added book is still in the library and on the series page: ' + JSON.stringify(s));
+  s = await R(async () => { const t = (VIEWS.series['Standalone / Other'] || [{}])[0].title; openSheet(t); await new Promise(z => setTimeout(z, 200)); const has = !!document.querySelector('#sheet .l57-go'); closeSheet(); await new Promise(z => setTimeout(z, 100)); return { t: !!t, has, open: L57.open('Standalone / Other') }; });
+  ok(s.t && !s.has && s.open === false, 'a standalone book has no series page: ' + JSON.stringify(s));
   // ---- closing ----
-  s = await R(async () => { await page_key(); return null; async function page_key() {} });
+  await R(() => L57.open('Mistborn'));
   await page.keyboard.press('Escape'); await page.waitForTimeout(100); s = await R(() => document.getElementById('l57').classList.contains('on'));
   ok(!s, 'Escape closes the page');
   s = await R(async () => { L57.open('Mistborn'); document.querySelector('#l57 [data-l57=close]').click(); await new Promise(r => setTimeout(r, 100)); return { on: document.getElementById('l57').classList.contains('on'), lock: document.documentElement.classList.contains('l57-lock') }; });

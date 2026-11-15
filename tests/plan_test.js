@@ -30,13 +30,15 @@ async function boot(br, when) { const ctx = await br.newContext({ viewport: { wi
   s = await R(() => { const r = document.getElementById('l37').shadowRoot; const b = r.querySelector('[data-a="arc"][data-k="y2027"]'); return b ? b.innerText.replace(/\n/g, ' | ') : ''; });
   ok(/2027: 75 books/.test(s) && /58 set, 17 open · \d+ h at 1\.8x/.test(s) && /Warbreaker · January/.test(s) && /JAN/.test(s), 'the arc card: 75 books, 58 set and 17 open, hours at 1.8x, next Warbreaker in January: ' + s);
   await R(() => document.getElementById('l37').shadowRoot.querySelector('[data-a="arc"][data-k="y2027"]').click()); await page.waitForTimeout(500);
-  s = await R(() => { const r = document.getElementById('l37').shadowRoot; const b = r.querySelector('.body'); return { txt: b.innerText, h3: [...b.querySelectorAll('h3')].map(x => x.firstChild.textContent), open: b.querySelectorAll('.l37-q.open').length, set: b.querySelectorAll('.l37-q[data-a=arcstep]:not(.open)').length, medal: b.querySelector('.y27b svg').outerHTML }; });
+  s = await R(() => { const r = document.getElementById('l37').shadowRoot; const b = r.querySelector('.body'); return { txt: b.innerText, h3: [...b.querySelectorAll('h3')].map(x => x.firstChild.textContent), open: b.querySelectorAll('.l37-q.open').length, set: b.querySelectorAll('.l37-q:not(.open):not(.info)').length, medal: b.querySelector('.y27b svg').outerHTML }; });
   ok(/Goodreads badges/.test(s.txt) && /Winter 5, Spring 4, Summer 4, Fall 4/.test(s.txt) && /Page-Turner, Speed Reader and Book Boss/.test(s.txt) && /Jan 1–Mar 31, Apr 1–Jun 30, Jul 1–Sep 14 and Sep 15–Dec 31/.test(s.txt), 'the page explains the Goodreads seasons and open spots');
   ok(/11 to get/.test(s.txt) && /The 58 set books are \d+ h at 1\.8x, about \d h( \d\d m)? a day/.test(s.txt) && /starts in 48 days/i.test(s.txt), 'the page: 11 to get, set-book hours and the daily pace, starts in 48 days');
   ok(s.h3.slice(0, 12).join() === 'January,February,March,April,May,June,July,August,September,October,November,December' && /New books to watch/.test(s.h3[12]), 'twelve months, then the watch list: ' + s.h3.join());
   ok(s.open === 17 && s.set === 58, 'seventeen dashed open spots and 58 set books on the page: ' + s.open + '/' + s.set);
   ok(/Goodreads Winter badge book, or from your backlog: Golden Son/.test(s.txt), 'the first empty spot suggests a Goodreads Winter badge book or the next backlog book');
   ok(!/<animate/.test(s.medal) && !/\bwidth="[^"]*"[^>]*stroke="#7be08f"/.test(s.medal) && /Backlog Breaker/.test(s.txt) && /Mistborn tier/i.test(s.txt), 'the medal on the page is still, with no progress arc at 0');
+  s = await R(() => { const r = document.getElementById('l37').shadowRoot; const row = [...r.querySelectorAll('.body .l37-q')].find(x => /ACOTAR 7/.test(x.textContent)); const A = L48.arcs().find(x => x.id === 'y2027'); const st = A.steps.find(x => x.t === 'ACOTAR 7'); return { a: row.getAttribute('data-a'), done: st.done, openA: r.querySelectorAll('.body .l37-q.open[data-a]').length }; });
+  ok(s.a === null && !s.done && s.openA === 0, 'before 2027 starts, a set book he does not own and an empty open spot cannot be ticked: ' + JSON.stringify(s));
   await R(() => L37.close());
   // ---- open spots fill with other books he finishes in 2027; a set book read early becomes an open spot ----
   s = await R(() => { const set = (t, p) => { OVERRIDES[t] = Object.assign({}, OVERRIDES[t] || {}, p); };
@@ -59,6 +61,8 @@ async function boot(br, when) { const ctx = await br.newContext({ viewport: { wi
   ok(s.tier === 1 && /Backlog Breaker · Mistborn/.test(s.label) && s.metal === 'mistborn' && s.kel === 'Mistborn', 'earned: the banner reads Backlog Breaker · Mistborn and its Kelsier is labelled Mistborn: ' + JSON.stringify([s.label, s.metal, s.kel]));
   ok(s.anim.length <= 1 && s.anim.every(a => a[0] >= 2000 && a[1] === 1), 'the glow behind Kelsier is one slow pass, no repeats: ' + JSON.stringify(s.anim));
   ok(/fffbe8/.test(s.medal) && !/<animate/.test(s.medal), 'the earned medal is the white-gold one and never moves');
+  s = await R(() => { const fs = L4.defs.find(d => d.id === 'fullset'); const R0 = L4.all().filter(b => !b.secret && b.id !== 'fullset' && !/^j/.test(b.cat)).map(b => Object.assign({}, b, { tier: b.id === 'y2027' ? 0 : 1 })); return { wrapped: !!fs._y27, got: fs.meta(R0, {}).length }; });
+  ok(s.wrapped && s.got === 1, 'The Full Set does not wait on the 2027 plan: ' + JSON.stringify(s));
   ok(errs.length === 0, 'no page errors: ' + errs.slice(0, 2).join(' | '));
   await ctx.close();
   // ---- in 2027: pace by books, auto ticks ----
@@ -66,5 +70,7 @@ async function boot(br, when) { const ctx = await br.newContext({ viewport: { wi
   s = await R(() => { const set = (t, p) => { OVERRIDES[t] = Object.assign({}, OVERRIDES[t] || {}, p); }; L56.P.slice(0, 6).forEach(e => { const t = ALL_TITLES.find(x => new RegExp(e[2] || '^$').test(x)); if (t) set(t, { status: 'read', finished: '2027-01-1' + (e[0] + 1) }); });
     switchLib('life'); L37.open('log'); const r = document.getElementById('l37').shadowRoot; r.querySelector('[data-a="arc"][data-k="y2027"]').click(); const t = r.querySelector('.body').innerText; L37.close(); return { t, d: L56.done().length }; });
   ok(s.d >= 4 && /\d+ of 75 · \d+ behind/.test(s.t) && /days left/i.test(s.t), 'on March 1 with a few January books done the page counts them and says how far behind: ' + (s.t.match(/\d+ of 75[^\n]*/) || [''])[0]);
+  s = await R(async () => { switchLib('life'); L37.open('log'); const r = document.getElementById('l37').shadowRoot; r.querySelector('[data-a="arc"][data-k="y2027"]').click(); await new Promise(z => setTimeout(z, 200)); const find = () => [...r.querySelectorAll('.body .l37-q')].find(x => /ACOTAR 7/.test(x.textContent)); const row = find(); const a = row.getAttribute('data-a'); const n0 = L56.done().length; row.click(); await new Promise(z => setTimeout(z, 300)); const r2 = find(); const o = { a, done: r2 && r2.classList.contains('done'), up: L56.done().length - n0 }; L37.close(); return o; });
+  ok(s.a === 'arcstep' && s.done && s.up === 1, 'in 2027 a book he does not own is ticked by hand and counts: ' + JSON.stringify(s));
   ok(errs.length === 0, 'no page errors in 2027: ' + errs.slice(0, 2).join(' | '));
   console.log(pass + ' passed, ' + fail + ' failed'); await br.close(); srv.close(); process.exit(fail ? 1 : 0); })();

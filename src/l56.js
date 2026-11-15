@@ -61,7 +61,7 @@
   L56.slots = function () { const sets = [], opens = [], setTs = new Set();
     P.forEach((e, i) => { const ts = all(e[2]), t = pick(ts); ts.forEach(x => setTs.add(x));
       if (before(ts)) { opens.push({ m: e[0], se: seasonOf(e[0]), early: e[1] }); return; }
-      sets.push({ id: 's' + i, m: e[0], name: e[1], t, ts, min: len(ts, e[3]), note: e[4] || '' }); });
+      sets.push({ id: 's:' + e[1].toLowerCase().replace(/[^a-z0-9]+/g, '-'), m: e[0], name: e[1], t, ts, min: len(ts, e[3]), note: e[4] || '' }); });
     OPEN.forEach(o => opens.push({ m: o[0], se: o[1] }));
     opens.sort((a, b) => a.m - b.m); const ex = L56.extras(setTs);
     opens.forEach((o, k) => { o.id = 'o' + k; o.open = 1; const x = ex[k]; if (x) { o.t = x.t; o.ts = [x.t]; o.name = x.t.replace(/\s*[\[(][^\])]*[\])]/g, ''); o.d = x.d; o.min = ln(x.t); } else { o.t = null; o.ts = []; o.name = 'Open spot'; o.min = 0; } });
@@ -73,7 +73,7 @@
   L48.more.push(function () { const S = L56.slots(); const sp = L56.speed(); const set = S.filter(x => !x.open); const tot = set.reduce((s, x) => s + x.min, 0) / sp;
     return { id: 'y2027', name: '2027: 75 books', from: Y0, to: Y1, key: today() < Y0 ? Y0 : Y1, sub: set.length + ' set, ' + (S.length - set.length) + ' open · ' + hh(tot) + ' at ' + sp + 'x',
       steps: S.map(x => x.open ? { id: x.id, t: x.t ? x.name : 'Open spot', s: x.t ? (x.min ? hm(x.min / sp) + ' · ' : '') + 'open spot' : 'A Goodreads ' + SEASONS[x.se][0] + ' badge book or one from your backlog', book: x.t || undefined, auto: () => !!x.d, next: 'Open spot · ' + MON[x.m] }
-        : { id: x.id, t: x.name, s: (x.min ? hm(x.min / sp) : 'Short read') + (x.note ? ' · ' + x.note : ''), book: x.t || undefined, auto: x.t ? () => !!doneOn('y2027', x) : undefined, next: x.name + ' · ' + MON[x.m] }),
+        : { id: x.id, t: x.name, s: (x.min ? hm(x.min / sp) : 'Short read') + (x.note ? ' · ' + x.note : ''), book: x.t || undefined, auto: x.t || today() < Y0 ? () => !!doneOn('y2027', x) : undefined, next: x.name + ' · ' + MON[x.m] }),
       page: L56.page }; });
   // Backlog Breaker: one tier, Mistborn, for all 75 in 2027
   try { const C = 'currentColor', B = 'var(--bg)';
@@ -84,6 +84,8 @@
   const bk = x => ({ t: x.t || x.name, k: x.t ? 'book' : 'note', d: x.d, sub: x.t ? undefined : MON[x.m] });
   L4.defs.push({ cat: 'books', id: 'y2027', name: 'Backlog Breaker', sub: '2027', desc: 'All 75 books in your 2027 plan, finished in 2027', th: [75], tn: ['Mistborn'], icon: 'y2027', hue: ['#22325c', '#070b18'],
     items: () => L56.done().sort((a, b) => a.d < b.d ? -1 : a.d > b.d ? 1 : 0).map(bk), cand: () => L56.slots().filter(x => !x.open && !doneOn('y2027', x)).slice(0, 20).map(x => ({ t: x.t || x.name, k: x.t ? 'book' : 'note', sub: MON[x.m] })) });
+  // The Full Set (every badge at least Bronze) does not wait on one year's plan
+  try { const fs = L4.defs.find(d => d.id === 'fullset'); if (fs && typeof fs.meta === 'function' && !fs._y27) { const _m = fs.meta; fs.meta = function (R) { const a = [].slice.call(arguments); a[0] = (R || []).filter(b => b.id !== 'y2027'); return _m.apply(this, a); }; fs._y27 = 1; } } catch (e) {}
   // its own section, first on the Books badges sheet (ahead of Lore)
   (function () { if (!L4.sheetHTML) return; const _sh = L4.sheetHTML; L4.sheetHTML = function (cat, focus) { let h = _sh.apply(this, arguments); try { if (cat !== 'books' && cat !== 'all') return h; const b = L4.all().find(x => x.id === 'y2027'); if (!b) return h;
       const sec = '<div class="l4-sec l56-sec"><div class="l4-st">The 2027 plan <small>' + (b.tier > 0 ? 1 : 0) + '/1</small></div><div class="l4-grid">' + L4.card(b, focus === b.id) + '</div></div>';
@@ -104,7 +106,7 @@
   const _medal = L4.medal; L4.medal = function (b, size) { if (b && b.id === 'y2027' && b.tier > 0) return L56.medal(size); return _medal.apply(this, arguments); };
   // the page
   L56.page = function (a) { const t = today(); const S = L56.slots(); const sp = L56.speed(); const set = S.filter(x => !x.open); const tot = set.reduce((s, x) => s + x.min, 0) / sp; const nOpen = S.length - set.length;
-    const doneIds = {}; a.steps.forEach(s => { if (s.done) doneIds[s.id] = 1; }); const n = Object.keys(doneIds).length;
+    const doneIds = {}; S.forEach(x => { if (doneOn('y2027', x)) doneIds[x.id] = 1; }); const n = Object.keys(doneIds).length;
     const doneSet = set.filter(x => doneIds[x.id]).reduce((s, x) => s + x.min, 0) / sp;
     let h = '<button class="back" data-a="arcback">‹ Quest log</button><p class="ah">2027: 75 books</p><p class="as">Jan 1 – Dec 31, 2027 · ' + (t < Y0 ? 'starts in ' + days(t, Y0) + ' days' : t <= Y1 ? days(t, Y1) + ' days left' : 'over') + '</p>';
     let pace;
@@ -120,9 +122,9 @@
       h += '<h3>' + MON[m] + '<small>' + R.length + ' books · ' + hh(mm) + (emp ? ' + ' + emp + ' open' : '') + (dn ? ' · ' + dn + ' done' : '') + '</small></h3>';
       R.forEach(x => { const num = '<span class="num">' + (S.indexOf(x) + 1) + '</span>';
         if (x.open) { let sub; if (x.t) sub = (x.min ? hm(x.min / sp) + ' · ' : '') + 'Open spot · finished ' + md(x.d); else { const nx = sug[si++]; sub = 'Goodreads ' + SEASONS[x.se][0] + ' badge book' + (nx ? ', or from your backlog: ' + nx : '') + (x.early ? ' · ' + x.early + ' was read early' : ''); }
-          h += '<button class="l37-q open' + (x.d ? ' done' : '') + '" data-a="arcstep" data-k="y2027|' + esc(x.id) + '" aria-disabled="true">' + num + '<span class="l37-x"><b>' + esc(x.t ? x.name : 'Open spot') + '</b><i>' + esc(sub) + '</i></span><em>' + (x.d ? '✓' : '') + '</em></button>'; return; }
-        const s = a.steps.find(y => y.id === x.id) || {}; const now = x.t && x.ts.some(y => st(y) === 'currently-reading');
-        h += '<button class="l37-q' + (s.done ? ' done' : '') + '" data-a="arcstep" data-k="y2027|' + esc(x.id) + '"' + (s.auto ? ' aria-disabled="true"' : '') + '>' + num + '<span class="l37-x"><b>' + esc(x.name) + '</b><i>' + esc((x.min ? hm(x.min / sp) : 'Short read') + (x.note ? ' · ' + x.note : '') + (!x.t ? ' · not in your library yet' : '')) + '</i></span><em>' + (s.done ? '✓' : now ? '<small class="now">Now</small>' : x.t ? '›' : '○') + '</em></button>'; }); }
+          h += '<button class="l37-q open' + (x.d ? ' done' : '') + '"' + (x.t ? ' data-a="arcstep"' : '') + ' data-k="y2027|' + esc(x.id) + '" aria-disabled="true">' + num + '<span class="l37-x"><b>' + esc(x.t ? x.name : 'Open spot') + '</b><i>' + esc(sub) + '</i></span><em>' + (x.d ? '✓' : '') + '</em></button>'; return; }
+        const s = { done: !!doneIds[x.id], auto: !!x.t }; const now = x.t && x.ts.some(y => st(y) === 'currently-reading');
+        h += '<button class="l37-q' + (s.done ? ' done' : '') + '"' + (x.t || t >= Y0 ? ' data-a="arcstep"' : '') + ' data-k="y2027|' + esc(x.id) + '"' + (s.auto ? ' aria-disabled="true"' : '') + '>' + num + '<span class="l37-x"><b>' + esc(x.name) + '</b><i>' + esc((x.min ? hm(x.min / sp) : 'Short read') + (x.note ? ' · ' + x.note : '') + (!x.t ? ' · not in your library yet' : '')) + '</i></span><em>' + (s.done ? '✓' : now ? '<small class="now">Now</small>' : x.t ? '›' : '○') + '</em></button>'; }); }
     h += '<h3>New books to watch<small>no date yet</small></h3>' + WATCH.map(w => '<div class="l37-q info"><span class="num"></span><span class="l37-x"><b>' + esc(w[0]) + '</b><i>' + esc(w[1]) + '</i></span><em></em></div>').join('');
     h += '<p class="fine">Set books tick themselves when you mark them finished in 2027; tap the ones not in your library yet when you finish them. Any other book you finish in 2027 fills the next open spot, in the order you finish them, so Goodreads badge books, backlog books and the new books above all count. A set book you finish before January 1 becomes an open spot.</p>';
     return h; };

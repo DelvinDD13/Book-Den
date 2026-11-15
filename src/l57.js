@@ -100,7 +100,8 @@
     E = E.map(e => { if (e[0] !== '+') return e; const g = grOf(e.slice(1).split('|')[1]); return g || e; });
     if (I.order) { const pos = e => { const i = I.order.findIndex(r => r.test(e)); return i < 0 ? 99 : i; }; E = E.map((e, i) => [e, i]).sort((a, b) => (pos(a[0]) - pos(b[0])) || (a[1] - b[1])).map(x => x[0]); }
     const R = []; const seen = {};
-    E.forEach(e => { if (e[0] === '+' || e[0] === '~') { const p = e.slice(1).split('|'); const title = p[1] || p[0]; R.push({ gap: 1, up: e[0] === '~', title, note: e[0] === '~' ? (p[2] || 'Announced') : '', extra: !!(I.extras && I.extras.test(title)) }); return; }
+    E.forEach(e => { if (e[0] === '+' || e[0] === '~') { const p = e.slice(1).split('|'); const title = p[1] || p[0]; const rg = /^(\d+)\s*[–-]\s*(\d+)$/.exec(p[0]); const run = e[0] === '+' && rg ? Math.max(1, +rg[2] - +rg[1] + 1) : 0;
+        R.push({ gap: 1, up: e[0] === '~', title, run, note: e[0] === '~' ? (p[2] || 'Announced') : run ? run + ' books, not in your library' : '', extra: !!(I.extras && I.extras.test(title)) }); return; }
       if (!owned(e)) { R.push({ gap: 1, title: nice(e, s), extra: !!(I.extras && I.extras.test(e)) }); return; }
       const name = nice(e, s); if (seen[name]) return; seen[name] = 1;
       const m = META[e] || {}; const st = getStatus(e) || ''; const o = O(e);
@@ -109,7 +110,9 @@
       let row; if (have) { const m = META[have] || {}; const st = getStatus(have) || ''; const o = O(have); row = { t: have, title: g.t, extra: !g.main, min: lenOf(have, I, g.t) || g.min || 0, narr: m.narrator || I.narr || '', st, prog: st === 'read' ? 100 : st === 'currently-reading' ? (+o.progress || 0) : 0, fin: String(o.finished || '').slice(0, 10), cover: cover(have), rating: +m.rating || 0, note: g.note || '' }; }
       else row = { gap: 1, extra: !g.main, title: g.t, note: g.note || '', min: g.min || 0, url: g.url || '' };
       const i = g.after ? R.findIndex(x => x.t && g.after.test(x.t)) : -1; if (i >= 0) R.splice(i + 1, 0, row); else { const j = R.findIndex(x => x.up); if (j >= 0) R.splice(j, 0, row); else R.push(row); } });
-    let n = 0; R.forEach(x => { if (!x.extra && !x.up) x.num = ++n; });
+    // a series the library only knows as a list comes in number order
+    if (!I.order && !(typeof SERIES_PLAN !== 'undefined' && SERIES_PLAN[s])) { const num = x => { const v = x.t ? parseFloat((META[x.t] || {}).num) : NaN; return isNaN(v) ? 1e6 : v; }; if (R.some(x => num(x) < 1e6)) { const ix = new Map(R.map((x, i) => [x, i])); R.sort((a, b) => (num(a) - num(b)) || (ix.get(a) - ix.get(b))); } }
+    let n = 0; R.forEach(x => { if (!x.extra && !x.up) { x.num = n + 1; n += x.run || 1; } });
     return { s, I, R, C: I.colors || DEF, L: Object.assign({}, DEFLOOK, I.look || {}) }; };
   L57.place = function (D) { const own = D.R.filter(x => x.t && !x.up); const main = own.filter(x => !x.extra);
     const cur = own.find(x => x.st === 'currently-reading'); const read = own.filter(x => x.st === 'read');
@@ -120,41 +123,41 @@
     const leftMin = left.reduce((s, x) => s + (x.min || 0) * (1 - (x.prog || 0) / 100), 0) / SP;
     const all = D.R.filter(x => !x.up); const allMin = all.reduce((s, x) => s + (x.min || 0), 0); const doneMin = own.reduce((s, x) => s + x.min * x.prog / 100, 0);
     let head; if (!left.length) head = 'Caught up'; else if (cur) head = cur.extra ? 'In ' + cur.title : 'In book ' + cur.num; else if (lastRead) head = 'Through book ' + lastRead; else head = 'Not started';
-    return { cur, nx, read: read.length, left, leftMin, pct: allMin ? doneMin / allMin : 0, head, lastRead }; };
+    return { cur, nx, read: read.length, left, nLeft: left.reduce((s, x) => s + (x.run || 1), 0), leftMin, pct: allMin ? doneMin / allMin : 0, head, lastRead }; };
   const cap = w => w.replace(/^./, c => c.toUpperCase());
   // ---- the page ----
   function html(D) { const I = D.I, R = D.R, P = L57.place(D), L = D.L;
     const own = R.filter(x => x.t); const main = R.filter(x => !x.extra && !x.up); const mainOwn = main.filter(x => x.t); const ex = R.filter(x => x.extra && !x.up); const exOwn = ex.filter(x => x.t);
-    const missing = R.filter(x => x.gap && !x.up && !x.t);
+    const missing = R.filter(x => x.gap && !x.up && !x.t && !x.run); const nMain = main.reduce((s, x) => s + (x.run || 1), 0);
     const covers = own.map(x => x.cover).filter(Boolean); const tiles = []; while (covers.length && tiles.length < 24) tiles.push(covers[tiles.length % covers.length]);
     const words = String(I.title || D.s).split(/\s+/);
     const narrs = [...new Set(own.concat(R.filter(x => x.gap && x.min && I.narr)).flatMap(x => narr(x.narr || I.narr).split(' & ')).filter(Boolean))];
     const hours = Math.round(R.filter(x => !x.up).reduce((s, x) => s + (x.min || 0), 0) / 60);
     const rated = own.filter(x => x.rating); const avg = rated.length ? rated.reduce((s, x) => s + x.rating, 0) / rated.length : 0;
-    const toCome = I.planned ? I.planned - main.length : 0;
+    const toCome = I.planned ? I.planned - main.reduce((s, x) => s + (x.run || 1), 0) : 0;
     const one = (P.cur || P.nx || own[own.length - 1] || {}).cover || covers[0] || ''; const fan = covers.slice(0, 7);
     const wall = L.wall === 'one' ? '<div class="l57-wall" aria-hidden="true"><span style="background-image:url(\'' + esc(one) + '\')"></span></div>'
       : L.wall === 'fan' ? '<div class="l57-wall" aria-hidden="true">' + fan.map((u, i) => '<span style="--i:' + i + ';--n:' + fan.length + ';background-image:url(\'' + esc(u) + '\')"></span>').join('') + '</div>'
       : L.wall === 'strip' ? '<div class="l57-wall" aria-hidden="true">' + covers.concat(covers).slice(0, 8).map(u => '<span style="background-image:url(\'' + esc(u) + '\')"></span>').join('') + '</div>'
       : '<div class="l57-wall" aria-hidden="true">' + tiles.map(u => '<span style="background-image:url(\'' + esc(u) + '\')"></span>').join('') + '</div>';
     let h = '<button class="l57-x" data-l57="close" aria-label="Close">✕</button><div class="l57-bar"><div class="l57-lib"><i>In your library</i><b>' +
-      (main.length - mainOwn.length ? 'You have ' + mainOwn.length + ' of ' + main.length + ' books' : 'All ' + main.length + (main.length === 1 ? ' book' : ' books')) + (ex.length ? ', ' + exOwn.length + ' of ' + ex.length + (ex.length === 1 ? ' extra' : ' extras') : '') + '</b><small>Missing ones go on your Want to Read list.</small></div>' +
+      (nMain - mainOwn.length ? 'You have ' + mainOwn.length + ' of ' + nMain + ' books' : 'All ' + nMain + (nMain === 1 ? ' book' : ' books')) + (ex.length ? ', ' + exOwn.length + ' of ' + ex.length + (ex.length === 1 ? ' extra' : ' extras') : '') + '</b><small>Missing ones go on your Want to Read list.</small></div>' +
       (missing.length && CAN_EDIT ? '<button class="l57-add" data-l57="add">Add the ' + missing.length + ' missing</button>' : '') + '</div>';
     h += '<header class="l57-hero">' + wall + '<i class="l57-tex" aria-hidden="true"></i><div class="l57-in">' +
-      '<p class="l57-eye">Series · ' + esc(I.by || (META[(own[0] || {}).t] || {}).author || '') + (I.from ? ' · ' + I.from + '–' + (I.to || '') : '') + '</p><h1 class="l57-t">' + words.map(w => '<span' + (/^(the|of|and|a|an|&)$/i.test(w) ? ' class="sm"' : '') + '>' + esc(w) + '</span>').join('') + '</h1>' +
+      '<p class="l57-eye">' + ['Series', I.by || (own.map(x => (META[x.t] || {}).author).find(Boolean)) || '', I.from ? I.from + '–' + (I.to || '') : ''].filter(Boolean).map(esc).join(' · ') + '</p><h1 class="l57-t">' + words.map(w => '<span' + (/^(the|of|and|a|an|&)$/i.test(w) ? ' class="sm"' : '') + '>' + esc(w) + '</span>').join('') + '</h1>' +
       '<p class="l57-blurb">' + (I.blurb ? esc(I.blurb) + ' ' : '') + 'Find your place, see how long the rest takes at 1.8x, and keep an eye on what is still to come. No spoilers past the book titles.</p>' +
       '<section class="l57-card"><i>Your place ' + esc(I.place || 'in the series') + '</i><b>' + esc(P.head) + '</b><p>' +
       (P.cur ? esc(P.cur.title) + ', ' + P.cur.prog + '% in, about ' + hm(P.cur.min * (1 - P.cur.prog / 100) / SP) + ' left. ' : '') +
       (P.nx ? 'Next: ' + (P.nx.num ? 'Book ' + P.nx.num + ', ' : '') + esc(P.nx.title) + (P.nx.min ? ' (' + hm(P.nx.min / SP) + ')' : '') + (P.nx.t ? '' : ', not in your library yet') + '. ' : '') +
-      (P.left.length ? (P.left.length === 1 ? 'One book' : cap(WORD[Math.min(15, P.left.length)] || String(P.left.length)) + ' books') + (P.leftMin >= 60 ? ' and about ' + Math.round(P.leftMin / 60) + ' hours at 1.8x' : '') + ' to catch up.' : 'Every book out so far is done.') + '</p>' +
+      (P.left.length ? (P.nLeft === 1 ? 'One book' : (P.nLeft <= 15 ? cap(WORD[P.nLeft]) : P.nLeft) + ' books') + (P.leftMin >= 60 ? ' and about ' + Math.round(P.leftMin / 60) + ' hours at 1.8x' : '') + ' to catch up.' : 'Every book out so far is done.') + '</p>' +
       '<u><s style="width:' + Math.round(P.pct * 100) + '%"></s></u>' + ((P.cur || P.nx || {}).t ? '<button data-l57="where">Change where you are ›</button>' : '') + '</section>' +
-      '<dl class="l57-stats"><div><dt>' + main.length + '</dt><dd>' + (main.length === 1 ? 'book' : 'books') + (toCome > 0 ? ', ' + WORD[Math.min(15, toCome)] + ' to come' : '') + '</dd></div>' +
+      '<dl class="l57-stats"><div><dt>' + nMain + '</dt><dd>' + (nMain === 1 ? 'book' : 'books') + (toCome > 0 ? ', ' + WORD[Math.min(15, toCome)] + ' to come' : '') + '</dd></div>' +
       (ex.length ? '<div><dt>' + ex.length + '</dt><dd>' + (ex.length === 1 ? 'extra' : 'extras') + '</dd></div>' : '') +
       (hours ? '<div><dt>' + hours + '</dt><dd>hours of ' + esc(narrs.length ? (narrs.length > 3 ? narrs.slice(0, 2).join(', ') + ' and ' + (narrs.length - 2) + ' more' : narrs.slice(0, -1).join(', ') + (narrs.length > 1 ? ' & ' : '') + narrs[narrs.length - 1]) : 'listening') + '</dd></div>' : '') +
       (avg ? '<div><dt>' + avg.toFixed(2) + '</dt><dd>Goodreads average</dd></div>' : '') + '</dl></div></header>';
     h += '<section class="l57-list"><h2>The books</h2>' + R.map((x, i) => { if (x.up) return '';
       const sub = x.t ? [x.year, x.min ? hm(x.min / SP) + ' at 1.8x' : '', narr(x.narr), x.note].filter(Boolean).join(' · ') : [x.min ? hm(x.min / SP) + ' at 1.8x' : '', x.note || 'Not in your library'].filter(Boolean).join(' · ');
-      const tag = x.extra ? 'Extra' : 'Book ' + x.num;
+      const tag = x.extra ? 'Extra' : x.run ? 'Books ' + x.num + ' to ' + (x.num + x.run - 1) : 'Book ' + x.num;
       const stt = !x.t ? '<em class="get">Get it</em>' : x.st === 'read' ? '<em class="done">' + (x.fin ? MS[+x.fin.slice(5, 7) - 1] + ' ' + x.fin.slice(0, 4) : 'Read') + '</em>' : x.st === 'currently-reading' ? '<em class="now">' + x.prog + '%</em>' : x === P.nx ? '<em class="next">Next</em>' : '<em>Owned</em>';
       const inner = '<span class="cv"' + (x.cover ? ' style="background-image:url(\'' + esc(x.cover) + '\')"' : '') + '>' + (x.cover ? '' : '<small>' + esc(x.title) + '</small>') + '</span><span class="tx"><i>' + tag + '</i><b>' + esc(x.title) + '</b><small>' + esc(sub) + '</small></span>' + stt;
       const cls = 'l57-row' + (x.extra ? ' ex' : '') + (x.st === 'read' ? ' rd' : '');
@@ -167,11 +170,11 @@
     return h + '<div class="l57-end"></div>'; }
   let host = null, cur = null;
   const FIT = { cinzel: '900 40px Cinzel', fell: '400 40px "IM Fell English SC"', marcellus: '400 40px "Marcellus SC"', cormorant: '700 40px "Cormorant Garamond"', 'cormorant-i': 'italic 600 40px "Cormorant Garamond"', garamond: '600 40px "EB Garamond"', barlow: '700 40px "Barlow Condensed"', fraunces: '500 40px Fraunces', bebas: '400 40px "Bebas Neue"', bungee: '400 40px "Den Bungee"' };
-  L57.open = function (s) { try { const D = L57.data(s); if (!D.R.length) return false; cur = s; if (!host) { host = document.createElement('div'); host.id = 'l57'; host.setAttribute('role', 'dialog'); host.setAttribute('aria-label', 'Series page'); document.body.appendChild(host); }
+  L57.open = function (s) { try { if (!s || s === 'Standalone / Other') return false; const D = L57.data(s); if (!D.R.length) return false; cur = s; if (!host) { host = document.createElement('div'); host.id = 'l57'; host.setAttribute('role', 'dialog'); host.setAttribute('aria-label', 'Series page'); document.body.appendChild(host); }
       const C = D.C, L = D.L; host.setAttribute('style', '--a:' + C[0] + ';--b:' + C[1] + ';--c:' + C[2] + ';--d:' + C[3] + ';--bg:' + C[4] + (L.gl ? ';--gl:' + L.gl : '') + (L.lab ? ';--lab:' + L.lab : '') + (L.cb ? ';--cb:' + L.cb : '') + (L.ct ? ';--ct:' + L.ct : ''));
       host.className = 'on f-' + L.font + ' sf-' + (L.sfont || L.font) + ' x-' + L.fx + ' w-' + L.wall + ' t-' + L.tex + ' c-' + L.card + ' m-' + L.mark + (L.fit ? ' fit' : '');
       host.innerHTML = html(D); host.scrollTop = 0; document.documentElement.classList.add('l57-lock');
-      fit(); try { document.fonts.load(FIT[L.font] || FIT.barlow).then(fit, () => {}); } catch (e) {} return true; } catch (e) { console.warn('l57', e); return false; } };
+      fit(); try { document.fonts.load(FIT[L.font] || FIT.barlow).then(fit, () => {}); } catch (e) {} try { const x = host.querySelector('.l57-x'); if (x) setTimeout(() => { try { x.focus({ preventScroll: true }); } catch (e) {} }, 30); } catch (e) {} return true; } catch (e) { console.warn('l57', e); return false; } };
   L57.close = function () { if (host) host.classList.remove('on'); cur = null; document.documentElement.classList.remove('l57-lock'); };
   L57.current = () => cur;
   // carved and engraved titles: each word set to the full width, like an inscription
@@ -182,7 +185,7 @@
   L57.wants = function () { let n = 0; try { Object.keys(OVERRIDES).forEach(k => { if (k.indexOf('want:') !== 0) return; const j = OVERRIDES[k] || {}; const t = j.t; if (!t || owned(t)) return;
       ALL_TITLES.push(t); META[t] = Object.assign({ author: j.by || '', series: j.s || '', status: 'to-read', gr: true, added: true }, META[t] || {}); if (j.s) SERIES_OF[t] = j.s; try { GR_BY_NORM[normT(t)] = t; } catch (e) {} n++; }); } catch (e) {}
     if (n) { try { memoClear(); } catch (e) {} } return n; };
-  L57.add = function (s) { if (!CAN_EDIT) return 0; const D = L57.data(s); const miss = D.R.filter(x => x.gap && !x.up && !x.t); const d = today();
+  L57.add = function (s) { if (!CAN_EDIT) return 0; const D = L57.data(s); const miss = D.R.filter(x => x.gap && !x.up && !x.t && !x.run); const d = today();
     miss.forEach(x => { try { setOverride('want:' + x.title, { t: x.title, s: s, by: D.I.by || '', at: d }); } catch (e) {} });
     L57.wants(); try { toast('Added ' + miss.length + ' to Want to Read'); } catch (e) {} try { refreshAfterEdit(); } catch (e) {} if (cur === s) L57.open(s); return miss.length; };
   (function () { let tries = 0; const iv = setInterval(() => { tries++; const ready = !(typeof SYNC82 !== 'undefined' && SYNC82.state === 'wait'); if (ready || tries > 60) { clearInterval(iv); if (L57.wants()) { try { refreshAfterEdit(); } catch (e) {} } } }, 1000); })();
@@ -199,7 +202,8 @@
     const a = el.dataset.l57; if (a === 'close') L57.close(); else if (a === 'add') L57.add(cur); else if (a === 'where') { const D = L57.data(cur), P = L57.place(D); const x = P.cur || P.nx; if (x && x.t) openBook(x.t); } }, true);
   window.addEventListener('keydown', e => { if (e.key === 'Escape' && host && host.classList.contains('on')) L57.close(); });
   // the ways in: the series line on a book's page, and a series in the Series view
-  try { const _rs = renderSheet; renderSheet = function () { const r = _rs.apply(this, arguments); try { const t = sheetTitle, s = t && SERIES_OF[t]; if (s && seriesEntries(s).length) { const L = [...sheet.querySelectorAll('.blk .lbl')].find(x => x.textContent.trim() === s); if (L && !L.querySelector('.l57-go')) L.insertAdjacentHTML('beforeend', '<button class="l57-go" data-l57open="' + esc(encodeURIComponent(s)) + '">Series page ›</button>'); } } catch (e) {} return r; }; } catch (e) {}
+  try { const _rs = renderSheet; renderSheet = function () { const r = _rs.apply(this, arguments); try { const t = sheetTitle, s = t && SERIES_OF[t]; if (s && s !== 'Standalone / Other' && seriesEntries(s).length) { const L = [...sheet.querySelectorAll('.blk .lbl')].find(x => x.textContent.trim() === s); if (L && !L.querySelector('.l57-go')) L.insertAdjacentHTML('beforeend', '<button class="l57-go" data-l57open="' + esc(encodeURIComponent(s)) + '">Series page ›</button>'); }
+      if (t && (META[t] || {}).added) { const sl = sheet.querySelector('.srcline'); if (sl) sl.textContent = 'Added from its series page · not in your Audible library' + (s ? ' · ' + s : ''); } } catch (e) {} return r; }; } catch (e) {}
   try { const _rt = renderTabContent; renderTabContent = function () { const r = _rt.apply(this, arguments); try { if (currentView === 'series' && currentTab && currentTab !== 'Standalone / Other') { const sec = document.getElementById('sec-' + activeIdx); const ti = sec && sec.querySelector('.genre-title'); if (ti && !ti.querySelector('.l57-go')) ti.insertAdjacentHTML('beforeend', '<button class="l57-go" data-l57open="' + esc(encodeURIComponent(currentTab)) + '">Series page ›</button>'); } } catch (e) {} return r; }; } catch (e) {}
   // ---- styles ----
   const B = 'html body #l57';
