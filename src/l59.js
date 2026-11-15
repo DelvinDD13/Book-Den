@@ -1,7 +1,8 @@
 // ===== L59: the bookcase, a preview. Three bookcases, drawn the same way: his 2027 plan (L56) by season, the books he owns by
 //   category, and the books he has finished by year. Every book is a spine as thick as its listening time at his speed. A spine
-//   wears its own cover: the whole cover as a small plate (never cropped), over a soft wash of the same cover, with the title set
-//   to fit the spine (shortened at a word, never cut through a letter). In the plan the book he is on stands face-out; a finished
+//   wears its own cover: the whole cover as a plate (never cropped), as large as the spine allows, over a soft wash of the same
+//   cover, and no lettering (his ask: "why the title letterings if using the covers"). A title is lettered only where there is
+//   no cover to show: none on file, or a spine too thin to hold one. Then it is set to fit, shortened at a word, never cut. In the plan the book he is on stands face-out; a finished
 //   book carries a gold seal and a series whose plan books are all finished gets a brass seal standing on the shelf; a book that
 //   is not out yet is a wrapped parcel with its day on the tag, a book that is not in his library is an outline, the open spots
 //   are the empty shelf between two bookends, and the Backlog Breaker medal waits at the end of the last shelf.
@@ -106,15 +107,19 @@
   // ---- drawing ----
   let host = null, view = 'plan', mode = false, D = null, IT = [], picked = -1, back = false, lastY = 0;
   const on = () => !!(host && host.classList.contains('on'));
+  L59.bare = function (img) { try { const p = img.parentNode; const big = img.classList.contains('pl'); img.remove(); if (!p) return; p.classList.add('bare'); if (big && p.dataset.fb && !p.querySelector('span')) { const sp = document.createElement('span'); sp.textContent = p.dataset.fb; sp.style.maxHeight = (p.clientHeight - 30) + 'px'; p.insertBefore(sp, p.firstChild); } } catch (e) {} };
   L59.lit = function (img) { try { const p = img.parentNode; if (!p) return; p.classList.add('ok'); const u = p.dataset.w || img.currentSrc || img.src; if (p.classList.contains('l59-sp')) p.style.backgroundImage = 'url("' + String(u).replace(/"/g, '%22') + '")'; } catch (e) {} };
+  // a spine that can show its cover shows only the cover, as large as the spine allows, with no lettering; a title is lettered
+  // only where there is no cover to show (none on file, or a spine too thin to hold one)
   function spine(x, i) { const w = x.w, H = tall(x.name); let pw = 0, ph = 0, title = '', cls = w < 22 ? 'thin' : 'mid';
-    const plate = max => { pw = ph = 0; if (x.art && w >= 22) { pw = Math.min(w - (max > 26 ? 10 : 6), max); ph = Math.round(pw * 1.5); } return H - 8 - (ph ? ph + 6 : 0) - 22; };
-    if (x.art && w >= 84) { plate(70); cls = 'wide'; }   // a very thick book shows its cover large enough to read, and needs no lettering
-    else { let room = plate(26); const down = w >= 13 ? fitV(x.name, w, room) : ''; let ac = null; if (w >= 46) { ac = across(x.name, w, plate(42)); if (ac && !ac.all && down.length >= ac.t.length) ac = null; }
-      if (ac) { cls = 'wide'; room = H - 8 - (ph ? ph + 6 : 0) - 22; title = '<span class="hz" style="font-size:' + ac.fs + 'px;max-height:' + room + 'px">' + esc(ac.t) + '</span>'; }
-      else { room = plate(26); if (down) title = '<span' + (w < 16.5 ? ' class="one"' : '') + ' style="max-height:' + room + 'px">' + esc(down) + '</span>'; } }
-    const img = x.art ? '<img class="' + (pw ? 'pl' : 'p0') + '"' + (pw ? ' style="width:' + pw + 'px;height:' + ph + 'px"' : '') + ' src="' + esc(x.art) + '" alt="" loading="lazy" decoding="async" onload="L59.lit(this)" onerror="this.remove()">' : ''; const tw = x.art ? tiny(x.art) : '';
-    return '<button class="l59-sp ' + cls + (x.art ? '' : ' bare') + (x.read ? ' rd' : '') + '" data-l59i="' + i + '"' + (tw ? ' data-w="' + esc(tw) + '"' : '') + ' style="width:' + w + 'px;height:' + H + 'px;--c:' + cloth(x.name) + '" aria-label="' + esc(x.name) + '">' + img + title + (x.read ? '<u></u>' : x.get ? '<s>get</s>' : '') + (x.now && !x.read ? '<i class="rb"></i>' : '') + '</button>'; }
+    if (x.art && w >= 22) { pw = Math.min(w - (w >= 46 ? 10 : 6), 70, Math.floor((H - 38) / 1.5)); ph = Math.round(pw * 1.5); if (w >= 46) cls = 'wide'; }
+    else { const room = H - 30; const down = w >= 13 ? fitV(x.name, w, room) : ''; let ac = null; if (w >= 46) { ac = across(x.name, w, room); if (ac && !ac.all && down.length >= ac.t.length) ac = null; }
+      if (ac) { cls = 'wide'; title = '<span class="hz" style="font-size:' + ac.fs + 'px;max-height:' + room + 'px">' + esc(ac.t) + '</span>'; }
+      else if (down) title = '<span' + (w < 16.5 ? ' class="one"' : '') + ' style="max-height:' + room + 'px">' + esc(down) + '</span>'; }
+    const img = x.art ? '<img class="' + (pw ? 'pl' : 'p0') + '"' + (pw ? ' style="width:' + pw + 'px;height:' + ph + 'px"' : '') + ' src="' + esc(x.art) + '" alt="" loading="lazy" decoding="async" onload="L59.lit(this)" onerror="L59.bare(this)">' : ''; const tw = x.art ? tiny(x.art) : '';
+    // if the cover does not load, the spine falls back to its lettering
+    const fb = pw ? fitV(x.name, w, H - 30) : '';
+    return '<button class="l59-sp ' + cls + (x.art ? '' : ' bare') + (x.read ? ' rd' : '') + '" data-l59i="' + i + '"' + (tw ? ' data-w="' + esc(tw) + '"' : '') + (fb ? ' data-fb="' + esc(fb) + '"' : '') + ' style="width:' + w + 'px;height:' + H + 'px;--c:' + cloth(x.name) + '" aria-label="' + esc(x.name) + '">' + img + title + (x.read ? '<u></u>' : x.get ? '<s>get</s>' : '') + (x.now && !x.read ? '<i class="rb"></i>' : '') + '</button>'; }
   function thing(x, i) { const lab = esc(x.name);
     if (x.k === 'seal') return { ow: x.w + 6, h: '<button class="l59-seal" data-l59i="' + i + '" style="width:' + x.w + 'px" aria-label="' + lab + ', closed"><b>' + esc(mono(x.name)) + '</b><i></i></button>' };
     if (x.k === 'parcel') return { ow: x.w + 1, h: '<button class="l59-pc' + (x.w < 30 ? ' nar' : '') + '" data-l59i="' + i + '" style="width:' + x.w + 'px;height:' + tall(x.name) + 'px" aria-label="' + lab + ', not out yet"><em>' + (x.date ? esc(md(x.date)) : 'soon') + '</em></button>' };
@@ -134,7 +139,7 @@
     let h = '<div class="l59-top"><button class="l59-x" data-l59="close">‹ Back</button><span>Preview</span></div><div class="l59-hd"><h1>' + (view === 'plan' ? '2027' : view === 'owned' ? 'Owned' : 'Finished') + '</h1><b>The bookcase</b></div>';
     h += '<div class="l59-tabs">' + tab('plan', '2027 plan') + tab('owned', 'Owned') + tab('read', 'Finished') + '</div>';
     const put = z => z.items.map(x => { IT.push(x); return Object.assign(thing(x, IT.length - 1), { x }); }); const hrs = m => Math.round(m / 60 / sp);
-    if (view === 'plan') { h += '<p class="l59-lead">Your plan as it stands in the app: ' + D.total + ' books, ' + D.set + ' set and ' + (D.total - D.set) + ' open, ' + hrs(D.min) + ' hours at ' + sp + 'x. Every spine is as thick as its listening time and wears its own cover.</p>';
+    if (view === 'plan') { h += '<p class="l59-lead">Your plan as it stands in the app: ' + D.total + ' books, ' + D.set + ' set and ' + (D.total - D.set) + ' open, ' + hrs(D.min) + ' hours at ' + sp + 'x. Every spine is as thick as its listening time and wears its own cover. Tap one for its title.</p>';
       h += '<div class="l59-tg"><button data-l59="now"' + (mode ? '' : ' class="on"') + '>Today</button><button data-l59="july"' + (mode ? ' class="on"' : '') + '>Pretend it is July 1</button></div>';
       D.Z.forEach(z => { const L = put(z);
         if (z.room) { IT.push({ k: 'room', n: z.room, se: z.n }); const w = Math.min(W - 30, Math.round(z.room * D.med / 60 / sp * PX)); L.push({ ow: w + 28, x: null, h: '<button class="l59-gap" data-l59i="' + (IT.length - 1) + '" aria-label="Room for ' + z.room + ' more"><i></i><span style="width:' + w + 'px">room for<br>' + z.room + ' more</span><i></i></button>' }); }
@@ -202,7 +207,7 @@
     B + ' .l59-sp::after{content:"";position:absolute;z-index:3;inset:0;pointer-events:none;box-shadow:inset 2px 0 2px rgba(255,255,255,.2),inset -3px 0 4px rgba(0,0,0,.55),inset 0 2px 1px rgba(255,255,255,.16)}' +
     B + ' .l59-sp.ok::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,8,14,.22),rgba(10,8,14,.58))}' +
     B + ' .l59-sp.bare:not(.thin)::before{content:"";position:absolute;left:0;right:0;top:9px;bottom:22px;border:solid rgba(236,213,150,.5);border-width:2px 0}' +
-    B + ' .l59-sp .pl{position:relative;z-index:1;flex:none;display:block;object-fit:cover;border-radius:1px;background:rgba(0,0,0,.25);box-shadow:0 0 0 1px rgba(255,255,255,.3),0 2px 4px rgba(0,0,0,.65)}' + B + ' .l59-sp .p0{position:absolute;left:0;top:0;width:1px;height:1px;opacity:0}' +
+    B + ' .l59-sp .pl{position:relative;z-index:1;flex:none;display:block;margin:auto 0;object-fit:cover;border-radius:1px;background:rgba(0,0,0,.25);box-shadow:0 0 0 1px rgba(255,255,255,.3),0 2px 4px rgba(0,0,0,.65)}' + B + ' .l59-sp .p0{position:absolute;left:0;top:0;width:1px;height:1px;opacity:0}' +
     B + ' .l59-sp span,' + B + ' .l59-gh span{position:relative;z-index:1;margin:auto 0;writing-mode:vertical-rl;overflow:hidden;text-align:center;font:600 11.5px/1.09 "Barlow Condensed",Barlow,sans-serif;letter-spacing:.01em;text-shadow:0 1px 2px rgba(0,0,0,.9)}' + B + ' .l59-sp span.one,' + B + ' .l59-gh span.one{white-space:nowrap;font-size:10.5px}' +
     B + ' .l59-sp .hz{writing-mode:horizontal-tb;margin:auto 0;padding:0 6px;max-width:100%;line-height:1.13}' +
     B + ' .l59-sp u,' + B + ' .l59-gh u{position:absolute;z-index:2;left:50%;bottom:5px;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3c4,#d9a441 55%,#8a6418);box-shadow:0 1px 2px rgba(0,0,0,.7);text-decoration:none}' + B + ' .l59-sp.thin u,' + B + ' .l59-gh u{width:8px;height:8px;margin-left:-4px;bottom:7px}' +
