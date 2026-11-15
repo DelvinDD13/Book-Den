@@ -4,11 +4,11 @@ cd /home/claude/den/pt
 S="codex_test look_test timer_test steel_test quests_test manual_test screen_test upcoming_test audit_test sw_test facts_test books_test fixes_test versions_test audible_test arcs_test dcc_test bookmarks_test looks_test scenes_test pictures_test pack_test narr_test plan_test series_test case_test $EXTRA"
 mkdir -p out; rm -f out/*.txt
 run() { timeout 600 node $1.js > out/$1.txt 2>&1; echo "exit $?" >> out/$1.txt; }
-# three at a time keeps the timing-sensitive checks honest
+# three at a time keeps the timing-sensitive checks honest; a machine with two processors runs two at a time (PAR overrides)
+PAR=${PAR:-$( [ "$(nproc 2>/dev/null || echo 4)" -le 2 ] && echo 2 || echo 3 )}
 set -- $S
 while [ $# -gt 0 ]; do
-  for f in $1 $2 $3; do [ -n "$f" ] && run $f & done; wait
-  shift; [ $# -gt 0 ] && shift; [ $# -gt 0 ] && shift
+  n=0; while [ $n -lt $PAR ] && [ $# -gt 0 ]; do run $1 & shift; n=$((n+1)); done; wait
 done
 tot=0; bad=0
 for f in $S; do
