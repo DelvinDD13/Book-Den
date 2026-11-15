@@ -34,6 +34,9 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
   ok(s.sec && s.sec[0] === 'favnarr' && s.sec[1] === 'narrheard' && s.sec.length === 2 + s.got.split(',').length, 'the Narrators section lists them, after Authors: ' + (s.sec || []).length);
   s = await R(() => { const S = L4.SECTIONS.books.map(x => x[0]); return [S.indexOf('Authors'), S.indexOf('Narrators')]; }); ok(s[1] === s[0] + 1, 'Narrators sits right after Authors: ' + s);
   // ---- first time on this phone: filled in from history, one note, no banners ----
+  // the fill-in runs a little after the library loads, and its note 2.5 s after that: wait for each rather than for a fixed time (a busy machine is slower)
+  for (let i = 0; i < 50 && !(await R(() => localStorage.getItem('den:narrinit'))); i++) await page.waitForTimeout(400);
+  for (let i = 0; i < 25 && !toasts.some(t => /narrator badges added/.test(t)); i++) await page.waitForTimeout(400);
   s = await R(() => { const e = (L4.state().e || {}); const ids = L4.all().filter(b => b.sub === 'narrator' && b.tier > 0).map(b => b.id); return [ids.length, ids.filter(id => e[id] && e[id].bf).length, localStorage.getItem('den:narrinit')]; });
   ok(s[0] > 0 && s[1] === s[0] && s[2], 'earned narrator badges are filled in from history: ' + s);
   ok(toasts.some(t => /narrator badges added from your listening/.test(t)), 'one note says so: ' + toasts.filter(t => /narrator/.test(t)).join(' | '));
