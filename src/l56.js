@@ -4,7 +4,9 @@
 //   Ages on Nov 8, so its February spot is an open one). It is an arc in the quest log with its own page, and finishing all 75 in 2027
 //   earns Backlog Breaker, the one Mistborn-tier badge in Book Den (a tier above Atium). Set books tick themselves when he marks them
 //   finished in 2027 (the ones not in his library yet are ticked by hand), any other book he finishes in 2027 fills the next open
-//   spot, and a set book he finishes before Jan 1 becomes an open spot.
+//   spot, and a set book he finishes before Jan 1 becomes an open spot. A new book in one of his series that comes out in 2027
+//   (upcoming.json, through L58) takes an open spot from its month on the day it is out, and the watch list at the foot of the
+//   page is the same list's books that are not out yet.
 (function () {
   if (!window.L48 || !window.L4 || !L4.defs) return;
   const L56 = window.L56 = {};
@@ -22,7 +24,7 @@
   // [month, the book, his library title (null: no way to match it yet), minutes when not in his library, note]
   const P = [
     [0, 'Warbreaker', '^Warbreaker$', 0, ''], [0, 'House of Earth and Blood', '^House of Earth and Blood', 0, ''], [0, 'House of Sky and Breath', '^House of Sky and Breath', 0, ''], [0, 'House of Flame and Shadow', '^House of Flame and Shadow', 0, ''],
-    [1, 'A Court of Splintered Harmony', '^A Court of Splintered Harmony', 0, 'After Crescent City, your order'], [1, 'ACOTAR 7', null, 1200, 'Out Jan 12 · length is a guess'], [1, 'Onyx Storm', '^Onyx Storm', 0, ''], [1, 'Threshing Day', '^Threshing Day', 0, ''], [1, 'Edgedancer', '^Edgedancer', 0, ''], [1, 'Elsecaller and King Lopen the First of Alethkar', '^Elsecaller', 0, 'Ebook · two short stories set during Words of Radiance'],
+    [1, 'A Court of Splintered Harmony', '^A Court of Splintered Harmony', 0, 'After Crescent City, your order'], [1, 'A Court of Forgotten Melody', '^A Court of Forgotten Melody', 1200, 'ACOTAR 7 · out Jan 12 · length is a guess'], [1, 'Onyx Storm', '^Onyx Storm', 0, ''], [1, 'Threshing Day', '^Threshing Day', 0, ''], [1, 'Edgedancer', '^Edgedancer', 0, ''], [1, 'Elsecaller and King Lopen the First of Alethkar', '^Elsecaller', 0, 'Ebook · two short stories set during Words of Radiance'],
     [2, 'The Alloy of Law', '^The Alloy of Law', 0, ''], [2, 'Shadows of Self', '^Shadows of Self', 0, ''], [2, 'The Bands of Mourning', '^The Bands of Mourning', 0, ''], [2, 'Elantris', '^Elantris', 0, ''], [2, 'Arcanum Unbounded', '^Arcanum Unbounded', 0, 'Skip The Emperor\'s Soul and Edgedancer in it; you\'ll have read both'], [2, 'White Sand: Volume One', '^White Sand', 0, 'Dramatized adaptation · Volume Two is sold separately'],
     [3, 'Oathbringer', '^Oathbringer', 0, ''], [3, 'Dawnshard', '^Dawnshard', 0, ''], [3, 'Steelheart', '^Steelheart', 0, ''], [3, 'Firefight', '^Firefight', 0, ''], [3, 'Calamity', '^Calamity', 0, ''], [3, 'The Frugal Wizard\'s Handbook', '^The Frugal Wizard', 0, ''], [3, 'Starsight', '^Starsight', 0, ''],
     [4, 'Sunreach', '^Sunreach', 0, ''], [4, 'ReDawn', '^ReDawn', 0, ''], [4, 'Rhythm of War', '^Rhythm of War', 0, ''], [4, 'Evershore', '^Evershore', 0, ''], [4, 'Cytonic', '^Cytonic', 0, ''], [4, 'Defiant', '^Defiant', 0, ''],
@@ -40,9 +42,12 @@
   const seasonOf = m => m < 3 ? 0 : m < 6 ? 1 : m < 9 ? 2 : 3;
   // his backlog, in the order empty open spots suggest it
   const BACKLOG = [['Golden Son', '^Golden Son'], ['Morning Star', '^Morning Star'], ['The Heroes', '^The Heroes'], ['Red Country', '^Red Country'], ['Iron Gold', '^Iron Gold'], ['A Little Hatred', '^A Little Hatred'], ['Dark Age', '^Dark Age'], ['The Trouble with Peace', '^The Trouble with Peace'], ['Light Bringer', '^Light Bringer'], ['The Wisdom of Crowds', '^The Wisdom of Crowds'], ['Vengeful', '^Vengeful'], ['Victorious', '^Victorious'], ['The Lies of Locke Lamora', '^The Lies of Locke Lamora'], ['The Devils', '^The Devils$'], ['The Heretics', '^The Heretics']];
-  // new books in his series with no 2027 date yet; read when they come out, they fill open spots
-  const WATCH = [['Dungeon Crawler Carl 9', 'Working title The Beautiful Place · no date yet'], ['Empyrean 4', 'No title or date yet'], ['Red God', 'Red Rising 7 · no date yet'], ['The Justice of One', 'Hierarchy 3 · no date yet'], ['Crescent City 4', 'No title or date yet']];
-  L56.P = P; L56.OPEN = OPEN; L56.SEASONS = SEASONS; L56.BACKLOG = BACKLOG; L56.WATCH = WATCH;
+  // new books in his series that are not out yet come from upcoming.json (L58): they drop into an open spot the day they are out
+  const nrm = t => { try { return normT(t); } catch (e) { return String(t).toLowerCase(); } };
+  const UP = () => window.L58 || null;
+  L56.watch = function () { const up = UP(); if (!up) return []; let L = []; try { L = up.watch(2027); } catch (e) {} return L.filter(x => !P.some(e => nrm(e[1]) === nrm(x.title))).map(x => { const d = String(x.date || ''); const day = /^\d{4}-\d{2}-\d{2}$/.test(d);
+    return { name: x.title, sub: (x.series && x.title.indexOf(x.series) < 0 ? x.series + ' · ' : '') + (day ? 'Out ' + md(d) + ' · drops into ' + MON[+d.slice(5, 7) - 1] : /^\d{4}/.test(d) ? 'Expected ' + up.when(x) + ' · no day yet' : 'No date yet') }; }); };
+  L56.P = P; L56.OPEN = OPEN; L56.SEASONS = SEASONS; L56.BACKLOG = BACKLOG; L56.MON = MON;
   const st = t => { try { return getStatus(t) || ''; } catch (e) { return ''; } };
   const fin = t => String(O(t).finished || '');
   const ln = t => { try { return L46.len(t) || 0; } catch (e) { return 0; } };
@@ -61,18 +66,29 @@
   L56.slots = function () { const sets = [], opens = [], setTs = new Set();
     P.forEach((e, i) => { const ts = all(e[2]), t = pick(ts); ts.forEach(x => setTs.add(x));
       if (before(ts)) { opens.push({ m: e[0], se: seasonOf(e[0]), early: e[1] }); return; }
-      sets.push({ id: 's:' + e[1].toLowerCase().replace(/[^a-z0-9]+/g, '-'), m: e[0], name: e[1], t, ts, min: len(ts, e[3]), note: e[4] || '' }); });
+      const real = Math.max(0, ...ts.map(ln)) || (UP() ? UP().min(e[1]) : 0);   // its real length, once his library or the upcoming list has it
+      sets.push({ id: 's:' + e[1].toLowerCase().replace(/[^a-z0-9]+/g, '-'), m: e[0], name: e[1], t, ts, min: real || e[3] || 0, note: real ? (e[4] || '').replace(/\s*·\s*length is a guess/, '') : (e[4] || '') }); });
     OPEN.forEach(o => opens.push({ m: o[0], se: o[1] }));
     opens.sort((a, b) => a.m - b.m); const ex = L56.extras(setTs);
     opens.forEach((o, k) => { o.id = 'o' + k; o.open = 1; const x = ex[k]; if (x) { o.t = x.t; o.ts = [x.t]; o.name = x.t.replace(/\s*[\[(][^\])]*[\])]/g, ''); o.d = x.d; o.min = ln(x.t); } else { o.t = null; o.ts = []; o.name = 'Open spot'; o.min = 0; } });
-    const out = []; for (let m = 0; m < 12; m++) { sets.forEach(x => { if (x.m === m) out.push(x); }); opens.forEach(x => { if (x.m === m) out.push(x); }); } return out; };
+    // a new book that came out this year takes an empty open spot from its month on, until he finishes it (then it counts like any other)
+    const over = []; try { const up = UP(); (up && up.plan ? up.plan(2027) : []).forEach(d => { if (d.ts.some(t => setTs.has(t)) || P.some(e => nrm(e[1]) === nrm(d.x.title))) return; if (d.ts.some(t => st(t) === 'read')) return;
+        const m0 = +d.x.date.slice(5, 7) - 1; const o = opens.find(o => !o.t && !o.drop && o.m >= m0) || opens.slice().reverse().find(o => !o.t && !o.drop); if (!o) { over.push(d.x); return; }
+        o.drop = d.x; o.name = d.x.title; o.ts = d.ts; o.lib = pick(d.ts); o.min = len(d.ts, +d.x.minutes || 0); }); } catch (e) { console.warn('l56 drops', e); }
+    const out = []; for (let m = 0; m < 12; m++) { sets.forEach(x => { if (x.m === m) out.push(x); }); opens.forEach(x => { if (x.m === m) out.push(x); }); } out.over = over; return out; };
+  // the page a dropped-in book opens: his copy when he has one, else its Upcoming page (which has the "I own it" buttons)
+  const dropKey = x => x.lib || (UP() && UP().sheet ? UP().sheet(x.drop) : null) || undefined;
+  const dropSub = (x, sp) => 'Out ' + md(x.drop.date) + ' · took an open spot' + (x.min ? ' · ' + hm(x.min / sp) : '') + (x.lib ? '' : ' · not in your library yet');
   const doneOn = (a, x) => { if (x.open) return x.d || null; if (x.t) return finIn(x.ts, Y0, Y1); const D = ((O('arcs').done || {})[a] || {})[x.id]; return D && D >= Y0 ? D : null; };
   L56.done = () => L56.slots().map(x => Object.assign({}, x, { d: doneOn('y2027', x) })).filter(x => x.d);
-  L56.suggest = () => BACKLOG.filter(b => !all(b[1]).some(t => st(t) === 'read')).map(b => b[0]);
+  // backlog books for the empty open spots: not ones he has read, not ones that are not out yet, not ones already dropped in
+  L56.suggest = () => { const hold = new Set(); try { const up = UP(); if (up) { up.soon('books').forEach(x => hold.add(nrm(x.title))); up.plan(2027).forEach(d => hold.add(nrm(d.x.title))); } } catch (e) {}
+    return BACKLOG.filter(b => !hold.has(nrm(b[0])) && !all(b[1]).some(t => st(t) === 'read')).map(b => b[0]); };
   // the arc in the quest log
   L48.more.push(function () { const S = L56.slots(); const sp = L56.speed(); const set = S.filter(x => !x.open); const tot = set.reduce((s, x) => s + x.min, 0) / sp;
     return { id: 'y2027', name: '2027: 75 books', from: Y0, to: Y1, key: today() < Y0 ? Y0 : Y1, sub: set.length + ' set, ' + (S.length - set.length) + ' open · ' + hh(tot) + ' at ' + sp + 'x',
-      steps: S.map(x => x.open ? { id: x.id, t: x.t ? x.name : 'Open spot', s: x.t ? (x.min ? hm(x.min / sp) + ' · ' : '') + 'open spot' : 'A Goodreads ' + SEASONS[x.se][0] + ' badge book or one from your backlog', book: x.t || undefined, auto: () => !!x.d, next: 'Open spot · ' + MON[x.m] }
+      steps: S.map(x => x.open && x.drop && !x.t ? { id: x.id, t: x.name, s: dropSub(x, sp), book: dropKey(x), auto: () => false, next: x.name + ' · ' + MON[x.m] }
+        : x.open ? { id: x.id, t: x.t ? x.name : 'Open spot', s: x.t ? (x.min ? hm(x.min / sp) + ' · ' : '') + 'open spot' : 'A Goodreads ' + SEASONS[x.se][0] + ' badge book or one from your backlog', book: x.t || undefined, auto: () => !!x.d, next: 'Open spot · ' + MON[x.m] }
         : { id: x.id, t: x.name, s: (x.min ? hm(x.min / sp) : 'Short read') + (x.note ? ' · ' + x.note : ''), book: x.t || undefined, auto: x.t || today() < Y0 ? () => !!doneOn('y2027', x) : undefined, next: x.name + ' · ' + MON[x.m] }),
       page: L56.page }; });
   // Backlog Breaker: one tier, Mistborn, for all 75 in 2027
@@ -114,19 +130,22 @@
     else { const want = Math.floor(S.length * Math.min(1, (days(Y0, t) + 1) / 365)); const gap = n - want; pace = '<b>' + n + ' of ' + S.length + ' · ' + (gap === 0 ? 'on pace' : gap > 0 ? gap + ' ahead' : -gap + ' behind') + '</b><p>Set books: ' + hh(doneSet) + ' of ' + hh(tot) + ' at ' + sp + 'x.</p>'; }
     h += '<div class="pace">' + pace + '<u class="y27u"><s style="width:' + Math.round(n / S.length * 100) + '%"></s></u></div>';
     h += '<div class="y27b">' + L56.medal(88, n >= S.length ? null : n / S.length) + '<span><b>Backlog Breaker</b><small>Mistborn tier</small><p>Finish all 75 in 2027. Mistborn is a tier above Atium, and no other badge in Book Den has it.</p></span></div>';
-    const per = SEASONS.map((z, k) => z[0] + ' ' + S.filter(x => x.open && x.se === k).length).join(', ');
-    h += '<div class="y27g"><b>Goodreads badges</b><p>Open spots for books off each season\'s badge lists: ' + per + '. Page-Turner, Speed Reader and Book Boss (any 2, 3 and 5 books) come from the set books on their own. The 2026 seasons ran Jan 1–Mar 31, Apr 1–Jun 30, Jul 1–Sep 14 and Sep 15–Dec 31.</p></div>';
+    const per = SEASONS.map((z, k) => z[0] + ' ' + S.filter(x => x.open && x.se === k).length).join(', '); const nDrop = S.filter(x => x.drop && !x.t).length;
+    h += '<div class="y27g"><b>Goodreads badges</b><p>Open spots for books off each season\'s badge lists: ' + per + '.' + (nDrop ? ' New releases have taken ' + nDrop + ' of them.' : '') + ' Page-Turner, Speed Reader and Book Boss (any 2, 3 and 5 books) come from the set books on their own. The 2026 seasons ran Jan 1–Mar 31, Apr 1–Jun 30, Jul 1–Sep 14 and Sep 15–Dec 31.</p></div>';
     const get = set.filter(x => !x.t); if (get.length) h += '<div class="y27g"><b>' + get.length + ' to get</b><p>' + get.map(x => esc(x.name)).join(', ') + '</p></div>';
     const sug = L56.suggest(); let si = 0;
-    for (let m = 0; m < 12; m++) { const R = S.filter(x => x.m === m); if (!R.length) continue; const mm = R.reduce((s, x) => s + x.min, 0) / sp; const dn = R.filter(x => doneIds[x.id]).length; const emp = R.filter(x => x.open && !x.t).length;
+    for (let m = 0; m < 12; m++) { const R = S.filter(x => x.m === m); if (!R.length) continue; const mm = R.reduce((s, x) => s + x.min, 0) / sp; const dn = R.filter(x => doneIds[x.id]).length; const emp = R.filter(x => x.open && !x.t && !x.drop).length;
       h += '<h3>' + MON[m] + '<small>' + R.length + ' books · ' + hh(mm) + (emp ? ' + ' + emp + ' open' : '') + (dn ? ' · ' + dn + ' done' : '') + '</small></h3>';
       R.forEach(x => { const num = '<span class="num">' + (S.indexOf(x) + 1) + '</span>';
+        if (x.open && x.drop && !x.t) { const k = dropKey(x); const now = x.lib && x.ts.some(y => st(y) === 'currently-reading');
+          h += '<button class="l37-q"' + (k ? ' data-a="arcstep"' : '') + ' data-k="y2027|' + esc(x.id) + '" aria-disabled="true">' + num + '<span class="l37-x"><b>' + esc(x.name) + '</b><i>' + esc(dropSub(x, sp)) + '</i></span><em>' + (now ? '<small class="now">Now</small>' : k ? '›' : '') + '</em></button>'; return; }
         if (x.open) { let sub; if (x.t) sub = (x.min ? hm(x.min / sp) + ' · ' : '') + 'Open spot · finished ' + md(x.d); else { const nx = sug[si++]; sub = 'Goodreads ' + SEASONS[x.se][0] + ' badge book' + (nx ? ', or from your backlog: ' + nx : '') + (x.early ? ' · ' + x.early + ' was read early' : ''); }
           h += '<button class="l37-q open' + (x.d ? ' done' : '') + '"' + (x.t ? ' data-a="arcstep"' : '') + ' data-k="y2027|' + esc(x.id) + '" aria-disabled="true">' + num + '<span class="l37-x"><b>' + esc(x.t ? x.name : 'Open spot') + '</b><i>' + esc(sub) + '</i></span><em>' + (x.d ? '✓' : '') + '</em></button>'; return; }
         const s = { done: !!doneIds[x.id], auto: !!x.t }; const now = x.t && x.ts.some(y => st(y) === 'currently-reading');
         h += '<button class="l37-q' + (s.done ? ' done' : '') + '"' + (x.t || t >= Y0 ? ' data-a="arcstep"' : '') + ' data-k="y2027|' + esc(x.id) + '"' + (s.auto ? ' aria-disabled="true"' : '') + '>' + num + '<span class="l37-x"><b>' + esc(x.name) + '</b><i>' + esc((x.min ? hm(x.min / sp) : 'Short read') + (x.note ? ' · ' + x.note : '') + (!x.t ? ' · not in your library yet' : '')) + '</i></span><em>' + (s.done ? '✓' : now ? '<small class="now">Now</small>' : x.t ? '›' : '○') + '</em></button>'; }); }
-    h += '<h3>New books to watch<small>no date yet</small></h3>' + WATCH.map(w => '<div class="l37-q info"><span class="num"></span><span class="l37-x"><b>' + esc(w[0]) + '</b><i>' + esc(w[1]) + '</i></span><em></em></div>').join('');
-    h += '<p class="fine">Set books tick themselves when you mark them finished in 2027; tap the ones not in your library yet when you finish them. Any other book you finish in 2027 fills the next open spot, in the order you finish them, so Goodreads badge books, backlog books and the new books above all count. A set book you finish before January 1 becomes an open spot.</p>';
+    const W = L56.watch().concat((S.over || []).map(x => ({ name: x.title, sub: 'Out ' + md(x.date) + ' · every open spot is taken, so it counts when you finish it' })));
+    if (W.length) h += '<h3>New books to watch<small>added when out</small></h3>' + W.map(w => '<div class="l37-q info"><span class="num"></span><span class="l37-x"><b>' + esc(w.name) + '</b><i>' + esc(w.sub) + '</i></span><em></em></div>').join('');
+    h += '<p class="fine">Set books tick themselves when you mark them finished in 2027; tap the ones not in your library yet when you finish them. Any other book you finish in 2027 fills the next open spot, in the order you finish them, so Goodreads badge books and backlog books all count. A new book in one of your series takes an open spot from its month on the day it comes out; the release dates are checked every Monday. A set book you finish before January 1 becomes an open spot.</p>';
     return h; };
   L48.CSS += '.y27u{display:block;height:6px;margin:10px 0 0;background:var(--d-line,rgba(243,239,230,.16));text-decoration:none}.y27u s{display:block;height:100%;background:var(--d-acc,#e9a3b8)}' +
     '.y27b{display:flex;gap:14px;align-items:center;padding:12px 14px;margin:12px 0;border:1px solid #e8d79c55;background:linear-gradient(135deg,#111a33,#0a0f1e)}.y27b svg{flex:0 0 88px}.y27b b{display:block;font:600 20px/1.1 "Barlow Condensed",Barlow,sans-serif;color:#fff4cf}.y27b small{display:block;margin:2px 0 4px;font:600 11px var(--b-mono,"IBM Plex Mono"),monospace;letter-spacing:.14em;text-transform:uppercase;color:#e8d79c}.y27b p{margin:0;font-size:13px;line-height:1.4;color:#c9c3b6}' +

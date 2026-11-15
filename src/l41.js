@@ -15,9 +15,10 @@
   function inLibrary(kind, x) { try { if (recs()[(kind === 'books' ? 'b:' : 'g:') + x.title]) return true; if (kind === 'books') { const n = nrm(x.title); return ALL_TITLES.some(t => nrm(t) === n && ownedBook(t)); } if (isFilm(x)) return SHOWS.some(s => nrm(s.t) === nrm(x.title)); return GAMES.some(g => nrm(g.t) === nrm(x.title)); } catch (e) { return false; } }
   // put one record into the running library (no store writes here: this also runs on every open)
   function place(r) { try {
-      if (r.kind === 'book') { if (window.L22 && L22.add) r.lib = L22.add({ t: r.t, a: r.a, s: r.s, g: r.g, aud: r.f === 'aud', how: 'Kindle or the shelf', syn: r.n, y: (r.d || '').slice(0, 4) }) || r.t; return; }
+      if (r.kind === 'book') { if (window.L22 && L22.add) r.lib = L22.add({ t: r.t, a: r.a, s: r.s, g: r.g, aud: r.f === 'aud', how: 'Kindle or the shelf', syn: r.n, y: (r.d || '').slice(0, 4), n: r.num ? String(r.num) : '' }) || r.t; return; }
       if (r.kind === 'film') { if (!SHOWS.some(s => s.t === r.t)) SHOWS.push({ t: r.t, k: 'movie', st: 'queue', up: 1 }); if (typeof MEDIA_DB !== 'undefined' && !MEDIA_DB[r.t]) MEDIA_DB[r.t] = { g: 'Film', y: (r.d || '').slice(0, 4), f: 1 }; if (typeof MINFO !== 'undefined' && !MINFO[r.t]) MINFO[r.t] = [(r.d || '').slice(0, 4), r.a || '', '', r.n || '']; return; }
       if (!GAMES.some(g => g.t === r.t)) GAMES.push({ t: r.t, p: r.p || '', g: r.g || 'Game', st: 'backlog', c: '#3a4a6b', up: 1 });
+      if (typeof GMINFO !== 'undefined' && !GMINFO[r.t]) GMINFO[r.t] = [(r.d || '').slice(0, 4), r.a || '', '', r.n || ''];   // its page keeps the year, the maker and the description it had in Upcoming
     } catch (e) { console.warn('l41 place', e); } }
   // the Upcoming rows only list what is not in the library yet
   let RAW = L19.data, VIEW = null, VKEY = '';
@@ -27,11 +28,12 @@
   // everything pulled in earlier is rebuilt before the first screen is drawn
   const redraw = () => { try { VIEW = null; if (typeof memoClear === 'function') memoClear(); if (typeof currentLib !== 'undefined' && currentLib === 'books' && window.L15 && L15.placeBooks) { if (typeof rerender82 === 'function') rerender82(); else L15.placeBooks(); } else if (typeof currentLib !== 'undefined' && currentLib === 'screen') renderGamesLib(); } catch (e) {} };
   const restore = () => { let n = 0; try { const R = recs(); Object.keys(R).forEach(k => { const r = R[k]; const had = r.kind === 'game' ? GAMES.some(g => g.t === r.t) : r.kind === 'film' ? SHOWS.some(x => x.t === r.t) : ALL_TITLES.some(t => nrm(t) === nrm(r.t) && META[t] && META[t].gr === false); if (!had) { place(r); n++; } }); } catch (e) {} return n; };
+  L41.raw = () => RAW; L41.fresh = () => { VIEW = null; }; L41.redraw = redraw; L41.isFilm = isFilm; L41.MINE = MINE; L41.place = place; L41.inLibrary = inLibrary;   // for L58, which drops releases in
   restore();
   // on a device that had nothing saved yet, the records arrive with the first sync
   (function () { let tries = 0; const tick = () => { if (typeof SYNC82 !== 'undefined' && SYNC82.state === 'wait' && tries++ < 60) return setTimeout(tick, 1000); if (restore()) redraw(); }; setTimeout(tick, 2500); })();
   L41.own = function (kind, title, how) { const x = (((RAW || {})[kind]) || []).find(y => y.title === title); if (!x) return null; const film = kind === 'games' && isFilm(x);
-    const r = { t: x.title, kind: kind === 'books' ? 'book' : film ? 'film' : 'game', a: x.author || x.developer_or_publisher || '', s: x.series || '', g: kind === 'books' ? shelfFor(x) : (x.genre || ''), p: kind === 'games' && !film ? (how || (x.platforms || [])[0] || '') : '', f: kind === 'books' ? (how || 'aud') : '', d: x.date || '', n: x.note || '', at: Date.now() };
+    const r = { t: x.title, kind: kind === 'books' ? 'book' : film ? 'film' : 'game', a: x.author || x.developer_or_publisher || '', s: x.series || '', g: kind === 'books' ? shelfFor(x) : (x.genre || ''), p: kind === 'games' && !film ? (how || (x.platforms || [])[0] || '') : '', f: kind === 'books' ? (how || 'aud') : '', d: x.date || '', n: x.note || '', at: Date.now() }; if (kind === 'books' && +x.num) r.num = +x.num;   // its number in the series, so it sorts into place
     place(r); const v = Object.assign({}, recs()); v[(kind === 'books' ? 'b:' : 'g:') + x.title] = r; try { setOverride('upown', { v }); } catch (e) {}
     // the art it had in Upcoming stays with it
     try { if (x.cover) { const ck = r.kind === 'book' ? 'cv:' + (r.lib || r.t) : r.kind === 'film' ? 'cv:show:' + r.t : 'cv:game:' + r.t; if (!O(ck).url) setOverride(ck, { url: x.cover, src: 'upcoming', at: Date.now() }); } } catch (e) {}

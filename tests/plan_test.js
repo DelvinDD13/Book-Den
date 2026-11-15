@@ -4,7 +4,7 @@
 const { chromium } = require('playwright'); const http = require('http'), fs = require('fs'), path = require('path');
 const ROOT = process.env.ROOT || '/home/claude/book-den';
 const MIME = { '.html': 'text/html', '.js': 'application/javascript', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.woff2': 'font/woff2' };
-const srv = http.createServer((req, res) => { let p = decodeURIComponent(req.url.split('?')[0]); if (p === '/') p = '/index.html'; fs.readFile(path.join(ROOT, p), (e, d) => { if (e) { res.writeHead(404); return res.end(); } res.writeHead(200, { 'Content-Type': MIME[path.extname(p)] || 'application/octet-stream' }); res.end(d); }); });
+const srv = http.createServer((req, res) => { let p = decodeURIComponent(req.url.split('?')[0]); if (p === '/') p = '/index.html'; if (p === '/upcoming.json') p = '/tests/upcoming_fixture.json'; fs.readFile(path.join(ROOT, p), (e, d) => { if (e) { res.writeHead(404); return res.end(); } res.writeHead(200, { 'Content-Type': MIME[path.extname(p)] || 'application/octet-stream' }); res.end(d); }); });
 const store = fs.readFileSync(path.join(__dirname, 'store.json')); let pass = 0, fail = 0; const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } };
 const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==', 'base64');
 async function boot(br, when) { const ctx = await br.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
@@ -22,7 +22,7 @@ async function boot(br, when) { const ctx = await br.newContext({ viewport: { wi
   ok(s.n === 75 && s.set === 58 && s.open === 17 && s.P === 58, '75 spots: 58 set books and 17 open spots: ' + JSON.stringify([s.n, s.set, s.open, s.P]));
   ok(JSON.stringify(s.perSeason) === '[5,4,4,4]', 'open spots per Goodreads season, five in winter where The Hero of Ages was: ' + JSON.stringify(s.perSeason));
   ok(s.months === 12 && s.first === 'Warbreaker' && s.last === 'Open spot', 'all twelve months, January starts with Warbreaker, December ends with an open spot');
-  ok(s.get.length === 11 && s.get.indexOf('ACOTAR 7') >= 0 && s.get.indexOf('A Memory of Light') >= 0, 'eleven set books not in his library yet: ' + s.get.join(', '));
+  ok(s.get.length === 11 && s.get.indexOf('A Court of Forgotten Melody') >= 0 && s.get.indexOf('A Memory of Light') >= 0, 'eleven set books not in his library yet: ' + s.get.join(', '));
   ok(s.speed === 1.8, 'hours are at 1.8x');
   ok(!s.wellOfAscension && s.hero === undefined, 'The Well of Ascension and The Hero of Ages are not in it (he has read both)');
   // ---- the arc in the quest log ----
@@ -37,7 +37,7 @@ async function boot(br, when) { const ctx = await br.newContext({ viewport: { wi
   ok(s.open === 17 && s.set === 58, 'seventeen dashed open spots and 58 set books on the page: ' + s.open + '/' + s.set);
   ok(/Goodreads Winter badge book, or from your backlog: Golden Son/.test(s.txt), 'the first empty spot suggests a Goodreads Winter badge book or the next backlog book');
   ok(!/<animate/.test(s.medal) && !/\bwidth="[^"]*"[^>]*stroke="#7be08f"/.test(s.medal) && /Backlog Breaker/.test(s.txt) && /Mistborn tier/i.test(s.txt), 'the medal on the page is still, with no progress arc at 0');
-  s = await R(() => { const r = document.getElementById('l37').shadowRoot; const row = [...r.querySelectorAll('.body .l37-q')].find(x => /ACOTAR 7/.test(x.textContent)); const A = L48.arcs().find(x => x.id === 'y2027'); const st = A.steps.find(x => x.t === 'ACOTAR 7'); return { a: row.getAttribute('data-a'), done: st.done, openA: r.querySelectorAll('.body .l37-q.open[data-a]').length }; });
+  s = await R(() => { const r = document.getElementById('l37').shadowRoot; const row = [...r.querySelectorAll('.body .l37-q')].find(x => /ACOTAR 7/.test(x.textContent)); const A = L48.arcs().find(x => x.id === 'y2027'); const st = A.steps.find(x => x.t === 'A Court of Forgotten Melody'); return { a: row.getAttribute('data-a'), done: st.done, openA: r.querySelectorAll('.body .l37-q.open[data-a]').length }; });
   ok(s.a === null && !s.done && s.openA === 0, 'before 2027 starts, a set book he does not own and an empty open spot cannot be ticked: ' + JSON.stringify(s));
   await R(() => L37.close());
   // ---- open spots fill with other books he finishes in 2027; a set book read early becomes an open spot ----

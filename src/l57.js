@@ -32,10 +32,10 @@
       look: { font: 'fell', fit: 1, fx: 'glow', gl: 'rgba(247,147,83,.45)', wall: 'one', tex: 'ash', card: 'panel', mark: 'flame' } },
     'Throne of Glass': { by: 'Sarah J. Maas', from: 2012, to: 2018, place: 'in Erilea', blurb: 'An assassin is pulled out of a death camp to fight for the crown.', colors: ['#ffe1e1', '#f08a8a', '#b8243c', '#3a2c63', '#0f0b14'],
       look: { font: 'marcellus', fit: 1, fx: 'stroke-glow', gl: 'rgba(184,36,60,.6)', wall: 'fan', tex: 'shards', card: 'glass', mark: 'diamond-o', lab: '#f08fb2' } },
-    'Dungeon Crawler Carl': { by: 'Matt Dinniman', from: 2020, planned: 10, place: 'in the crawl', extras: /Book 3\.5|^Cyclopsean/, coming: [['Book 9', 'Working title The Beautiful Place · no date yet'], ['Book 10', 'Planned']],
+    'Dungeon Crawler Carl': { by: 'Matt Dinniman', from: 2020, planned: 10, place: 'in the crawl', extras: /Book 3\.5|^Cyclopsean/, coming: [['Book 10', 'Planned']],
       blurb: 'A man, his ex-girlfriend\'s cat and a dungeon that is also a game show.', colors: ['#fff3a0', '#ffc444', '#ff8a2a', '#e0447c', '#160d1f'],
       look: { font: 'barlow', sfont: 'bungee', fx: 'offset', wall: 'grid', tex: 'scan', card: 'chunky', mark: 'dot', lab: '#f08fb2' } },
-    'A Court of Thorns and Roses': { by: 'Sarah J. Maas', from: 2015, place: 'in Prythian', extras: /^A Court of Frost and Starlight/, coming: [['ACOTAR 7', 'Jan 12, 2027']],
+    'A Court of Thorns and Roses': { by: 'Sarah J. Maas', from: 2015, place: 'in Prythian',
       blurb: 'A huntress kills a wolf in the woods, and a faerie comes across the wall to collect the debt.', colors: ['#fff0f7', '#f2a7cf', '#b04a8a', '#2a1747', '#0c0816'],
       look: { font: 'cormorant', fit: 1, fx: 'glow', gl: 'rgba(217,120,180,.45)', wall: 'fan', tex: 'stars', card: 'glass', mark: 'star', lab: '#e9a8d8' } },
     'Crescent City': { by: 'Sarah J. Maas', from: 2020, place: 'in Lunathion',
@@ -56,13 +56,13 @@
     'Farseer Trilogy': { by: 'Robin Hobb', from: 1995, to: 1997, place: 'in the Six Duchies',
       blurb: 'A royal bastard is raised in the stables and trained in secret as the king\'s assassin.', colors: ['#eef6ff', '#a9c6e8', '#4f7fb5', '#16243a', '#070c14'],
       look: { font: 'garamond', fx: 'stroke-glow', gl: 'rgba(120,170,230,.45)', wall: 'fan', tex: 'waves', card: 'glass', mark: 'diamond-o', lab: '#a9c6e8' } },
-    'The Empyrean': { by: 'Rebecca Yarros', from: 2023, planned: 5, place: 'at Basgiath', extras: /^Threshing Day/, coming: [['Empyrean 4', 'No title or date yet'], ['Book 5', 'Planned']],
+    'The Empyrean': { by: 'Rebecca Yarros', from: 2023, planned: 5, place: 'at Basgiath', extras: /^Threshing Day/, coming: [['Book 5', 'Planned']],
       blurb: 'A scribe-in-training is forced into the war college where cadets bond dragons or die trying.', colors: ['#fff2d6', '#ffb347', '#e2552b', '#3a1b0f', '#0a0706'],
       look: { font: 'cinzel', fx: 'glow', gl: 'rgba(255,140,60,.5)', wall: 'one', tex: 'scales', card: 'sharp', mark: 'flame', lab: '#ffb347' } },
     'Percy Jackson & the Olympians': { by: 'Rick Riordan', from: 2005, place: 'at Camp Half-Blood', extras: /Demigod Files/,
       blurb: 'A kid with dyslexia and ADHD finds out his father is a Greek god.', colors: ['#fff6e0', '#ffb03b', '#ff7a1a', '#1f6fb2', '#0a1320'],
       look: { font: 'bungee', fit: 1, fx: 'offset', wall: 'grid', tex: 'waves', card: 'chunky', mark: 'star', lab: '#ffb03b' } },
-    'Hierarchy': { by: 'James Islington', from: 2023, planned: 3, place: 'in the Republic', coming: [['The Justice of One', 'No date yet']],
+    'Hierarchy': { by: 'James Islington', from: 2023, planned: 3, place: 'in the Republic',
       blurb: 'In a Republic where everyone gives part of their will to those above them, a hidden prince enrols at its elite academy.', colors: ['#f6f3ea', '#c9b37e', '#8a6d2f', '#2b2d3a', '#0b0c12'],
       look: { font: 'marcellus', fit: 1, fx: 'emboss', wall: 'grid', tex: 'rings', card: 'panel', mark: 'bar', lab: '#c9b37e' } },
     'The Faithful and the Fallen': { by: 'John Gwynne', from: 2012, to: 2016, place: 'in the Banished Lands',
@@ -101,7 +101,7 @@
     if (I.order) { const pos = e => { const i = I.order.findIndex(r => r.test(e)); return i < 0 ? 99 : i; }; E = E.map((e, i) => [e, i]).sort((a, b) => (pos(a[0]) - pos(b[0])) || (a[1] - b[1])).map(x => x[0]); }
     const R = []; const seen = {};
     E.forEach(e => { if (e[0] === '+' || e[0] === '~') { const p = e.slice(1).split('|'); const title = p[1] || p[0]; const rg = /^(\d+)\s*[–-]\s*(\d+)$/.exec(p[0]); const run = e[0] === '+' && rg ? Math.max(1, +rg[2] - +rg[1] + 1) : 0;
-        R.push({ gap: 1, up: e[0] === '~', title, run, note: e[0] === '~' ? (p[2] || 'Announced') : run ? run + ' books, not in your library' : '', extra: !!(I.extras && I.extras.test(title)) }); return; }
+        R.push({ gap: 1, up: e[0] === '~', title, run, n: p[0], note: e[0] === '~' ? (p[2] || 'Announced') : run ? run + ' books, not in your library' : '', extra: !!(I.extras && I.extras.test(title)) || (e[0] === '+' && p[0] === '' && p.length > 1) }); return; }
       if (!owned(e)) { R.push({ gap: 1, title: nice(e, s), extra: !!(I.extras && I.extras.test(e)) }); return; }
       const name = nice(e, s); if (seen[name]) return; seen[name] = 1;
       const m = META[e] || {}; const st = getStatus(e) || ''; const o = O(e);
@@ -110,10 +110,22 @@
       let row; if (have) { const m = META[have] || {}; const st = getStatus(have) || ''; const o = O(have); row = { t: have, title: g.t, extra: !g.main, min: lenOf(have, I, g.t) || g.min || 0, narr: m.narrator || I.narr || '', st, prog: st === 'read' ? 100 : st === 'currently-reading' ? (+o.progress || 0) : 0, fin: String(o.finished || '').slice(0, 10), cover: cover(have), rating: +m.rating || 0, note: g.note || '' }; }
       else row = { gap: 1, extra: !g.main, title: g.t, note: g.note || '', min: g.min || 0, url: g.url || '' };
       const i = g.after ? R.findIndex(x => x.t && g.after.test(x.t)) : -1; if (i >= 0) R.splice(i + 1, 0, row); else { const j = R.findIndex(x => x.up); if (j >= 0) R.splice(j, 0, row); else R.push(row); } });
+    // books of this series that have come out since (upcoming.json, through L58): each is a book to get until it is in his library,
+    // and takes the place of its "still to come" line
+    let rel = { out: [], soon: [] }; try { if (window.L58) rel = L58.forSeries(s); } catch (e) {}
+    const nt = t => { try { return normT(t); } catch (e) { return nrm(t); } };
+    rel.out.forEach(x => { const n = nt(x.title); const hit = R.find(r => !r.up && (nt(r.t || r.title) === n || nrm(r.title) === nrm(x.title)));
+      if (hit) { if (hit.gap && !hit.t) { if (!hit.note) hit.note = 'Out ' + L58.when(x); if (!hit.min) hit.min = +x.minutes || 0; } return; }
+      const have = L58.lib(x)[0]; let row;
+      if (have) { const m = META[have] || {}; const st = getStatus(have) || ''; const o = O(have); row = { t: have, title: x.title, extra: !L58.numOf(x), year: m.year || '', min: lenOf(have, I, x.title) || +x.minutes || 0, narr: m.narrator || I.narr || '', st, prog: st === 'read' ? 100 : st === 'currently-reading' ? (+o.progress || 0) : 0, fin: String(o.finished || '').slice(0, 10), cover: cover(have), rating: +m.rating || 0, note: '' }; }
+      else row = { gap: 1, extra: !L58.numOf(x), title: x.title, note: 'Out ' + L58.when(x), min: +x.minutes || 0 };
+      const ph = R.find(r => r.up && L58.same(r.title, r.n, x)); if (ph) R[R.indexOf(ph)] = row; else { const j = R.findIndex(r => r.up); if (j >= 0) R.splice(j, 0, row); else R.push(row); } });
     // a series the library only knows as a list comes in number order
-    if (!I.order && !(typeof SERIES_PLAN !== 'undefined' && SERIES_PLAN[s])) { const num = x => { const v = x.t ? parseFloat((META[x.t] || {}).num) : NaN; return isNaN(v) ? 1e6 : v; }; if (R.some(x => num(x) < 1e6)) { const ix = new Map(R.map((x, i) => [x, i])); R.sort((a, b) => (num(a) - num(b)) || (ix.get(a) - ix.get(b))); } }
+    if (!I.order && !(typeof SERIES_PLAN !== 'undefined' && SERIES_PLAN[s])) { const upn = x => { try { const u = window.L58 && L58.find('books', x.title); return u ? L58.numOf(u) : 0; } catch (e) { return 0; } };
+      // its number: the library's, else the upcoming list's, else the "Book 2" in its title, and the book the series is named after is book 1
+      const num = x => { let v = x.t ? parseFloat((META[x.t] || {}).num) : NaN; if (isNaN(v)) v = upn(x) || NaN; if (isNaN(v) && x.t) { const m = /\bBook (\d+(?:\.\d+)?)\b/.exec(x.t); if (m) v = +m[1]; else if (nrm(x.title) === nrm(s)) v = 1; } return isNaN(v) ? 1e6 : v; }; if (R.some(x => num(x) < 1e6)) { const ix = new Map(R.map((x, i) => [x, i])); R.sort((a, b) => (num(a) - num(b)) || (ix.get(a) - ix.get(b))); } }
     let n = 0; R.forEach(x => { if (!x.extra && !x.up) { x.num = n + 1; n += x.run || 1; } });
-    return { s, I, R, C: I.colors || DEF, L: Object.assign({}, DEFLOOK, I.look || {}) }; };
+    return { s, I, R, soon: rel.soon, C: I.colors || DEF, L: Object.assign({}, DEFLOOK, I.look || {}) }; };
   L57.place = function (D) { const own = D.R.filter(x => x.t && !x.up); const main = own.filter(x => !x.extra);
     const cur = own.find(x => x.st === 'currently-reading'); const read = own.filter(x => x.st === 'read');
     const lastRead = main.filter(x => x.st === 'read').map(x => x.num).reduce((a, b) => Math.max(a, b), 0);
@@ -164,7 +176,10 @@
       if (x.t) return '<button class="' + cls + '" data-l57book="' + esc(encodeURIComponent(x.t)) + '">' + inner + '</button>';
       let href = x.url; try { if (!href) href = audibleUrl(x.title + (I.by ? ' ' + I.by : '')); } catch (e) {}
       return '<a class="' + cls + '" href="' + esc(href || '#') + '" target="_blank" rel="noopener">' + inner + '</a>'; }).join('') + '</section>';
-    const up = R.filter(x => x.up).map(x => [x.title, x.note || 'Announced']).concat(I.coming || []).filter((u, i, A) => A.findIndex(v => nrm(v[0]) === nrm(u[0])) === i);
+    // still to come: the upcoming list's books for this series first (they carry dates), then the lines the library and this page already had
+    const soon = D.soon || []; const same = (u, x) => { try { return L58.same(u[0], u[2], x); } catch (e) { return false; } };
+    const up = soon.map(x => [x.title, (/^\d{4}-\d{2}-\d{2}$/.test(String(x.date)) ? 'Out ' : '') + L58.when(x)]).concat(R.filter(x => x.up).map(x => [x.title, x.note || 'Announced', x.n]).concat((I.coming || []).map(c => [c[0], c[1], null])).filter(u => !soon.some(x => same(u, x))))
+      .filter((u, i, A) => A.findIndex(v => nrm(v[0]) === nrm(u[0])) === i);
     if (up.length) h += '<section class="l57-list l57-up"><h2>Still to come</h2>' + up.map(u => '<div class="l57-row soon"><span class="tx"><b>' + esc(u[0]) + '</b><small>' + esc(u[1]) + '</small></span></div>').join('') + '</section>';
     try { const S = window.L29 && L29.S && L29.S.find(x => x.n === D.s || x.short === D.s || D.s.indexOf(x.short) >= 0); if (S) { const st = L29.stats(S); h += '<button class="l57-enc" data-l29="' + esc(S.k) + '"><b>' + esc(S.short) + ' encyclopedia</b><span>' + st.u + ' of ' + st.n + ' entries open ›</span></button>'; } } catch (e) {}
     return h + '<div class="l57-end"></div>'; }

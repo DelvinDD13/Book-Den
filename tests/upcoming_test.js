@@ -1,13 +1,13 @@
 const { chromium } = require('playwright'); const http = require('http'), fs = require('fs'), path = require('path');
 const ROOT = process.env.ROOT || '/home/claude/book-den'; const MIME = { '.html': 'text/html', '.js': 'application/javascript', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.woff2': 'font/woff2', '.gif': 'image/gif' };
-const srv = http.createServer((req, res) => { let p = decodeURIComponent(req.url.split('?')[0]); if (p === '/') p = '/index.html'; fs.readFile(path.join(ROOT, p), (e, d) => { if (e) { res.writeHead(404); return res.end(); } res.writeHead(200, { 'Content-Type': MIME[path.extname(p)] || 'application/octet-stream' }); res.end(d); }); });
+const srv = http.createServer((req, res) => { let p = decodeURIComponent(req.url.split('?')[0]); if (p === '/') p = '/index.html'; if (p === '/upcoming.json') p = '/tests/upcoming_fixture.json'; fs.readFile(path.join(ROOT, p), (e, d) => { if (e) { res.writeHead(404); return res.end(); } res.writeHead(200, { 'Content-Type': MIME[path.extname(p)] || 'application/octet-stream' }); res.end(d); }); });
 const store = fs.readFileSync(path.join(__dirname, 'store.json')); let pass = 0, fail = 0; const ok = (c, m) => { if (c) pass++; else { fail++; console.log('FAIL', m); } };
 (async () => { await new Promise(r => srv.listen(8806, r)); const br = await chromium.launch(); const ctx = await br.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   await ctx.route(u => !/^http:\/\/localhost/.test(u.href), r => r.abort()); await ctx.route(/script\.google\.com/, r => r.fulfill({ status: 200, contentType: 'application/json', body: store }));
   const page = await ctx.newPage(); const errs = []; page.on('pageerror', e => errs.push(String(e)));
   await page.goto('http://localhost:8806/'); await page.waitForTimeout(7000); const R = f => page.evaluate(f);
   // descriptions: what the thing is, and nothing else
-  ok(await R(() => { const all = (UPCOMING.books || []).concat(UPCOMING.games || []); return all.length === 25 && all.every(x => x.note && !/\$|pre-?orders?|demo|closest thing|in decades|standard-setter|Koschei|EON headquarters|Madoc/i.test(x.note)) && UPCOMING.games.every(x => x.genre); }), 'every Upcoming description is plain: no prices, pre-orders, comparisons or plot from later books');
+  ok(await R(() => { const all = (UPCOMING.books || []).concat(UPCOMING.games || []); return all.length === 26 && all.every(x => x.note && !/\$|pre-?orders?|demo|closest thing|in decades|standard-setter|Koschei|EON headquarters|Madoc/i.test(x.note)) && UPCOMING.games.every(x => x.genre); }), 'every Upcoming description is plain: no prices, pre-orders, comparisons or plot from later books');
   await R(() => switchLib('books')); await page.waitForTimeout(1500);
   const n0 = await R(() => L19.ordered('books').length);
   ok(await R(() => { const L = L19.ordered('books').map(x => x.title); const lib = ALL_TITLES.filter(t => META[t] && META[t].gr === false).map(t => normT(t)); return L.every(t => lib.indexOf(normT(t)) < 0) && L.indexOf('Seven and the Swift') >= 0; }), 'the Upcoming row lists only books that are not in the library');
@@ -20,10 +20,10 @@ const store = fs.readFileSync(path.join(__dirname, 'store.json')); let pass = 0,
   await R(() => closeSheet());
   // games: one button per platform he plays on
   await R(() => switchLib('screen')); await page.waitForTimeout(1500);
-  await R(() => { const i = L19.ordered('games').findIndex(x => x.title === 'Brigandine: Abyss'); openSheet('up:games:' + i); }); await page.waitForTimeout(500);
-  ok(await R(() => { const btn = [...document.querySelectorAll('#sheet .l41 button')].map(x => x.textContent); return btn.join('|') === 'I own it on PS5|I own it on Switch 2' && /A hex-grid strategy RPG with six story campaigns/.test(document.querySelector('#sheet .sheet-body').textContent); }), 'a game page: one button for each of his platforms it is on');
+  await R(() => { const i = L19.ordered('games').findIndex(x => x.title === 'Persona 4 Revival'); openSheet('up:games:' + i); }); await page.waitForTimeout(500);
+  ok(await R(() => { const btn = [...document.querySelectorAll('#sheet .l41 button')].map(x => x.textContent); return btn.join('|') === 'I own it on PS5|I own it on Switch 2' && /A full remake of Persona 4 Golden/.test(document.querySelector('#sheet .sheet-body').textContent); }), 'a game page: one button for each of his platforms it is on');
   await R(() => document.querySelector('#sheet .l41 button[data-how=PS5]').click()); await page.waitForTimeout(900);
-  ok(await R(() => { const g = GAMES.find(x => x.t === 'Brigandine: Abyss'); return g && g.p === 'PS5' && g.g === 'Strategy RPG' && gStatus(g) === 'backlog' && sheetTitle === 'game:Brigandine: Abyss' && L19.ordered('games').every(x => x.title !== 'Brigandine: Abyss') && /Brigandine: Abyss/.test(document.querySelector('#lib-other').textContent); }), 'the game lands in the backlog on PS5, shows in the Games grid, and leaves Upcoming');
+  ok(await R(() => { const g = GAMES.find(x => x.t === 'Persona 4 Revival'); return g && g.p === 'PS5' && g.g === 'RPG' && gStatus(g) === 'backlog' && sheetTitle === 'game:Persona 4 Revival' && L19.ordered('games').every(x => x.title !== 'Persona 4 Revival') && /Persona 4 Revival/.test(document.querySelector('#lib-other').textContent); }), 'the game lands in the backlog on PS5, shows in the Games grid, and leaves Upcoming');
   await R(() => closeSheet());
   await R(() => { const i = L19.ordered('games').findIndex(x => /Sunrise on the Reaping/.test(x.title)); openSheet('up:games:' + i); }); await page.waitForTimeout(400);
   ok(await R(() => { const btn = [...document.querySelectorAll('#sheet .l41 button')].map(x => x.textContent); return btn.length === 1 && btn[0] === 'Add it to my watch list'; }), 'a film gets a watch-list button instead');
@@ -35,8 +35,8 @@ const store = fs.readFileSync(path.join(__dirname, 'store.json')); let pass = 0,
   await R(() => closeSheet());
   // it all survives closing and reopening the app
   await page.reload(); await page.waitForTimeout(7000);
-  ok(await R(() => { const g = GAMES.find(x => x.t === 'Brigandine: Abyss'); const t = 'Seven and the Swift'; return g && g.p === 'PS5' && ALL_TITLES.indexOf(t) >= 0 && META[t].gr === false && SHOWS.some(x => /Sunrise on the Reaping/.test(x.t)) && L19.ordered('games').every(x => x.title !== 'Brigandine: Abyss') && L19.ordered('books').every(x => x.title !== t); }), 'after reopening the app everything is still in the library and off the Upcoming rows');
+  ok(await R(() => { const g = GAMES.find(x => x.t === 'Persona 4 Revival'); const t = 'Seven and the Swift'; return g && g.p === 'PS5' && ALL_TITLES.indexOf(t) >= 0 && META[t].gr === false && SHOWS.some(x => /Sunrise on the Reaping/.test(x.t)) && L19.ordered('games').every(x => x.title !== 'Persona 4 Revival') && L19.ordered('books').every(x => x.title !== t); }), 'after reopening the app everything is still in the library and off the Upcoming rows');
   // and the way back works
-  await R(() => { openSheet('game:Brigandine: Abyss'); }); await page.waitForTimeout(500); await R(() => document.querySelector('#sheet .l41-back button').click()); await page.waitForTimeout(7500);
-  ok(await R(() => !GAMES.some(x => x.t === 'Brigandine: Abyss') && L19.ordered('games').some(x => x.title === 'Brigandine: Abyss') && !(getOverride('upown').v || {})['g:Brigandine: Abyss']), '"Put it back" returns the game to Upcoming');
+  await R(() => { openSheet('game:Persona 4 Revival'); }); await page.waitForTimeout(500); await R(() => document.querySelector('#sheet .l41-back button').click()); await page.waitForTimeout(7500);
+  ok(await R(() => !GAMES.some(x => x.t === 'Persona 4 Revival') && L19.ordered('games').some(x => x.title === 'Persona 4 Revival') && !(getOverride('upown').v || {})['g:Persona 4 Revival']), '"Put it back" returns the game to Upcoming');
   console.log(pass + ' passed, ' + fail + ' failed', JSON.stringify(errs.slice(0, 5))); await br.close(); srv.close(); process.exit(fail ? 1 : 0); })();

@@ -44,7 +44,7 @@ bad('the checked day cannot be ahead of today', lambda d: d.update(at='2026-12-2
 bad('a game with no genre is refused', lambda d: game(d, 'Persona 6').pop('genre'), 'no genre')
 good('a placeholder getting its real name is fine when the series and number stay', lambda d: book(d, 'The Empyrean #4').update(title='A Real Title', date='2027-09-21', status='dated'))
 good('a release on its day is fine', lambda d: (book(d, 'A Conspiracy of Charming Monsters').update(status='released'), d.update(at=T)))
-good('a new entry is fine', lambda d: d['books'].append({'series': 'Crescent City', 'title': 'Crescent City #4', 'author': 'Sarah J. Maas', 'date': 'TBA', 'status': 'announced', 'note': 'The fourth Crescent City book. No title or date yet.', 'cover': None, 'sources': ['https://example.com/a'], 'num': 4}))
+good('a new entry is fine', lambda d: d['books'].append({'series': 'A Court of Thorns and Roses', 'title': 'A Court of Thorns and Roses #8', 'author': 'Sarah J. Maas', 'date': 'TBA', 'status': 'announced', 'note': 'The eighth A Court of Thorns and Roses book. No title or date yet.', 'cover': None, 'sources': ['https://example.com/a'], 'num': 8}))
 good('an audiobook length is fine', lambda d: book(d, 'A Court of Forgotten Melody').update(minutes=1287))
 d2 = copy.deepcopy(D); book(d2, 'The Empyrean #4').update(title='A Real Title', date='2027-09-21', status='dated'); d2['at'] = T
 C = U.changes(d2, D)
