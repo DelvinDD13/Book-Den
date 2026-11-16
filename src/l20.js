@@ -62,7 +62,7 @@
   };
   const LADDERS = {
     cosmere: { name: 'Cosmere ladder', core: ['tfe', 'woa', 'hoa', 'warbreaker', 'tress', 'wok', 'alloy', 'sos', 'bands', 'lost', 'elantris', 'yumi', 'fires', 'wor', 'edgedancer', 'oathbringer', 'dawnshard', 'row', 'sunlit', 'wat'], side: ['emperor', 'arcanum', 'secret', 'whitesand', 'isles'],
-      ranks: [[0, 'At the foot'], [1, 'Mistling'], [3, 'Survivor'], [4, 'Awakener'], [6, 'Bridgeman'], [10, 'Lawkeeper'], [11, 'Elantrian'], [13, 'Radiant'], [17, 'Herald'], [20, 'Shardbearer']], unit: 'rungs',
+      ranks: [[0, 'At the foot'], [1, 'Mistling'], [3, 'Survivor'], [4, 'Awakener'], [6, 'Bridgeman'], [10, 'Lawkeeper'], [11, 'Elantrian'], [13, 'Radiant'], [17, 'Herald'], [20, 'Full Shardbearer']], unit: 'rungs',
       orders: {
         brandon: { name: "Brandon's", note: 'Sanderson’s own suggested order: the ladder, with the side quests read around it.', seq: null },
         pub: { name: 'Published', note: 'Every Cosmere work in the order it came out, the Arcanum Unbounded stories by their own dates.', seq: ['elantris', 'hope', 'tfe', 'woa', 'hoa', 'warbreaker', 'wok', 'alloy', 'eleventh', 'emperor', 'silence', 'wor', 'jak', 'sixth', 'sos', 'bands', 'edgedancer', 'secret', 'whitesand', 'oathbringer', 'dawnshard', 'row', 'lost', 'tress', 'yumi', 'sunlit', 'wat', 'elsecaller', 'lopen', 'isles', 'fires'] },
@@ -117,6 +117,8 @@
     A('cl_survivor', 'Survivor', 'Cosmere ladder', 'Finish Mistborn Era 1', 3, ERA1),
     A('cl_awakened', 'Awakened', 'Cosmere ladder', 'Finish Warbreaker', 1, ['warbreaker']),
     A('cl_bridgefour', 'Bridge Four', 'Cosmere ladder', 'Finish The Way of Kings', 1, ['wok']),
+    // his Shardblades: counted once each has had its ten heartbeats (L20.rite), so the badge lands after the moment, not before it
+    Object.assign(A('cl_blades', 'Shardbearer', 'Cosmere ladder', 'Shardblades taken', 1, null, { items: () => L20.bladeItems(), cand: () => [] }), { th: [1, 4, 8, 12], single: undefined }),
     A('cl_waxwayne', 'Wax & Wayne', 'Cosmere ladder', 'Finish Mistborn Era 2', 4, ERA2),
     A('cl_elantrian', 'Elantrian', 'Cosmere ladder', 'Finish Elantris', 1, ['elantris']),
     A('cl_hoid', "Hoid's Audience", 'Cosmere ladder', 'Finish Tress, Yumi and The Fires of December', 3, HOID),
@@ -149,6 +151,7 @@
     const face = n => '<image href="art/blades/s_' + n + '.png" x="-30" y="' + Math.round(50 - (FOCUS[n] || .3) * 300) + '" width="160" height="300" preserveAspectRatio="xMidYMin meet" clip-path="url(#l20face)" style="image-rendering:pixelated"/>';
     const BLADE_OF = { cl_awakened: 'nightblood', cl_bridgefour: 'sylspear', cl_radiant: 'oathbringer', cl_arcanist: 'wyndleblade', cl_worldhopper: 'ivory', cl_halfway: 'sunraiser', cl_sidequester: 'pattern', cl_top: 'mayalaran' };
     Object.keys(BLADE_OF).forEach(id => { I[id] = face(BLADE_OF[id]); });
+    try { Object.defineProperty(I, 'cl_blades', { get: () => face(L20.blade()), enumerable: true, configurable: true }); } catch (e) {}   // the Shardbearer medal shows the blade he carries
     try { document.body.insertAdjacentHTML('beforeend', '<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><clipPath id="l20face"><circle cx="50" cy="50" r="65"/></clipPath></defs></svg>'); } catch (e) {}
   })();
   (function () { try { if (!window.L4 || !L4.defs) return; const have = new Set(L4.defs.map(d => d.id)); DEFS.forEach(d => { if (!have.has(d.id)) L4.defs.push(d); }); L4.clear(); } catch (e) { console.warn('l20 badges', e); } })();
@@ -177,7 +180,37 @@
   L20.blade = () => { let v = ''; try { v = localStorage.getItem(BK) || ''; } catch (e) {} let mine = []; try { mine = L20.blades(); } catch (e) {} if (mine.length) return mine.includes(v) ? v : mine[0]; return BLADES.includes(v) ? v : BLADES[0]; };
   const redrawBlades = () => { let x = 0; try { x = sheet.querySelector('.cl-pick').scrollLeft; } catch (e) {} try { if (sheetTitle === 'cosmere' || sheetTitle === 'ladder:cosmere') { renderSheet(); const p = sheet.querySelector('.cl-pick'); if (p) p.scrollLeft = x; } } catch (e) {} try { if (window.L15 && L15.placeBooks) L15.placeBooks(); } catch (e) {} };
   L20.setBlade = n => { if (!L20.blades().includes(n)) return; try { localStorage.setItem(BK, n); } catch (e) {} redrawBlades(); };
-  L20.takeBlade = function (n) { if (!BLADES.includes(n) || L20.bladesToTake() < 1) return false; const L = L20.blades(); if (L.includes(n)) return false; L.push(n); try { localStorage.setItem(OWN, JSON.stringify(L)); localStorage.setItem(BK, n); } catch (e) { return false; } bpick = ''; redrawBlades(); return true; };
+  L20.takeBlade = function (n) { if (!BLADES.includes(n) || L20.bladesToTake() < 1) return false; const L = L20.blades(); if (L.includes(n)) return false; L.push(n); try { localStorage.setItem(OWN, JSON.stringify(L)); localStorage.setItem(BK, n); } catch (e) { return false; } bpick = ''; noteBlade(n); redrawBlades(); L20.rite(n); return true; };
+  // what each blade was earned by and the day he took it; and how many have had their moment
+  const LOGK = 'den:blades:log', RITE = 'den:blades:rite'; const today20 = () => { const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+  const bladeLog = () => { try { const o = JSON.parse(localStorage.getItem(LOGK) || '{}'); return o && typeof o === 'object' ? o : {}; } catch (e) { return {}; } };
+  // the things that have earned him a blade so far, oldest first: Stormlight books by the day finished, then the top ranks reached
+  const bladeSources = S => { S = S || cosS(); return roshar(S).filter(r => r.read).sort((a, b) => String(a.fin || '9') < String(b.fin || '9') ? -1 : 1).map(r => ({ k: r.k, name: r.name })).concat(topRanks(S).filter(r => S.climbed >= r[0]).map(r => ({ k: 'rank:' + r[0], name: r[1] }))); };
+  const noteBlade = n => { const log = bladeLog(); if (log[n]) return log[n]; const used = new Set(Object.values(log).map(x => x.f)); const src = bladeSources().find(x => !used.has(x.k)) || { k: '', name: '' }; log[n] = { at: today20(), f: src.k, by: src.name }; try { localStorage.setItem(LOGK, JSON.stringify(log)); } catch (e) {} return log[n]; };
+  const rited = () => { let n = 0; try { n = +localStorage.getItem(RITE) || 0; } catch (e) {} return Math.min(n, L20.blades().length); };
+  L20.bladeItems = function () { const log = bladeLog(); return L20.blades().slice(0, rited()).map(n => { const e = log[n] || {}; return { t: L20.bladeName(n, BLADES.indexOf(n)), k: 'note', d: e.at || null, sub: e.by || '' }; }); };
+  // ---- the moment a blade becomes his: ten heartbeats, then the blade. The beats are ten marks that light one after another; the
+  //   blade then comes out of the dark in one slow fade. Opacity only, each change once: nothing flashes, pulses or moves. A tap
+  //   skips the count; with reduced motion there is no count. Closing it counts the blade toward the Shardbearer badge. ----
+  let riteEl = null, riteT = [];
+  L20.riteOpen = () => !!(riteEl && riteEl.classList.contains('on'));
+  L20.rite = function (n) { try { if (!BLADES.includes(n)) return false; const mine = L20.blades(); const k = mine.indexOf(n) + 1; if (!k) return false; const e = noteBlade(n); const nm = L20.bladeName(n, BLADES.indexOf(n)); const src = 'art/blades/s_' + n + '.png';
+      let still = false; try { still = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (x) {}
+      if (!riteEl) { riteEl = document.createElement('div'); riteEl.id = 'l20rite'; riteEl.setAttribute('role', 'dialog'); riteEl.setAttribute('aria-modal', 'true'); document.body.appendChild(riteEl); }
+      riteT.forEach(clearTimeout); riteT = []; riteEl.dataset.blade = n; riteEl.className = still ? 'still' : '';
+      riteEl.innerHTML = '<div class="rt-in"><div class="rt-top"><span>Ten heartbeats</span><div class="rt-beats" aria-hidden="true">' + '<i></i>'.repeat(10) + '</div></div>' +
+        '<div class="rt-blade"><b class="rt-glow"></b><img src="' + src + '" alt=""><img class="rt-dk" src="' + src + '" alt=""></div>' +
+        '<div class="rt-tx"><span>Shardblade ' + k + ' of ' + BLADES.length + '</span><b>' + E(nm) + '</b>' + (e.by ? '<em>' + E(e.by) + '</em>' : '') + '</div><button class="rt-go" data-rite="done">Carry it</button></div>';
+      riteEl.setAttribute('aria-label', 'Shardblade ' + k + ' of ' + BLADES.length);
+      const beats = [...riteEl.querySelectorAll('.rt-beats i')]; const arrive = () => { riteT.forEach(clearTimeout); riteT = []; beats.forEach(b => b.classList.add('on')); riteEl.classList.add('here'); };
+      riteEl._arrive = arrive; void riteEl.offsetWidth; riteEl.classList.add('on');
+      if (still) arrive(); else { beats.forEach((b, i) => riteT.push(setTimeout(() => b.classList.add('on'), 700 + i * 720))); riteT.push(setTimeout(arrive, 700 + 10 * 720 + 300)); }
+      return true; } catch (x) { console.warn('l20 rite', x); return false; } };
+  L20.riteDone = function () { if (!riteEl) return; riteT.forEach(clearTimeout); riteT = []; riteEl.classList.remove('on', 'here'); try { localStorage.setItem(RITE, String(L20.blades().length)); } catch (e) {}
+    try { if (window.L4 && L4.clear) L4.clear(); if (window.L4 && L4.sync) L4.sync(); } catch (e) {} redrawBlades(); };
+  // a blade taken before it could have its moment (the first one, taken on Nov 15 2026) gets it the next time the ladder is opened
+  L20.riteOwed = function () { try { const mine = L20.blades(); if (!mine.length || rited() >= mine.length || L20.riteOpen()) return false; return L20.rite(mine[mine.length - 1]); } catch (e) { return false; } };
+  document.addEventListener('click', e => { if (!riteEl || !riteEl.classList.contains('on')) return; const t = e.target; if (!(t.closest && t.closest('#l20rite'))) return; e.preventDefault(); e.stopPropagation(); if (t.closest('[data-rite="done"]') && riteEl.classList.contains('here')) L20.riteDone(); else if (!riteEl.classList.contains('here') && riteEl._arrive) riteEl._arrive(); }, true);
   // said once each time the count of earned blades goes up (not while the library is still loading)
   L20.bladeNews = function () { try { if (typeof SYNC82 !== 'undefined' && SYNC82.state === 'wait') return 0; const n = L20.bladesEarned(); const was = +localStorage.getItem(SEEN) || 0; if (n === was) return 0; localStorage.setItem(SEEN, String(n)); if (n < was) return 0; const t = L20.bladesToTake(); if (t > 0) toast('Shardblade earned · ' + (t > 1 ? t + ' to choose' : 'choose yours')); return n - was; } catch (e) { return 0; } };
   const tierOf = S => S.ranks.filter(r => S.climbed >= r[0]).length - 1;
@@ -242,7 +275,7 @@
       '<div class="l4-sec"><div class="l4-st">' + (S.brandon ? 'The ladder' : E(O.name) + ' order') + ' <small>' + S.seq.filter(r => r.read).length + '/' + S.seq.length + '</small></div><div class="cl-list">' + S.seq.slice().reverse().map(r => rung(r, S, true)).join('') + '</div></div>' +
       (S.brandon && S.side.length ? '<div class="l4-sec"><div class="l4-st">Side quests <small>' + S.side.filter(r => r.read).length + '/' + S.side.length + '</small></div><div class="cl-list">' + S.side.map(r => rung(r, S, false)).join('') + '</div></div>' : '') +
       (ach.length ? '<div class="l4-sec"><div class="l4-st">Achievements <small>' + ach.filter(b => b.tier > 0).length + '/' + ach.length + '</small></div><div class="l4-grid">' + ach.map(b => L4.card(b, false)).join('') + '</div></div>' : '') + '</div>'; };
-  document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('[data-l20]'); if (!b) return; e.preventDefault(); e.stopPropagation(); openSheet('ladder:' + (LADDERS[b.dataset.l20] ? b.dataset.l20 : 'cosmere')); }, true);
+  document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('[data-l20]'); if (!b) return; e.preventDefault(); e.stopPropagation(); openSheet('ladder:' + (LADDERS[b.dataset.l20] ? b.dataset.l20 : 'cosmere')); if (b.dataset.l20 === 'cosmere') setTimeout(() => { try { L20.riteOwed(); } catch (x) {} }, 350); }, true);
   (function () { const _rs = renderSheet; renderSheet = function () { const t = String(sheetTitle || ''); if (t === 'cosmere' || t.startsWith('ladder:')) { const id = t === 'cosmere' ? 'cosmere' : t.slice(7); if (LADDERS[id]) { sheet.querySelector('.sheet-body').innerHTML = L20.sheetHTML(id); return; } } return _rs.apply(this, arguments); }; })();
   // Kelsier's flight: his own keyframes, transforms only, so nothing in the base sheet or a motion setting can park him
   // Kelsier swings across the masthead on a line: the anchor travels, each swing is one forward arc, the line lets go at the top and catches again
@@ -289,6 +322,14 @@
     // his rack: dark until earned; lit to choose from while one is his to take; the one he has tapped stands out
     '.cl-pick button.dark{border-color:rgba(255,255,255,.14)!important;opacity:1}.cl-pick button.dark img{filter:grayscale(1) brightness(.34) contrast(1.1)}.cl-pick button.dark i{opacity:.45}.cl-pick button.can{border-style:dashed!important}.cl-pick button.pk{border-style:solid!important;border-color:#fff!important;box-shadow:4px 4px 0 #fff!important}.cl-pick button.pk i{color:#111;background:#fff}',
     '.cl-takeb{display:block;width:100%;min-height:46px;margin:6px 0 2px;border:2px solid var(--d-acc,#ff6a2a)!important;border-radius:0!important;background:var(--d-acc,#ff6a2a)!important;color:#111!important;box-shadow:none!important;font:400 17px/1 var(--b-disp,"Bebas Neue"),Impact,sans-serif;letter-spacing:.08em;text-transform:uppercase}.cl-takeb[disabled]{background:none!important;color:var(--d-acc,#ff6a2a)!important;opacity:.75}',
+    // the moment: dark, the blade in the middle, ten marks above it; every change is one fade
+    '#l20rite{position:fixed;inset:0;z-index:2400;display:none;background:#06050b;color:#f3efe6;opacity:0;transition:opacity .6s ease}#l20rite.on{display:block;opacity:1}#l20rite.still,#l20rite.still *{transition:none!important}',
+    '#l20rite .rt-in{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:calc(env(safe-area-inset-top) + 20px) 24px calc(env(safe-area-inset-bottom) + 24px)}',
+    '#l20rite .rt-top{display:flex;flex-direction:column;align-items:center;gap:10px;transition:opacity 1.2s ease}#l20rite .rt-top span{font:400 11px var(--b-mono,"IBM Plex Mono"),monospace;letter-spacing:.22em;text-transform:uppercase;color:#8e8e95}#l20rite .rt-beats{display:flex;gap:9px}#l20rite .rt-beats i{width:9px;height:9px;border-radius:50%;border:1px solid rgba(243,239,230,.38);background:#f3efe6;background-clip:content-box;padding:0;opacity:.22;transition:opacity .5s ease}#l20rite .rt-beats i.on{opacity:1}#l20rite.here .rt-top{opacity:.35}',
+    '#l20rite .rt-blade{position:relative;flex:0 1 auto;height:min(52vh,460px);aspect-ratio:160/300;max-width:70vw}#l20rite .rt-blade img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;image-rendering:pixelated;image-rendering:crisp-edges}#l20rite .rt-blade .rt-dk{filter:grayscale(1) brightness(.3) contrast(1.1);transition:opacity 2.2s ease}#l20rite.here .rt-blade .rt-dk{opacity:0}',
+    '#l20rite .rt-glow{position:absolute;left:50%;top:50%;width:150%;height:86%;transform:translate(-50%,-50%);background:radial-gradient(closest-side,rgba(180,225,255,.2),rgba(180,225,255,0));opacity:0;transition:opacity 2.6s ease}#l20rite.here .rt-glow{opacity:1}',
+    '#l20rite .rt-tx{display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;opacity:0;transition:opacity 1.2s ease 1.2s}#l20rite.here .rt-tx{opacity:1}#l20rite .rt-tx span{font:400 11px var(--b-mono,"IBM Plex Mono"),monospace;letter-spacing:.22em;text-transform:uppercase;color:var(--d-acc,#ff6a2a)}#l20rite .rt-tx b{font:400 38px/1 var(--b-disp,"Bebas Neue"),Impact,sans-serif;letter-spacing:.06em;text-transform:uppercase}#l20rite .rt-tx em{font:400 13px var(--b-mono,"IBM Plex Mono"),monospace;font-style:normal;color:#b9b4ab}',
+    '#l20rite .rt-go{min-width:200px;min-height:48px;padding:0 22px;border:2px solid var(--d-acc,#ff6a2a);border-radius:0;background:var(--d-acc,#ff6a2a);color:#111;font:400 18px/1 var(--b-disp,"Bebas Neue"),Impact,sans-serif;letter-spacing:.1em;text-transform:uppercase;opacity:0;pointer-events:none;transition:opacity 1.2s ease 1.6s}#l20rite.here .rt-go{opacity:1;pointer-events:auto}',
     '.cl-nb{margin:6px 0 0;font:400 11px var(--b-mono,"IBM Plex Mono"),monospace;letter-spacing:.04em;color:var(--d-mute,#8e8e95)}',
     'html body.den .cl-stats.c4{grid-template-columns:1fr 1fr}html body.den .cl-blade .cl-wait{left:50%;bottom:12px;transform:translateX(-50%) rotate(-3deg);white-space:nowrap}',
     '.cl-list{display:flex;flex-direction:column;gap:6px}',
