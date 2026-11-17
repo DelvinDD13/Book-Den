@@ -1091,9 +1091,50 @@ def coveraudit():
         for fl in r['flags']: cnt['flag ' + fl] = cnt.get('flag ' + fl, 0) + 1
     cnt['flagged red or amber'] = len(flagged); cnt['ocr'] = bool(pytesseract); save('cover_audit_counts.json', cnt); log('coveraudit', cnt)
 
+def pages():
+    """Print page counts for each [title, author] in sync/pages_titles.json: Open Library's search (the median page count across
+    a work's editions) and Google Books (the page count of each matching volume). Read-only: nothing goes to the store.
+    audit/pages.json holds what each source said, so the counts can be checked before they go into the app."""
+    L = json.load(open(os.path.join(HERE, 'pages_titles.json'))); out = {}; n_ok = 0
+    def hit(tt, main): return 'exact' if tt == main else 'starts' if (tt.startswith(main + ' ') or main.startswith(tt + ' ')) else None
+    def gjson(url):
+        for a in range(3):
+            try: return get(url, 40)
+            except urllib.error.HTTPError as e:
+                if e.code in (429, 503): time.sleep(10 * (a + 1)); continue
+                raise
+        return {}
+    for i, row in enumerate(L):
+        t = row[0]; author = (row[1] if len(row) > 1 else '') or ''
+        main = re.sub(r'\s*[\(\[][^\)\]]*[\)\]]\s*', ' ', t).split(':')[0].strip(); nm = norm(main)
+        a1 = re.split(r',|&| and ', author)[0].strip() if author else ''; rec = {}
+        try:
+            q = {'title': main, 'fields': 'key,title,author_name,number_of_pages_median,edition_count,first_publish_year', 'limit': '8'}
+            if a1: q['author'] = a1
+            C = []
+            for x in gjson('https://openlibrary.org/search.json?' + urllib.parse.urlencode(q)).get('docs') or []:
+                how = hit(norm(x.get('title') or ''), nm)
+                if how and x.get('number_of_pages_median'): C.append((0 if how == 'exact' else 1, -(x.get('edition_count') or 0), x.get('key') or '', x))
+            C.sort(key=lambda c: c[:3])
+            if C:
+                x = C[0][3]; rec['ol'] = x.get('number_of_pages_median'); rec['ol_t'] = (x.get('title') or '')[:60]; rec['ol_a'] = (x.get('author_name') or [])[:2]; rec['ol_e'] = x.get('edition_count'); rec['ol_how'] = 'exact' if C[0][0] == 0 else 'starts'
+        except Exception as e: rec['ol_err'] = str(e)[:80]
+        time.sleep(0.4)
+        try:
+            qs = 'intitle:"%s"' % main + (' inauthor:"%s"' % a1 if a1 else ''); G = []
+            for it in gjson('https://www.googleapis.com/books/v1/volumes?' + urllib.parse.urlencode({'q': qs, 'maxResults': '10', 'printType': 'books', 'country': 'US', 'langRestrict': 'en'})).get('items') or []:
+                v = it.get('volumeInfo') or {}; pc = v.get('pageCount') or 0
+                if pc >= 20 and hit(norm(v.get('title') or ''), nm): G.append([pc, (v.get('title') or '')[:50], (v.get('authors') or [])[:2], (v.get('publishedDate') or '')[:4]])
+            if G: rec['gb'] = G[:6]
+        except Exception as e: rec['gb_err'] = str(e)[:80]
+        out[t] = rec; n_ok += 1 if (rec.get('ol') or rec.get('gb')) else 0
+        if i % 40 == 0: log('pages', i, n_ok)
+        time.sleep(0.5)
+    save('pages.json', out); log('pages found', n_ok, 'of', len(L))
+
 if __name__ == '__main__':
     todo = sys.argv[1:] or ['unstray', 'apply', 'live']   # unstray first, every run: no poster record may sit in a show: or game: row
     if todo[0] != 'unstray': todo = ['unstray'] + [x for x in todo if x != 'unstray']
     for name in todo:
-        try: {'imdb': imdb, 'tvmaze': tvmaze, 'posters': posters, 'superman': superman, 'fix': fix, 'wikibox': wikibox, 'anime': anime, 'steam': steam, 'pkmn': pkmn, 'wikiraw': wikiraw, 'bookfix3': bookfix3, 'superman2': superman2, 'eras': eras, 'eras2': eras2, 'eras3': eras3, 'themes': themes, 'bigcov': bigcov, 'scenefp': scenefp, 'narrfill': narrfill, 'imdb2': imdb2, 'books': books, 'links': links, 'apply': apply, 'hunt': hunt, 'audible': audible, 'bookfix': bookfix, 'hunt2': hunt2, 'unstray': unstray, 'audible2': audible2, 'bookfix2': bookfix2, 'summaries': summaries, 'live': live, 'coveraudit': coveraudit}[name]()
+        try: {'imdb': imdb, 'tvmaze': tvmaze, 'posters': posters, 'superman': superman, 'fix': fix, 'wikibox': wikibox, 'anime': anime, 'steam': steam, 'pkmn': pkmn, 'wikiraw': wikiraw, 'bookfix3': bookfix3, 'superman2': superman2, 'eras': eras, 'eras2': eras2, 'eras3': eras3, 'themes': themes, 'bigcov': bigcov, 'scenefp': scenefp, 'narrfill': narrfill, 'imdb2': imdb2, 'books': books, 'links': links, 'apply': apply, 'hunt': hunt, 'audible': audible, 'bookfix': bookfix, 'hunt2': hunt2, 'unstray': unstray, 'audible2': audible2, 'bookfix2': bookfix2, 'summaries': summaries, 'live': live, 'coveraudit': coveraudit, 'pages': pages}[name]()
         except Exception: log('FAILED', name); traceback.print_exc()
