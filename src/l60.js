@@ -1,0 +1,194 @@
+// ===== L60: pages on every book, and the recap (approved Nov 16 2026: third mock, "Number 3" then "Go"). Each book's page carries
+// its print page count, and tapping the number changes it.
+// The Stats view becomes Recap: a week, a month or a year at a time (and the old all-time page as its fourth tab). It is laid out
+// like the Books home: the span's name over its latest covers, a block of counts, what was finished as a run of covers for each part
+// of the span (a year by month, a month by week, a week by day; a tap on a part opens it), and a few records.
+// He chooses what counts. "What counts" puts a tick on every book; a tap takes a book out of the counts or puts it back, and one
+// switch says whether rereads count. A book that is out stays on the page, greyed. Nothing moves. Page counts come from the
+// library's own data, then from the table below (print editions, looked up Nov 16 2026); a number he types on a book's page wins.
+(function () {
+  const L60 = window.L60 = {};
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const enc = encodeURIComponent;
+  const O = t => { try { return getOverride(t) || {}; } catch (e) { return {}; } };
+  const SP = 1.8;   // he listens at 1.8x
+  const nf = n => Math.round(n).toLocaleString('en-US');
+  const BOOK = t => !/^(show|game|cv|hk|ab|gr|badges|up|jr):/.test(t);
+  const PAGES = {
+    "Harry Potter and the Philosopher's Stone (Narrated by Stephen Fry)": 223, "Harry Potter and the Prisoner of Azkaban (Narrated by Stephen Fry)": 317, "Harry Potter and the Goblet of Fire (Narrated by Stephen Fry)": 636,
+    "The Hunger Games: Hunger Games, Book One": 374, "Catching Fire: The Hunger Games, Book 2": 391, "Mockingjay: The Hunger Games, Book 3": 390,
+    "Throne of Glass: Throne of Glass, Book 1": 432, "Crown of Midnight: Throne of Glass, Book 2": 448, "Heir of Fire: Throne of Glass, Book 3": 592, "Queen of Shadows": 672, "Empire of Storms": 720, "Tower of Dawn": 688, "Kingdom of Ash": 992,
+    "Mythos": 416, "Pride and Prejudice": 279, "Night Sky with Exit Wounds": 96, "Build Yourself a Boat": 72, "Carl's Doomsday Scenario: Dungeon Crawler Carl, Book 2": 400, "Project Hail Mary": 496,
+    "The Strength of the Few: Hierarchy, Book 2": 736, "The Queen of Nothing: The Folk of the Air, Book 3": 321, "Vicious: Villains, Book 1": 368, "Warm Up": 15, "Galatea": 64,
+    "The Emperor's Soul": 175, "Skyward": 528, "Tress of the Emerald Sea: A Cosmere Novel": 384, "Yumi and the Nightmare Painter: A Cosmere Novel": 479, "The Way of Kings: Book One of the Stormlight Archive": 1007,
+    "The Fires of December": 452, "The Chaos of Longing": 160 };
+  L60.PAGES = PAGES;
+  L60.pages = t => { const o = O(t); if (+o.pg > 0) return Math.round(+o.pg); const m = (typeof META !== 'undefined' && META[t]) || {}; return +m.pages || +PAGES[t] || 0; };
+  L60.setPages = (t, n) => { n = Math.round(+n); if (!(n > 0) || n > 20000) return false; try { setOverride(t, { pg: n }); return true; } catch (e) { return false; } };
+  L60.mins = t => { try { return +L46.len(t) || 0; } catch (e) { return 0; } };
+  const fam = t => { try { const v = L46.versions(t); return v && v.length ? v.slice().sort()[0] : t; } catch (e) { return t; } };
+  const short = t => { try { return shortTitle(t); } catch (e) { return String(t).split(':')[0]; } };
+  const pad = n => String(n).padStart(2, '0');
+  const iso = d => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  const dOf = s => new Date(String(s).slice(0, 10) + 'T12:00:00');
+  const addD = (s, n) => { const d = dOf(s); d.setDate(d.getDate() + n); return iso(d); };
+  const today = () => iso(new Date());
+  const monday = s => addD(s, -((dOf(s).getDay() + 6) % 7));
+  const MON = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const DOW = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const m3 = i => MON[i].slice(0, 3);
+  const hm = min => { min = Math.round(min); return Math.floor(min / 60) + 'h ' + pad(min % 60) + 'm'; };
+
+  // ---------- what counts: rereads follow one switch, and any single finish can be put in or taken out by hand ----------
+  L60.rereads = () => { try { return O('recap').rr !== 0; } catch (e) { return true; } };
+  L60.setRereads = b => { try { setOverride('recap', { rr: b ? 1 : 0 }); } catch (e) {} };
+  const marks = o => ({ nc: Array.isArray(o.nc) ? o.nc.slice() : [], yc: Array.isArray(o.yc) ? o.yc.slice() : [] });
+  // every dated finish of one title, oldest first: its date, whether it is a reread, and whether it is out of the counts
+  L60.reads = function (t) { const o = O(t), ds = [], rr = L60.rereads(), mk = marks(o);
+    (o.reads || []).forEach(r => { if (r && r.finished) ds.push([String(r.finished).slice(0, 10), r.started]); });
+    try { if (getStatus(t) === 'read' && o.finished) ds.push([String(o.finished).slice(0, 10), o.started]); } catch (e) {}
+    ds.sort((a, b) => a[0] < b[0] ? -1 : a[0] > b[0] ? 1 : 0); const before = Math.max(0, (+o.readCount || 0) - ds.length);   // reads with no date came first
+    return ds.map((p, i) => { const d = p[0], re = i + before > 0, def = !(re && !rr); const on = mk.yc.indexOf(d) >= 0 ? true : mk.nc.indexOf(d) >= 0 ? false : def; return { d, s: p[1] ? String(p[1]).slice(0, 10) : '', re, out: !on }; }); };
+  L60.setCount = function (t, d, on) { const o = O(t), mk = marks(o), r = L60.reads(t).find(x => x.d === d); if (!r) return false; const nc = mk.nc.filter(x => x !== d), yc = mk.yc.filter(x => x !== d), def = !(r.re && !L60.rereads());
+    if (!!on !== def) (on ? yc : nc).push(d); try { setOverride(t, { nc, yc }); return true; } catch (e) { return false; } };
+  // one line per finish (two versions of one book finished the same day are one line)
+  L60.events = function () { const E = [], seen = new Set();
+    try { ALL_TITLES.forEach(t => { if (!BOOK(t)) return; L60.reads(t).forEach(r => { const k = fam(t) + '|' + r.d; if (seen.has(k)) return; seen.add(k); E.push({ t, d: r.d, s: r.s, re: r.re, out: r.out, pg: L60.pages(t), min: L60.mins(t) }); }); }); } catch (e) {}
+    return E.sort((a, b) => a.d < b.d ? -1 : a.d > b.d ? 1 : 0); };
+  function span(kind, off) { const t = today(), d0 = dOf(t); let a, b, pa, pb, label;
+    if (kind === 'week') { a = addD(monday(t), off * 7); b = addD(a, 6); pa = addD(a, -7); pb = addD(a, -1); const A = dOf(a), B = dOf(b); label = m3(A.getMonth()) + ' ' + A.getDate() + ' – ' + (A.getMonth() === B.getMonth() ? '' : m3(B.getMonth()) + ' ') + B.getDate(); }
+    else if (kind === 'month') { const f = new Date(d0.getFullYear(), d0.getMonth() + off, 1, 12); a = iso(f); b = iso(new Date(f.getFullYear(), f.getMonth() + 1, 0, 12)); pa = iso(new Date(f.getFullYear(), f.getMonth() - 1, 1, 12)); pb = iso(new Date(f.getFullYear(), f.getMonth(), 0, 12)); label = MON[f.getMonth()] + (f.getFullYear() === d0.getFullYear() ? '' : ' ' + f.getFullYear()); }
+    else { const y = d0.getFullYear() + off; a = y + '-01-01'; b = y + '-12-31'; pa = (y - 1) + '-01-01'; pb = (y - 1) + '-12-31'; label = String(y); }
+    return { kind, off, a, b, pa, pb, label, end: b < t ? b : t }; }
+  const agg = (E, a, b) => { const L = E.filter(x => x.d >= a && x.d <= b && !x.out); return { L, books: L.length, pages: L.reduce((s, x) => s + x.pg, 0), min: L.reduce((s, x) => s + x.min, 0), noPg: L.filter(x => !x.pg).length }; };
+  L60.data = function (kind, off) { const S = span(kind, off || 0), E = L60.events(); let clock = 0; try { clock = L35.all().filter(x => x.d >= S.a && x.d <= S.b).reduce((s, x) => s + x.min, 0); } catch (e) {}
+    let pb = S.pb; if (S.end < S.b) { pb = addD(S.pa, Math.round((dOf(S.end) - dOf(S.a)) / 864e5)); if (pb > S.pb) pb = S.pb; }   // a span still running is set against the same days of the one before
+    return { span: S, all: E.filter(x => x.d >= S.a && x.d <= S.b), cur: agg(E, S.a, S.b), prev: agg(E, S.pa, pb), clock, live: S.end < S.b }; };
+  L60.total = y => { const D = agg(L60.events(), y + '-01-01', y + '-12-31'); return { books: D.books, pages: D.pages, min: D.min, noPg: D.noPg }; };
+
+  // ---------- the recap ----------
+  const KEY = 'den:recap'; let tab = 'week'; try { const s = localStorage.getItem(KEY); if (['week', 'month', 'year', 'all'].indexOf(s) >= 0) tab = s; } catch (e) {}
+  const off = { week: 0, month: 0, year: 0 }; let ed = false;
+  const CH = d => '<svg viewBox="0 0 12 12" width="12" height="12" aria-hidden="true"><path d="' + (d === 'l' ? 'M8 1L3 6l5 5' : 'M4 1l5 5-5 5') + '" fill="none" stroke="currentColor" stroke-width="1.8"/></svg>';
+  const TICK = '<svg viewBox="0 0 12 12" width="14" height="14" aria-hidden="true"><path d="M2 6.5l3 3 5-6.5" fill="none" stroke="currentColor" stroke-width="2.2"/></svg>';
+  function hero(D) { const S = D.span, top = D.cur.L.slice(-3);
+    return '<div class="rc-hero"><div class="rc-fan n' + top.length + '">' + top.map(e => '<span>' + coverInner(e.t) + '</span>').join('') + '</div><h2>' + esc(S.label) + '</h2><div class="rc-pg"><button data-l60="prev" aria-label="Earlier">' + CH('l') + '</button><button data-l60="next" aria-label="Later"' + (S.off >= 0 ? ' disabled' : '') + '>' + CH('r') + '</button></div></div>'; }
+  function stats(D) { const c = D.cur, p = D.prev, S = D.span, w = S.kind, days = Math.max(1, Math.round((dOf(S.end) - dOf(S.a)) / 864e5) + 1), wp = c.L.filter(x => x.pg).length;
+    const dl = (x, y) => (!p.books || x === y) ? '' : '<i aria-label="' + nf(Math.abs(x - y)) + (x > y ? ' more' : ' fewer') + ' than ' + (D.live ? 'this point in ' : '') + 'the ' + w + ' before">' + (x > y ? '▲' : '▼') + ' ' + nf(Math.abs(x - y)) + '</i>';
+    const cell = (n, l, d) => '<div><b' + (String(n).length > 5 ? ' class="sm"' : '') + '>' + n + '</b><span>' + l + '</span>' + (d || '') + '</div>';
+    return '<div class="rc-st">' + cell(c.books, 'Books', dl(c.books, p.books)) + cell(nf(c.pages), 'Pages', dl(c.pages, p.pages)) + cell(nf(c.min / 60), 'Hours', dl(Math.round(c.min / 60), Math.round(p.min / 60))) +
+      cell(nf(c.min / 60 / SP), 'Hours at ' + SP + 'x') + cell(nf(c.pages / days), 'Pages a day') + cell(wp ? nf(c.pages / wp) : 0, 'Pages a book') + '</div>'; }
+  function book(e, tag) { const lab = esc(short(e.t)) + (e.re ? ', reread' : '') + (e.out ? ', not counted' : '');
+    return '<button class="rc-b' + (e.out ? ' out' : '') + '" ' + (ed ? 'data-l60c="' + enc(e.t) + '|' + e.d + '" aria-pressed="' + !e.out + '"' : 'data-l60t="' + enc(e.t) + '"') + ' aria-label="' + lab + '"><span class="cv">' + coverInner(e.t) + '</span>' +
+      (e.re ? '<i class="tg re">Reread</i>' : '') + (tag ? '<i class="tg">' + tag + '</i>' : '') + (ed ? '<i class="tk">' + TICK + '</i>' : '') + '<em' + (e.pg ? '' : ' class="add"') + '>' + (e.pg ? nf(e.pg) + ' pages' : 'Add pages') + '</em></button>'; }
+  // the span in its parts: a year by month, a month by week, a week by day; only the parts that hold a finish
+  function parts(D) { const A = D.all, S = D.span, G = [];
+    if (S.kind === 'year') { const y = S.a.slice(0, 4); for (let m = 0; m < 12; m++) { const k = y + '-' + pad(m + 1), L = A.filter(x => x.d.slice(0, 7) === k); if (L.length) G.push({ label: MON[m], L, go: 'data-l60m="' + k + '"' }); } }
+    else if (S.kind === 'month') { for (let a = monday(S.a); a <= S.b; a = addD(a, 7)) { const b = addD(a, 6), lo = a < S.a ? S.a : a, hi = b > S.b ? S.b : b, L = A.filter(x => x.d >= lo && x.d <= hi); if (!L.length) continue; const A1 = dOf(lo), B1 = dOf(hi); G.push({ label: m3(A1.getMonth()) + ' ' + A1.getDate() + (lo === hi ? '' : ' – ' + B1.getDate()), L, go: 'data-l60w="' + a + '"' }); } }
+    else for (let i = 0; i < 7; i++) { const d = addD(S.a, i), L = A.filter(x => x.d === d); if (L.length) G.push({ label: DOW[i] + ' ' + dOf(d).getDate(), L, go: '' }); }
+    return G; }
+  function books(D) { const A = D.all, S = D.span; if (!A.length) return '<div class="rc-k">Finished<i>0</i></div>';
+    const can = typeof CAN_EDIT === 'undefined' || CAN_EDIT; if (!can) ed = false;
+    let h = '<div class="rc-k">Finished<i>' + D.cur.books + '</i>' + (can ? '<button data-l60="edit"' + (ed ? ' class="go"' : '') + '>' + (ed ? 'Done' : 'What counts') + '</button>' : '') + '</div>';
+    if (ed) h += '<div class="rc-ed"><button data-l60="rr" class="rc-sw' + (L60.rereads() ? ' on' : '') + '" aria-pressed="' + L60.rereads() + '"><i>' + TICK + '</i>Rereads count</button></div>';
+    const W = Math.min(430, window.innerWidth || 390) - 46, cw = S.kind === 'year' ? 58 : S.kind === 'month' ? 72 : 96;
+    parts(D).forEach(g => { const L = g.L, C = L.filter(x => !x.out), pg = C.reduce((s, x) => s + x.pg, 0), mh = '<span class="rc-mh"><b>' + g.label + '</b><i>' + C.length + '</i><em>' + nf(pg) + ' pages</em></span>';
+      if (ed) { h += '<div class="rc-mo">' + mh + '</div><div class="rc-grid">' + L.map(e => book(e, S.kind === 'week' ? '' : String(dOf(e.d).getDate()))).join('') + '</div>'; return; }
+      const step = L.length > 1 ? Math.min(cw + 10, (W - cw) / (L.length - 1)) : 0, run = f => '<span class="rc-run" style="--cw:' + cw + 'px;height:' + Math.round(cw * 1.5 + 6) + 'px">' + L.map((e, i) => f(e, 'class="cv' + (e.out ? ' out' : '') + '" style="left:' + Math.round(i * step) + 'px"')).join('') + '</span>';
+      if (g.go) h += '<button class="rc-mo" ' + g.go + ' aria-label="' + g.label + ', ' + C.length + (C.length === 1 ? ' book' : ' books') + '">' + mh + run((e, at) => '<span ' + at + '>' + coverInner(e.t) + '</span>') + '</button>';
+      else h += '<div class="rc-mo">' + mh + run((e, at) => '<button ' + at + ' data-l60t="' + enc(e.t) + '" aria-label="' + esc(short(e.t)) + '">' + coverInner(e.t) + '</button>') + '</div>'; });
+    return h; }
+  function records(D) { const L = D.cur.L, S = D.span, R = [], wp = L.filter(x => x.pg);
+    const bk = (lab, e, val) => R.push('<button class="rc-r" data-l60t="' + enc(e.t) + '"><span class="cv">' + coverInner(e.t) + '</span><span><small>' + lab + '</small><b>' + esc(short(e.t)) + '</b><em>' + val + '</em></span></button>');
+    const bx = (lab, val, sub) => R.push('<div class="rc-r nb"><span><small>' + lab + '</small><b>' + val + '</b><em>' + (sub || '') + '</em></span></div>');
+    const top = f => { const C = {}; L.forEach(x => { const v = f(x); if (v) C[v] = (C[v] || 0) + 1; }); const A = Object.entries(C).sort((a, b) => b[1] - a[1]); return A.length && A[0][1] > 1 ? A[0] : null; };
+    if (wp.length > 1) { const lo = wp.slice().sort((a, b) => b.pg - a.pg); bk('Longest', lo[0], nf(lo[0].pg) + ' pages'); bk('Shortest', lo[lo.length - 1], nf(lo[lo.length - 1].pg) + ' pages'); }
+    const tk = L.filter(x => x.s && x.s <= x.d).map(x => ({ e: x, n: Math.round((dOf(x.d) - dOf(x.s)) / 864e5) + 1 })); if (tk.length > 1) { const fa = tk.slice().sort((a, b) => a.n - b.n)[0]; bk('Fastest', fa.e, fa.n + (fa.n === 1 ? ' day' : ' days')); }
+    if (S.kind === 'year') { const B = {}; L.forEach(x => { const k = +x.d.slice(5, 7) - 1; B[k] = (B[k] || 0) + 1; }); const bs = Object.entries(B).sort((a, b) => b[1] - a[1] || a[0] - b[0]), bm = bs[0]; if (bm && bm[1] > 1) { const tie = bs.filter(x => x[1] === bm[1]); bx('Busiest', tie.slice(0, 2).map(x => MON[+x[0]]).join(', ') + (tie.length > 2 ? ' +' + (tie.length - 2) : ''), bm[1] + ' books'); } }
+    if (S.kind !== 'week') { const M = t => (typeof META !== 'undefined' && META[t]) || {};
+      const a = top(x => { try { const s = SERIES_OF[x.t]; return s && s !== 'Standalone / Other' ? s : ''; } catch (e) { return ''; } }); if (a) bx('Series', esc(a[0]), a[1] + ' books');
+      const n = top(x => String(M(x.t).narrator || '').split(/,| and | & /)[0].trim()); if (n) bx('Narrator', esc(n[0]), n[1] + ' books');
+      const g = top(x => { try { return String(GENRE_OF[x.t] || '').replace(/^(Fantasy|Nonfiction) — /, ''); } catch (e) { return ''; } }); if (g) bx('Genre', esc(g[0]), g[1] + ' books');
+      const rt = L.map(x => { try { return +getMyRating(x.t) || 0; } catch (e) { return 0; } }).filter(Boolean); if (rt.length > 1) bx('Your rating', (rt.reduce((s, x) => s + x, 0) / rt.length).toFixed(1) + ' ★', rt.length + ' rated'); }
+    if (D.clock) bx('On the clock', hm(D.clock), '');
+    return R.length ? '<div class="rc-k">Records</div><div class="rc-rec">' + R.join('') + '</div>' : ''; }
+  L60.html = function () { const D = L60.data(tab, off[tab]); return '<div class="rc d-rc rc-' + tab + (ed ? ' ed' : '') + '">' + hero(D) + stats(D) + books(D) + (ed ? '' : records(D)) + '</div>'; };
+  const tabs = () => { const n = $('nav'); if (!n) return; n.style.display = ''; n.innerHTML = [['week', 'Week'], ['month', 'Month'], ['year', 'Year'], ['all', 'All']].map(p => '<button data-l60v="' + p[0] + '"' + (tab === p[0] ? ' class="active"' : '') + '><span>' + p[1] + '</span></button>').join(''); };
+  const draw = () => { tabs(); if (tab === 'all') return; const c = $('content'); if (c) c.innerHTML = L60.html(); };
+  L60.open = function (v, o) { if (['week', 'month', 'year', 'all'].indexOf(v) >= 0) tab = v; if (o != null && tab !== 'all') off[tab] = Math.min(0, +o || 0); ed = false; try { if (currentLib !== 'books') switchLib('books'); renderStats(); } catch (e) { console.warn('l60', e); } };
+  L60.tab = () => tab; L60.editing = () => ed; L60.edit = b => { ed = !!b; draw(); };
+  try { const _st = renderStats; renderStats = function () { const r = _st.apply(this, arguments); try { draw(); } catch (e) { console.warn('l60', e); } return r; };
+    const b = $('btn-stats'); if (b) { b.innerHTML = '<span>Recap</span>'; const c = $('btn-case'); if (c && c.parentNode === b.parentNode) c.after(b); } } catch (e) { console.warn('l60', e); }
+  document.addEventListener('click', e => { const el = e.target.closest && e.target.closest('#content .rc [data-l60],#content .rc [data-l60t],#content .rc [data-l60m],#content .rc [data-l60c],#content .rc [data-l60w],#nav [data-l60v]'); if (!el) return; e.preventDefault(); e.stopPropagation();
+    if (el.dataset.l60v) { tab = el.dataset.l60v; ed = false; try { localStorage.setItem(KEY, tab); } catch (x) {} if (tab === 'all') { try { renderStats(); } catch (x) {} } else draw(); return; }
+    if (el.dataset.l60c) { const i = el.dataset.l60c.lastIndexOf('|'), t = decodeURIComponent(el.dataset.l60c.slice(0, i)), d = el.dataset.l60c.slice(i + 1); L60.setCount(t, d, el.classList.contains('out')); draw(); return; }
+    if (el.dataset.l60t) { try { openSheet(decodeURIComponent(el.dataset.l60t)); } catch (x) {} return; }
+    if (el.dataset.l60m) { const t = today(), k = el.dataset.l60m; const o = (+k.slice(0, 4) - +t.slice(0, 4)) * 12 + (+k.slice(5, 7) - +t.slice(5, 7)); if (o > 0) return; off.month = o; tab = 'month'; draw(); try { $('nav').scrollIntoView({ block: 'start' }); } catch (x) {} return; }
+    if (el.dataset.l60w) { const o = Math.round((dOf(el.dataset.l60w) - dOf(monday(today()))) / 6048e5); if (o > 0) return; off.week = o; tab = 'week'; draw(); try { $('nav').scrollIntoView({ block: 'start' }); } catch (x) {} return; }
+    const a = el.dataset.l60; if (a === 'prev') { off[tab]--; draw(); } else if (a === 'next') { if (off[tab] < 0) off[tab]++; draw(); } else if (a === 'edit') { ed = !ed; draw(); } else if (a === 'rr') { L60.setRereads(!L60.rereads()); draw(); } }, true);
+
+  // ---------- the book's own page: Pages is a number he can tap and change, and each finish says whether it counts ----------
+  let editing = null;
+  function cell() { const t = typeof sheetTitle === 'string' ? sheetTitle : ''; const sh = $('sheet'); if (!sh || !t || !BOOK(t) || /^(ladder:|cosmere$)/.test(t)) return; try { if (ALL_TITLES.indexOf(t) < 0) return; } catch (e) { return; }
+    const body = sh.querySelector('.sheet-body'); if (!body) return; let F = body.querySelector('.d-facts'); const can = typeof CAN_EDIT === 'undefined' || CAN_EDIT;
+    if (!F) { const at = body.querySelector('.syn') || [...body.querySelectorAll('.blk')].find(b => b.querySelector('[data-status]')); if (!at) return; at.insertAdjacentHTML('afterend', '<div class="d-facts"></div>'); F = body.querySelector('.d-facts'); }
+    const lab = d => { const s = d.querySelector('small'); return s ? s.textContent.trim().toLowerCase() : ''; };
+    let c = [...F.children].find(d => lab(d) === 'pages'); if (!c) { c = document.createElement('div'); const pub = [...F.children].find(d => lab(d) === 'published'); if (pub) F.insertBefore(c, pub); else F.appendChild(c); }
+    const n = L60.pages(t); c.className = 'l60-pc' + (editing === t ? ' ed' : '');
+    c.innerHTML = '<small>Pages</small>' + (editing === t ? '<span class="l60-ed"><input id="l60in" type="number" inputmode="numeric" min="1" max="20000" value="' + (n || '') + '" aria-label="Pages"><button data-l60pg="save">Save</button><button data-l60pg="x">Cancel</button></span>'
+      : can ? '<button class="l60-pg' + (n ? '' : ' add') + '" data-l60pg="edit" aria-label="' + (n ? nf(n) + ' pages, change' : 'Add the page count') + '">' + (n ? nf(n) : 'Add') + '</button>' : '<b>' + (n ? nf(n) : '') + '</b>');
+    // the finish that stands on the page: a tick that says it counts
+    const rd = body.querySelector('.reads'); if (rd && can) { const old = rd.querySelector('.l60-ct'); if (old) old.remove(); const R = L60.reads(t), r = R[R.length - 1]; let cur = ''; try { cur = getStatus(t) === 'read' ? String(O(t).finished || '').slice(0, 10) : ''; } catch (e) {}
+      if (r && cur && r.d === cur) rd.insertAdjacentHTML('beforeend', '<button class="l60-ct' + (r.out ? '' : ' on') + '" data-l60ct="' + r.d + '" aria-pressed="' + !r.out + '"><i>' + TICK + '</i>Counts</button>'); } }
+  try { const _rs = renderSheet; renderSheet = function () { const r = _rs.apply(this, arguments); try { if (editing && editing !== sheetTitle) editing = null; cell(); } catch (e) { console.warn('l60', e); } return r; }; } catch (e) {}
+  const save = () => { const i = $('l60in'), t = editing; if (!i || !t) return; const v = Math.round(+i.value); if (v > 0 && v !== L60.pages(t)) L60.setPages(t, v); editing = null; cell(); };
+  document.addEventListener('click', e => { const el = e.target.closest && e.target.closest('#sheet [data-l60pg],#sheet [data-l60ct]'); if (!el) return; e.preventDefault(); e.stopPropagation();
+    if (el.dataset.l60ct) { L60.setCount(sheetTitle, el.dataset.l60ct, !el.classList.contains('on')); cell(); return; } const a = el.dataset.l60pg;
+    if (a === 'edit') { editing = sheetTitle; cell(); const i = $('l60in'); if (i) { try { i.focus(); i.select(); } catch (x) {} } } else if (a === 'save') save(); else { editing = null; cell(); } }, true);
+  document.addEventListener('keydown', e => { if (e.key === 'Enter' && e.target && e.target.id === 'l60in') { e.preventDefault(); save(); } });
+  try { const _cs = closeSheet; closeSheet = function () { editing = null; return _cs.apply(this, arguments); }; } catch (e) {}
+
+  // ---------- styles: the Books home's own pieces (framed covers, stickers, count boxes); nothing animates ----------
+  const B = 'html body #content .d-rc', S = 'html body #sheet.d-book';   // "d-" in every selector: L11's tone() leaves such rules alone (it flattens frames, stickers and shadows otherwise)
+  const DISP = 'var(--b-disp,"Bebas Neue",Impact,sans-serif)', MONO = 'var(--b-mono,"IBM Plex Mono",ui-monospace,Menlo,monospace)', LINE = 'var(--d-line,rgba(150,195,255,.2))', INK = 'var(--d-ink,#eaf2fb)', MUTE = 'var(--d-mute,#93a6bf)', ACC = 'var(--d-acc,#efb058)', AC2 = 'var(--d-acc2,#cc5f3f)', BG = 'var(--d-bg,#120f1a)', BG2 = 'var(--d-bg2,#1a1722)';
+  const FRAME = 'border:2px solid #fff;box-shadow:4px 4px 0 #000;background:' + BG2 + ';overflow:hidden';
+  const TAG = 'position:absolute;z-index:3;padding:4px 6px;border:2px solid #111;background:' + ACC + ';color:#111;font:400 11px/1 ' + DISP + ';font-style:normal;letter-spacing:.1em;text-transform:uppercase;white-space:nowrap';
+  const css =
+    B + '{width:100vw;margin-left:calc(50% - 50vw);padding:0 max(20px,calc(50vw - 195px)) 150px;color:' + INK + '}' + B + ' *{box-sizing:border-box}' +
+    B + ' button{-webkit-appearance:none;appearance:none;font:inherit;color:inherit;background:none;border:0;border-radius:0;box-shadow:none;margin:0;padding:0;text-align:left;text-transform:none;letter-spacing:0;min-height:0;transform:none;-webkit-tap-highlight-color:transparent;cursor:pointer}' +
+    B + ' button:focus-visible{outline:2px solid ' + ACC + ';outline-offset:3px}' + B + ' img{display:block;width:100%;height:100%;object-fit:cover}' + B + ' .ph{width:100%;height:100%;display:block;overflow:hidden}' + B + ' .ph *{display:none}' +
+    // the span's name over its latest covers
+    B + ' .rc-hero{position:relative;height:214px;margin-top:8px}' + B + ' .rc-fan{position:absolute;right:2px;top:8px;width:206px;height:170px}' + B + ' .rc-fan span{position:absolute;width:92px;height:138px;' + FRAME + '}' +
+    B + ' .rc-fan span:nth-child(1){left:0;top:20px;transform:rotate(-8deg)}' + B + ' .rc-fan span:nth-child(2){left:106px;top:18px;transform:rotate(7deg)}' + B + ' .rc-fan span:nth-child(3){left:54px;top:4px;transform:rotate(-1.5deg);z-index:2}' +
+    B + ' .rc-fan.n1 span{left:98px;top:6px;transform:rotate(3deg)}' + B + ' .rc-fan.n2 span:nth-child(1){left:36px}' + B + ' .rc-fan.n2 span:nth-child(2){z-index:2}' +
+    B + ' .rc-hero h2{position:absolute;left:0;bottom:56px;z-index:4;margin:0;max-width:100%;font:700 40px/.95 ' + DISP + ';letter-spacing:.04em;text-transform:uppercase;color:#fff;text-shadow:3px 3px 0 #9a5a1e,0 0 22px ' + BG + ',0 0 10px ' + BG + '}' +
+    B + ' .rc-pg{position:absolute;left:0;bottom:0;display:flex;gap:8px}' + B + ' .rc-pg button{width:44px;height:44px;border:1px solid ' + LINE + ';background:' + BG2 + ';display:grid;place-items:center;color:' + INK + '}' + B + ' .rc-pg button[disabled]{opacity:.3}' +
+    // the counts
+    B + ' .rc-st{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}' + B + ' .rc-st>div{position:relative;border:1px solid ' + LINE + ';background:' + BG2 + ';padding:11px 10px 9px;min-height:70px}' +
+    B + ' .rc-st b{display:block;font:400 27px/1 ' + DISP + ';letter-spacing:.02em;color:#fff}' + B + ' .rc-st b.sm{font-size:22px;padding-top:5px}' + B + ' .rc-st span{display:block;margin-top:8px;font:400 9.5px/1.2 ' + MONO + ';letter-spacing:.06em;text-transform:uppercase;color:' + MUTE + '}' +
+    B + ' .rc-st i{position:absolute;right:9px;bottom:10px;font:400 9.5px/1 ' + MONO + ';font-style:normal;color:' + MUTE + '}' +
+    // section heads, as on the Books home
+    B + ' .rc-k{display:flex;align-items:center;gap:10px;min-height:44px;margin:22px 0 8px;font:400 19px/1 ' + DISP + ';letter-spacing:.14em;text-transform:uppercase;color:' + AC2 + '}' + B + ' .rc-k i,' + B + ' .rc-mh i{padding:2px 7px;background:' + ACC + ';color:#111;font:400 12px/1.3 ' + DISP + ';font-style:normal;letter-spacing:.1em;transform:rotate(-2deg)}' +
+    B + ' .rc-k button{margin-left:auto;height:38px;padding:0 13px;border:1px solid ' + ACC + ';color:' + ACC + ';font:400 14px/1 ' + DISP + ';letter-spacing:.1em;text-transform:uppercase}' + B + ' .rc-k button.go{background:' + ACC + ';color:#1b1408}' +
+    B + ' .rc-ed{margin:0 0 16px}' + B + ' .rc-sw,' + S + ' .l60-ct{display:inline-flex;align-items:center;gap:10px;min-height:44px;font:400 11px/1 ' + MONO + ';letter-spacing:.08em;text-transform:uppercase;color:' + INK + '}' +
+    B + ' .rc-sw i,' + S + ' .l60-ct i,' + B + ' .tk{display:grid;place-items:center;width:28px;height:28px;border:2px solid #fff;background:' + BG + ';color:transparent;font-style:normal}' + B + ' .rc-sw.on i,' + S + ' .l60-ct.on i,' + B + ' .rc-b:not(.out) .tk{border-color:#111;background:' + ACC + ';color:#111;box-shadow:0 0 0 1px ' + ACC + '}' +
+    // the covers
+    B + ' .rc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px 10px}' + B + ' .rc-grid.few{grid-template-columns:repeat(3,1fr);gap:18px 14px}' + B + ' .rc-b{position:relative;display:block;min-width:0}' + B + ' .cv{display:block;' + FRAME + '}' + B + ' .rc-b .cv{aspect-ratio:2/3}' +
+    B + ' .tg{' + TAG + ';left:-5px;bottom:20px;transform:rotate(-3deg)}' + B + ' .tg.re{bottom:auto;top:-7px;background:#fff;transform:rotate(2deg)}' + B + ' .tk{position:absolute;z-index:4;right:-7px;top:-8px}' +
+    B + ' .rc-b em{display:block;margin-top:9px;font:400 10.5px/1 ' + MONO + ';font-style:normal;color:' + MUTE + ';white-space:nowrap}' + B + ' .rc-b em.add{color:' + ACC + ';text-decoration:underline;text-underline-offset:3px}' +
+    B + ' .out .cv,' + B + ' .cv.out{border-color:rgba(255,255,255,.35);box-shadow:none}' + B + ' .out .cv>*,' + B + ' .cv.out>*{filter:grayscale(1);opacity:.3}' + B + ' .rc-b.out .tg:not(.re){background:' + BG2 + ';color:' + MUTE + ';border-color:' + MUTE + '}' + B + ' .rc-b.out em{text-decoration:line-through}' +
+    // the year: a run of covers for each month
+    B + ' .rc-mo{display:block;width:100%;margin-top:18px}' + B + ' div.rc-mo{margin-bottom:12px}' + B + ' .rc-mh{display:flex;align-items:center;gap:9px;margin-bottom:9px}' + B + ' .rc-mh b{font:400 16px/1 ' + DISP + ';letter-spacing:.12em;text-transform:uppercase;color:' + INK + '}' + B + ' .rc-mh em{margin-left:auto;font:400 10.5px/1 ' + MONO + ';font-style:normal;color:' + MUTE + '}' +
+    B + ' .rc-run{display:block;position:relative;height:93px}' + B + ' div.rc-mo .rc-run{margin-bottom:0}' + B + ' .rc-run .cv{position:absolute;top:0;width:var(--cw,58px);height:calc(var(--cw,58px)*1.5);box-shadow:3px 3px 0 #000}' +
+    // records
+    B + ' .rc-rec{display:grid;grid-template-columns:1fr 1fr;gap:8px}' + B + ' .rc-r{display:grid;grid-template-columns:44px minmax(0,1fr);gap:11px;align-items:start;min-height:88px;padding:11px 10px;border:1px solid ' + LINE + ';background:' + BG2 + '}' + B + ' .rc-r.nb{grid-template-columns:minmax(0,1fr)}' + B + ' .rc-r:last-child:nth-child(odd){grid-column:1/-1;min-height:0}' +
+    B + ' .rc-r .cv{width:44px;height:66px;box-shadow:3px 3px 0 #000}' + B + ' .rc-r small{display:block;margin-bottom:7px;font:400 10px/1 ' + MONO + ';letter-spacing:.1em;text-transform:uppercase;color:' + ACC + '}' +
+    B + ' .rc-r b{display:block;font:400 15px/1.18 ' + DISP + ';letter-spacing:.05em;text-transform:uppercase;color:#fff;overflow-wrap:anywhere}' + B + ' .rc-r em{display:block;margin-top:6px;font:400 10.5px/1.2 ' + MONO + ';font-style:normal;color:' + MUTE + '}' +
+    // the book's page
+    S + ' .l60-pc.ed{grid-column:1/-1}' + S + ' .l60-pg{-webkit-appearance:none;appearance:none;display:block;min-height:30px;margin:0;padding:2px 0 6px;border:0;border-radius:0;background:none;box-shadow:none;font:500 14px/1.3 ' + MONO + ';letter-spacing:0;text-transform:none;color:' + ACC + ';text-decoration:underline;text-underline-offset:4px;cursor:pointer}' +
+    S + ' .l60-ed{display:flex;gap:6px;margin-top:6px}' + S + ' .l60-ed input{flex:1;min-width:0;height:44px;padding:0 12px;border:1px solid ' + ACC + ';border-radius:0;background:' + BG2 + ';color:#fff;font:500 18px/1 ' + MONO + '}' +
+    S + ' .l60-ed button{-webkit-appearance:none;appearance:none;flex:0 0 auto;height:44px;padding:0 14px;border:1px solid ' + LINE + ';border-radius:0;background:none;box-shadow:none;color:' + INK + ';font:400 15px/1 ' + DISP + ';letter-spacing:.1em;text-transform:uppercase;cursor:pointer}' + S + ' .l60-ed button[data-l60pg=save]{background:' + ACC + ';border-color:' + ACC + ';color:#1b1408}' +
+    S + ' .l60-ct{-webkit-appearance:none;appearance:none;margin:0 0 0 auto;padding:0;border:0;border-radius:0;background:none;box-shadow:none;cursor:pointer}' + S + ' .reads{align-items:center}';
+  try { const st = document.createElement('style'); st.id = 'l60css'; st.textContent = css; document.head.appendChild(st); } catch (e) {}
+})();
