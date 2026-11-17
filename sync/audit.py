@@ -1093,44 +1093,49 @@ def coveraudit():
 
 def pages():
     """Print page counts for each [title, author] in sync/pages_titles.json: Open Library's search (the median page count across
-    a work's editions) and Google Books (the page count of each matching volume). Read-only: nothing goes to the store.
-    audit/pages.json holds what each source said, so the counts can be checked before they go into the app."""
-    L = json.load(open(os.path.join(HERE, 'pages_titles.json'))); out = {}; n_ok = 0
+    a work's editions), then Google Books (the page count of each matching volume). Read-only: nothing goes to the store.
+    audit/pages.json holds what each source said, so the counts can be checked before they go into the app. Each source is
+    tried once per title (one more try after a 429), is dropped after a run of failures, and the whole step stops asking
+    after ten minutes; whatever was not asked is simply absent."""
+    L = json.load(open(os.path.join(HERE, 'pages_titles.json'))); out = {r[0]: {} for r in L}; t0 = time.time(); DEADLINE = 600
     def hit(tt, main): return 'exact' if tt == main else 'starts' if (tt.startswith(main + ' ') or main.startswith(tt + ' ')) else None
-    def gjson(url):
-        for a in range(3):
-            try: return get(url, 40)
+    def once(url):
+        for a in range(2):
+            try: return json.loads(urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=20).read().decode())
             except urllib.error.HTTPError as e:
-                if e.code in (429, 503): time.sleep(10 * (a + 1)); continue
+                if e.code in (429, 503) and a == 0: time.sleep(4); continue
                 raise
-        return {}
-    for i, row in enumerate(L):
+    def parts(row):
         t = row[0]; author = (row[1] if len(row) > 1 else '') or ''
-        main = re.sub(r'\s*[\(\[][^\)\]]*[\)\]]\s*', ' ', t).split(':')[0].strip(); nm = norm(main)
-        a1 = re.split(r',|&| and ', author)[0].strip() if author else ''; rec = {}
-        try:
-            q = {'title': main, 'fields': 'key,title,author_name,number_of_pages_median,edition_count,first_publish_year', 'limit': '8'}
-            if a1: q['author'] = a1
-            C = []
-            for x in gjson('https://openlibrary.org/search.json?' + urllib.parse.urlencode(q)).get('docs') or []:
-                how = hit(norm(x.get('title') or ''), nm)
-                if how and x.get('number_of_pages_median'): C.append((0 if how == 'exact' else 1, -(x.get('edition_count') or 0), x.get('key') or '', x))
-            C.sort(key=lambda c: c[:3])
-            if C:
-                x = C[0][3]; rec['ol'] = x.get('number_of_pages_median'); rec['ol_t'] = (x.get('title') or '')[:60]; rec['ol_a'] = (x.get('author_name') or [])[:2]; rec['ol_e'] = x.get('edition_count'); rec['ol_how'] = 'exact' if C[0][0] == 0 else 'starts'
-        except Exception as e: rec['ol_err'] = str(e)[:80]
-        time.sleep(0.4)
-        try:
-            qs = 'intitle:"%s"' % main + (' inauthor:"%s"' % a1 if a1 else ''); G = []
-            for it in gjson('https://www.googleapis.com/books/v1/volumes?' + urllib.parse.urlencode({'q': qs, 'maxResults': '10', 'printType': 'books', 'country': 'US', 'langRestrict': 'en'})).get('items') or []:
-                v = it.get('volumeInfo') or {}; pc = v.get('pageCount') or 0
-                if pc >= 20 and hit(norm(v.get('title') or ''), nm): G.append([pc, (v.get('title') or '')[:50], (v.get('authors') or [])[:2], (v.get('publishedDate') or '')[:4]])
-            if G: rec['gb'] = G[:6]
-        except Exception as e: rec['gb_err'] = str(e)[:80]
-        out[t] = rec; n_ok += 1 if (rec.get('ol') or rec.get('gb')) else 0
-        if i % 40 == 0: log('pages', i, n_ok)
-        time.sleep(0.5)
-    save('pages.json', out); log('pages found', n_ok, 'of', len(L))
+        main = re.sub(r'\s*[\(\[][^\)\]]*[\)\]]\s*', ' ', t).split(':')[0].strip()
+        return t, main, norm(main), (re.split(r',|&| and ', author)[0].strip() if author else '')
+    def ol(row):
+        t, main, nm, a1 = parts(row); q = {'title': main, 'fields': 'key,title,author_name,number_of_pages_median,edition_count,first_publish_year', 'limit': '8'}
+        if a1: q['author'] = a1
+        C = []
+        for x in (once('https://openlibrary.org/search.json?' + urllib.parse.urlencode(q)) or {}).get('docs') or []:
+            how = hit(norm(x.get('title') or ''), nm)
+            if how and x.get('number_of_pages_median'): C.append((0 if how == 'exact' else 1, -(x.get('edition_count') or 0), x.get('key') or '', x))
+        C.sort(key=lambda c: c[:3])
+        if C:
+            x = C[0][3]; out[t].update({'ol': x.get('number_of_pages_median'), 'ol_t': (x.get('title') or '')[:60], 'ol_a': (x.get('author_name') or [])[:2], 'ol_e': x.get('edition_count'), 'ol_how': 'exact' if C[0][0] == 0 else 'starts'})
+    def gb(row):
+        t, main, nm, a1 = parts(row); qs = 'intitle:"%s"' % main + (' inauthor:"%s"' % a1 if a1 else ''); G = []
+        for it in (once('https://www.googleapis.com/books/v1/volumes?' + urllib.parse.urlencode({'q': qs, 'maxResults': '10', 'printType': 'books', 'country': 'US', 'langRestrict': 'en'})) or {}).get('items') or []:
+            v = it.get('volumeInfo') or {}; pc = v.get('pageCount') or 0
+            if pc >= 20 and hit(norm(v.get('title') or ''), nm): G.append([pc, (v.get('title') or '')[:50], (v.get('authors') or [])[:2], (v.get('publishedDate') or '')[:4]])
+        if G: out[t]['gb'] = G[:6]
+    for name, fn, gap in (('ol', ol, 0.35), ('gb', gb, 0.25)):
+        bad = 0; asked = 0; errs = {}
+        for i, row in enumerate(L):
+            if time.time() - t0 > DEADLINE or bad >= 6: break
+            try: fn(row); bad = 0
+            except Exception as e: bad += 1; k = str(e)[:50]; errs[k] = errs.get(k, 0) + 1; out[row[0]][name + '_err'] = k
+            asked += 1
+            if i % 40 == 0: log('pages', name, i, int(time.time() - t0), 's')
+            time.sleep(gap)
+        log('pages', name, 'asked', asked, 'of', len(L), 'found', sum(1 for v in out.values() if v.get(name)), 'errors', errs, 'stopped early' if asked < len(L) else '', int(time.time() - t0), 's')
+    save('pages.json', out)
 
 if __name__ == '__main__':
     todo = sys.argv[1:] or ['unstray', 'apply', 'live']   # unstray first, every run: no poster record may sit in a show: or game: row
