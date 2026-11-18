@@ -1,6 +1,6 @@
 // ===== L22: Audible additions — titles from his Audible library, all 8 pages (printed Nov 7 2026) that the baked library did not have.
-// New titles join the shelves as owned books; Goodreads-shelf entries he has since bought are marked owned; Audible's own
-// finished / listening state fills in only where the app has nothing newer. Each batch applies once per device.
+// New titles join the shelves as owned books; Goodreads-shelf entries he has since bought are marked owned. Audible's own
+// finished / listening states are kept in the lists below but are no longer applied (Nov 17 2026): he sets every status himself.
 (function () {
   const L22 = window.L22 = {};
   const BATCH = 'den:aud:20261107d';
@@ -98,11 +98,11 @@
   (function () { if (typeof rerender82 !== 'function') return; const _r = rerender82; rerender82 = function () { const r = _r.apply(this, arguments); try { L22.counts(); } catch (e) {} return r; }; })();
   // 7) statuses, once per device: finished → Finished, part-way → Listening; never downgrades a Finished. The Nov 7 pages ran as one batch; the editions and the Kindle copy run as a second
   function applyRows(key, rows) { try { if (typeof setOverride !== 'function' || !window.DEN_LINKED) return; let done = false; try { done = !!localStorage.getItem(key); } catch (e) {} if (done) return;
-    const want = st => st === 'finished' ? 'read' : st === 'listening' ? 'currently-reading' : null;
-    const mins = s => { const m = String(s || '').match(/(?:(\d+)h)?\s*(?:(\d+)m)?/); return m ? (+m[1] || 0) * 60 + (+m[2] || 0) : 0; };
-    let n = 0; rows.forEach(r => { const o = getOverride(r.t) || {}; if (r.format && !o.format) { setOverride(r.t, { format: r.format }); n++; } const w = want(r.st); if (!w) return;
-      // a title Audible calls in progress but barely touched (under 5% played) is not Listening yet
-      if (w === 'currently-reading' && r.left) { const tot = mins(META[r.t] && META[r.t].runtime), left = mins(r.left); if (tot && left && (tot - left) / tot < 0.05) return; } const cur = o.status || ''; if (cur === 'read') return; if (cur === w) return; const patch = { status: w }; if (w === 'currently-reading' && !o.started) patch.started = new Date().toISOString().slice(0, 10); setOverride(r.t, patch); n++; });
+    // Nov 17 2026, his words: "don't ever do that I will select what I listen to just because it's started on audible doesn't mean
+    // listening". Audible's started / finished states are not applied to his books any more: a status is only ever his own tap.
+    // (This used to run once per device, so a browser that had not seen it yet marked six books Listening on Nov 16.) What is left
+    // is the one fact a row may carry about a copy he owns: its format, and only where he has not set one.
+    let n = 0; rows.forEach(r => { const o = getOverride(r.t) || {}; if (r.format && !o.format) { setOverride(r.t, { format: r.format }); n++; } });
     try { localStorage.setItem(key, String(n)); } catch (e) {} if (n) { console.log('l22 ' + key + ': ' + n + ' changes'); try { L22.counts(); } catch (e) {} } } catch (e) { console.warn('l22 apply', e); } }
   L22.apply = function () {
     applyRows(BATCH, ADD.filter(e => !e.ed).map(e => ({ t: e.gr || e.t, st: e.st, left: e.left })).concat(UPD.map(u => ({ t: u.t, st: u.st, left: u.left }))));
