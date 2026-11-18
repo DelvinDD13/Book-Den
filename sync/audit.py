@@ -1137,9 +1137,41 @@ def pages():
         log('pages', name, 'asked', asked, 'of', len(L), 'found', sum(1 for v in out.values() if v.get(name)), 'errors', errs, 'stopped early' if asked < len(L) else '', int(time.time() - t0), 's')
     save('pages.json', out)
 
+def years():
+    """Print the year each [title, author] in sync/years_titles.json was first published, from Open Library's search.
+    Read-only: nothing goes to the store. audit/years.json holds what was found so it can be checked before it goes into the
+    app. One try per title (one more after a 429), dropped after a run of failures, and it stops asking after ten minutes."""
+    L = json.load(open(os.path.join(HERE, 'years_titles.json'))); out = {}; t0 = time.time(); bad = 0; asked = 0; errs = {}
+    def hit(tt, main): return 'exact' if tt == main else 'starts' if (tt.startswith(main + ' ') or main.startswith(tt + ' ')) else None
+    def once(url):
+        for a in range(2):
+            try: return json.loads(urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=20).read().decode())
+            except urllib.error.HTTPError as e:
+                if e.code in (429, 503) and a == 0: time.sleep(4); continue
+                raise
+    for i, row in enumerate(L):
+        if time.time() - t0 > 600 or bad >= 6: break
+        t = row[0]; author = (row[1] if len(row) > 1 else '') or ''
+        main = re.sub(r'\s*[\(\[][^\)\]]*[\)\]]\s*', ' ', t).split(':')[0].strip(); nm = norm(main); a1 = re.split(r',|&| and ', author)[0].strip() if author else ''
+        q = {'title': main, 'fields': 'key,title,author_name,first_publish_year,edition_count', 'limit': '8'}
+        if a1: q['author'] = a1
+        try:
+            C = []
+            for x in (once('https://openlibrary.org/search.json?' + urllib.parse.urlencode(q)) or {}).get('docs') or []:
+                how = hit(norm(x.get('title') or ''), nm)
+                if how and x.get('first_publish_year'): C.append((0 if how == 'exact' else 1, -(x.get('edition_count') or 0), x.get('key') or '', x))
+            C.sort(key=lambda c: c[:3])
+            if C: x = C[0][3]; out[t] = {'y': x.get('first_publish_year'), 't': (x.get('title') or '')[:60], 'a': (x.get('author_name') or [])[:2], 'e': x.get('edition_count'), 'how': 'exact' if C[0][0] == 0 else 'starts', 'au': bool(a1)}
+            bad = 0
+        except Exception as e: bad += 1; k = str(e)[:50]; errs[k] = errs.get(k, 0) + 1
+        asked += 1
+        if i % 40 == 0: log('years', i, int(time.time() - t0), 's')
+        time.sleep(0.35)
+    save('years.json', out); log('years asked', asked, 'of', len(L), 'found', len(out), 'errors', errs, int(time.time() - t0), 's')
+
 if __name__ == '__main__':
     todo = sys.argv[1:] or ['unstray', 'apply', 'live']   # unstray first, every run: no poster record may sit in a show: or game: row
     if todo[0] != 'unstray': todo = ['unstray'] + [x for x in todo if x != 'unstray']
     for name in todo:
-        try: {'imdb': imdb, 'tvmaze': tvmaze, 'posters': posters, 'superman': superman, 'fix': fix, 'wikibox': wikibox, 'anime': anime, 'steam': steam, 'pkmn': pkmn, 'wikiraw': wikiraw, 'bookfix3': bookfix3, 'superman2': superman2, 'eras': eras, 'eras2': eras2, 'eras3': eras3, 'themes': themes, 'bigcov': bigcov, 'scenefp': scenefp, 'narrfill': narrfill, 'imdb2': imdb2, 'books': books, 'links': links, 'apply': apply, 'hunt': hunt, 'audible': audible, 'bookfix': bookfix, 'hunt2': hunt2, 'unstray': unstray, 'audible2': audible2, 'bookfix2': bookfix2, 'summaries': summaries, 'live': live, 'coveraudit': coveraudit, 'pages': pages}[name]()
+        try: {'imdb': imdb, 'tvmaze': tvmaze, 'posters': posters, 'superman': superman, 'fix': fix, 'wikibox': wikibox, 'anime': anime, 'steam': steam, 'pkmn': pkmn, 'wikiraw': wikiraw, 'bookfix3': bookfix3, 'superman2': superman2, 'eras': eras, 'eras2': eras2, 'eras3': eras3, 'themes': themes, 'bigcov': bigcov, 'scenefp': scenefp, 'narrfill': narrfill, 'imdb2': imdb2, 'books': books, 'links': links, 'apply': apply, 'hunt': hunt, 'audible': audible, 'bookfix': bookfix, 'hunt2': hunt2, 'unstray': unstray, 'audible2': audible2, 'bookfix2': bookfix2, 'summaries': summaries, 'live': live, 'coveraudit': coveraudit, 'pages': pages, 'years': years}[name]()
         except Exception: log('FAILED', name); traceback.print_exc()
