@@ -24,7 +24,7 @@ const fake = u => { let h = 0; for (const c of u) h = (h * 31 + c.charCodeAt(0))
   // ---- before he chooses it: a button first in the row of views, and the grid still the view the app starts on ----
   await R(async () => { switchLib('books'); await new Promise(r => setTimeout(r, 1500)); });
   let s = await R(() => ({ has: !!window.L59, btns: [...document.querySelectorAll('#lib-books .view-toggle button')].map(b => b.textContent.trim() + (b.classList.contains('active') ? '*' : '')).join('|'), view: currentView, on: L59.isOpen(), flag: localStorage.getItem('den:case'), secs: document.querySelectorAll('#content .genre-section').length }));
-  ok(s.has && /^Bookcase\|Recap\|Genre\*\|Series\|Status\|Shelves\|/.test(s.btns) && s.view === 'genre' && !s.on && s.flag === null && s.secs > 5, 'Bookcase stands first in the row of Books views, and the grid is still what the app starts on: ' + JSON.stringify(s));
+  ok(s.has && /^Bookcase\|Recap\|Favorites\|Genre\*\|Series\|Status\|Shelves\|/.test(s.btns) && s.view === 'genre' && !s.on && s.flag === null && s.secs > 5, 'Bookcase stands first in the row of Books views, and the grid is still what the app starts on: ' + JSON.stringify(s));
   const before = await R(() => JSON.stringify(L56.slots().map(x => [x.id, x.t, x.min])) + '|' + Object.keys(localStorage).filter(k => k !== 'den:case').sort().join());
   // ---- the data: the live plan, spot for spot ----
   s = await R(() => { const D = L59.data(false), S = L56.slots(); const all = D.Z.reduce((a, z) => a.concat(z.items), []);
