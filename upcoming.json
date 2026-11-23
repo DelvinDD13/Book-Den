@@ -1,5 +1,5 @@
 {
- "at": "2026-11-16",
+ "at": "2026-11-23",
  "books": [
   {
    "series": "A Court of Thorns and Roses",
@@ -254,11 +254,13 @@
     "Film"
    ],
    "date": "2026-11-20",
-   "status": "dated",
+   "status": "released",
    "note": "The film of the book: Haymitch's Hunger Games, 24 years before Katniss.",
    "cover": null,
    "sources": [
-    "https://www.motionpictures.org/2026/04/a-dark-new-chapter-begins-in-the-first-trailer-for-the-hunger-games-sunrise-on-the-reaping/"
+    "https://variety.com/2026/film/box-office/sunrise-on-the-reaping-box-office-hunger-games-opening-weekend-exceeds-expectations-1236953061/",
+    "https://www.hollywoodreporter.com/movies/movie-news/hunger-games-sunrise-on-the-reaping-box-office-opening-win-2-1236760511/",
+    "https://www.boxofficemojo.com/title/tt32558705/"
    ],
    "genre": "Film"
   },
@@ -287,13 +289,13 @@
     "Switch",
     "Switch 2"
    ],
-   "date": "2027-02-16",
+   "date": "2027-02-04",
    "status": "dated",
    "note": "A full 3D remake with eight protagonists, free-form scenarios and War Mode tactical battles.",
    "cover": "https://media.gamestop.com/i/gamestop/20037885-be099b16",
    "sources": [
-    "https://www.rpgsite.net/news/21322-romancing-saga-3-destinies-united-release-date",
-    "https://www.gematsu.com/games/romancing-saga-3-destinies-united"
+    "https://www.gamespress.com/ROMANCING-SAGA-3-DESTINIES-UNITED-LAUNCHING-EARLY-ON-FEBRUARY-4",
+    "https://www.siliconera.com/romancing-saga-3-destinies-united-release-date-bumped-up/"
    ],
    "genre": "RPG"
   },
